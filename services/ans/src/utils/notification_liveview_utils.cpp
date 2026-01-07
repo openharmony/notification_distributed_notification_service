@@ -19,7 +19,7 @@
 #include "ans_log_wrapper.h"
 #include "advanced_notification_inline.h"
 #include "notification_preferences.h"
-#include "liveview_all_scenarios_extension_wrapper.h"
+#include "all_scenarios_extension_wrapper.h"
 #include "notification_config_parse.h"
 
 namespace OHOS {
@@ -66,7 +66,7 @@ bool NotificationLiveViewUtils::CheckLiveViewConfigByBundle(const std::string& b
     }
 
     bool configEnable = false;
-    if (LIVEVIEW_ALL_SCENARIOS_EXTENTION_WRAPPER->CheckLiveViewConfig(bundleName, event,
+    if (Infra::ALL_SCENARIOS_EXTENTION_WRAPPER.CheckLiveViewConfig(bundleName, event,
         userId, configEnable) != ERR_OK) {
         ANS_LOGE("Get config failed %{public}s", bundleName.c_str());
         return true;
@@ -78,7 +78,7 @@ bool NotificationLiveViewUtils::CheckLiveViewConfigByBundle(const std::string& b
     const std::string& event, int32_t userId)
 {
     bool configEnable = false;
-    if (LIVEVIEW_ALL_SCENARIOS_EXTENTION_WRAPPER->CheckLiveViewConfig(bundleName, event,
+    if (Infra::ALL_SCENARIOS_EXTENTION_WRAPPER.CheckLiveViewConfig(bundleName, event,
         userId, configEnable) != ERR_OK) {
         ANS_LOGE("Get config failed %{public}s", bundleName.c_str());
         return true;
@@ -109,7 +109,7 @@ bool NotificationLiveViewUtils::CheckLiveViewForBundle(const sptr<NotificationRe
 
     ANS_LOGI("Ccm check %{public}s %{public}s.", bundleName.c_str(), event.c_str());
     bool enable = false;
-    if (LIVEVIEW_ALL_SCENARIOS_EXTENTION_WRAPPER->CheckLiveViewConfig(bundleName, event,
+    if (Infra::ALL_SCENARIOS_EXTENTION_WRAPPER.CheckLiveViewConfig(bundleName, event,
         DEFAULT_USER_ID, enable) != ERR_OK) {
         return false;
     }
@@ -119,7 +119,7 @@ bool NotificationLiveViewUtils::CheckLiveViewForBundle(const sptr<NotificationRe
 bool NotificationLiveViewUtils::CheckLiveViewVersion()
 {
     int32_t ccmVersion = 0;
-    if (LIVEVIEW_ALL_SCENARIOS_EXTENTION_WRAPPER->GetLiveViewConfigVersion(ccmVersion) != ERR_OK) {
+    if (Infra::ALL_SCENARIOS_EXTENTION_WRAPPER.GetLiveViewConfigVersion(ccmVersion) != ERR_OK) {
         ANS_LOGW("Live view util get ccm failed");
         return false;
     }
@@ -145,7 +145,7 @@ void NotificationLiveViewUtils::NotifyLiveViewEvent(const std::string& event)
 
     ANS_LOGI("notify event %{public}s", event.c_str());
     if (CheckLiveViewVersion()) {
-        LIVEVIEW_ALL_SCENARIOS_EXTENTION_WRAPPER->NotifyLiveViewEvent(event, nullptr);
+        Infra::ALL_SCENARIOS_EXTENTION_WRAPPER.NotifyLiveViewEvent(event, nullptr);
     }
 }
 
@@ -156,7 +156,7 @@ void NotificationLiveViewUtils::NotifyLiveViewEvent(const std::string& event,
         return;
     }
     ANS_LOGI("notify event %{public}s", event.c_str());
-    LIVEVIEW_ALL_SCENARIOS_EXTENTION_WRAPPER->NotifyLiveViewEvent(event, bundleInfo);
+    Infra::ALL_SCENARIOS_EXTENTION_WRAPPER.NotifyLiveViewEvent(event, bundleInfo);
 }
 
 bool NotificationLiveViewUtils::CheckLiveViewRebuild(int32_t userId)
