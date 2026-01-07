@@ -39,7 +39,6 @@
 
 #include "bool_wrapper.h"
 #include "advanced_notification_inline.h"
-#include "liveview_all_scenarios_extension_wrapper.h"
 #ifdef ALL_SCENARIO_COLLABORATION
 #include "distributed_collaboration_service.h"
 #endif
