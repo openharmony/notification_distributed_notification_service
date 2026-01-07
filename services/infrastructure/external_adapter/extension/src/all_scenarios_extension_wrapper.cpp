@@ -20,6 +20,12 @@
 
 namespace OHOS::Notification::Infra {
 const std::string EXTENTION_LIVEVIEW_ALL_SCENARIOS_PATH = "libliveview.z.so";
+AllScenariosExtensionWrapper& AllScenariosExtensionWrapper::GetInstance()
+{
+    static AllScenariosExtensionWrapper extensionWrapper;
+    return extensionWrapper;
+}
+
 AllScenariosExtensionWrapper::AllScenariosExtensionWrapper()
 {
     InitExtentionWrapper();
