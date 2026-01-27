@@ -101,7 +101,6 @@ void StsSubscriberInstance::OnCanceled(
     int32_t deleteReason)
 {
     ANS_LOGD("enter");
-    std::lock_guard<std::mutex> l(lock_);
     ani_env* etsEnv;
     ani_status aniResult = ANI_ERROR;
     ani_options aniArgs { 0, nullptr };
@@ -130,7 +129,6 @@ void StsSubscriberInstance::OnConsumed(
     const std::shared_ptr<NotificationSortingMap> &sortingMap)
 {
     ANS_LOGD("enter");
-    std::lock_guard<std::mutex> l(lock_);
     ani_env* etsEnv;
     ani_status aniResult = ANI_ERROR;
     ani_options aniArgs { 0, nullptr };
@@ -157,7 +155,6 @@ void StsSubscriberInstance::OnConsumed(
 void StsSubscriberInstance::OnUpdate(const std::shared_ptr<NotificationSortingMap> &sortingMap)
 {
     ANS_LOGD("enter");
-    std::lock_guard<std::mutex> l(lock_);
     ani_env* etsEnv;
     ani_status aniResult = ANI_ERROR;
     ani_options aniArgs { 0, nullptr };
@@ -184,7 +181,6 @@ void StsSubscriberInstance::OnUpdate(const std::shared_ptr<NotificationSortingMa
 void StsSubscriberInstance::OnConnected()
 {
     ANS_LOGD("enter");
-    std::lock_guard<std::mutex> l(lock_);
     ani_env* etsEnv;
     ani_status aniResult = ANI_ERROR;
     ani_options aniArgs { 0, nullptr };
@@ -205,7 +201,6 @@ void StsSubscriberInstance::OnConnected()
 void StsSubscriberInstance::OnDisconnected()
 {
     ANS_LOGD("enter");
-    std::lock_guard<std::mutex> l(lock_);
     ani_env* etsEnv;
     ani_status aniResult = ANI_ERROR;
     ani_options aniArgs { 0, nullptr };
@@ -231,7 +226,6 @@ void StsSubscriberInstance::OnDisconnected()
 void StsSubscriberInstance::OnDied()
 {
     ANS_LOGD("enter");
-    std::lock_guard<std::mutex> l(lock_);
     ani_env* etsEnv;
     ani_status aniResult = ANI_ERROR;
     ani_options aniArgs { 0, nullptr };
@@ -257,7 +251,6 @@ void StsSubscriberInstance::OnDoNotDisturbDateChange(const std::shared_ptr<Notif
 void StsSubscriberInstance::onDoNotDisturbChanged(const std::shared_ptr<NotificationDoNotDisturbDate> &date)
 {
     ANS_LOGD("enter");
-    std::lock_guard<std::mutex> l(lock_);
     ani_env* etsEnv;
     ani_status aniResult = ANI_ERROR;
     ani_options aniArgs { 0, nullptr };
@@ -285,7 +278,6 @@ void StsSubscriberInstance::OnEnabledNotificationChanged(
     const std::shared_ptr<EnabledNotificationCallbackData> &callbackData)
 {
     ANS_LOGD("enter");
-    std::lock_guard<std::mutex> l(lock_);
     ani_env* etsEnv;
     ani_status aniResult = ANI_ERROR;
     ani_options aniArgs { 0, nullptr };
@@ -313,7 +305,6 @@ void StsSubscriberInstance::OnEnabledNotificationChanged(
 void StsSubscriberInstance::OnEnabledPriorityChanged(
     const std::shared_ptr<EnabledNotificationCallbackData> &callbackData)
 {
-    std::lock_guard<std::mutex> l(lock_);
     ani_env* etsEnv;
     ani_status aniResult = ANI_ERROR;
     ani_options aniArgs { 0, nullptr };
@@ -340,7 +331,6 @@ void StsSubscriberInstance::OnEnabledPriorityChanged(
 void StsSubscriberInstance::OnEnabledPriorityByBundleChanged(
     const std::shared_ptr<EnabledPriorityNotificationByBundleCallbackData> &callbackData)
 {
-    std::lock_guard<std::mutex> l(lock_);
     ani_env* etsEnv;
     ani_status aniResult = ANI_ERROR;
     ani_options aniArgs { 0, nullptr };
@@ -367,7 +357,6 @@ void StsSubscriberInstance::OnEnabledPriorityByBundleChanged(
 void StsSubscriberInstance::OnBadgeChanged(const std::shared_ptr<BadgeNumberCallbackData> &badgeData)
 {
     ANS_LOGD("enter");
-    std::lock_guard<std::mutex> l(lock_);
     ani_env* etsEnv;
     ani_status aniResult = ANI_ERROR;
     ani_options aniArgs { 0, nullptr };
@@ -394,7 +383,6 @@ void StsSubscriberInstance::OnBadgeChanged(const std::shared_ptr<BadgeNumberCall
 void StsSubscriberInstance::OnBadgeEnabledChanged(const sptr<EnabledNotificationCallbackData> &callbackData)
 {
     ANS_LOGD("enter");
-    std::lock_guard<std::mutex> l(lock_);
     ani_env* etsEnv;
     ani_status aniResult = ANI_ERROR;
     ani_options aniArgs { 0, nullptr };
@@ -427,7 +415,6 @@ void StsSubscriberInstance::OnBatchCanceled(
     const std::shared_ptr<NotificationSortingMap> &sortingMap, int32_t deleteReason)
 {
     ANS_LOGD("enter");
-    std::lock_guard<std::mutex> l(lock_);
     ani_env* etsEnv;
     ani_status aniResult = ANI_ERROR;
     ani_options aniArgs { 0, nullptr };
@@ -454,7 +441,6 @@ void StsSubscriberInstance::OnBatchCanceled(
 void StsSubscriberInstance::OnSystemUpdate(const std::shared_ptr<OHOS::Notification::Notification> &request)
 {
     ANS_LOGD("enter");
-    std::lock_guard<std::mutex> l(lock_);
     ani_env* etsEnv;
     ani_status aniResult = ANI_ERROR;
     ani_options aniArgs { 0, nullptr };
@@ -481,7 +467,6 @@ void StsSubscriberInstance::OnSystemUpdate(const std::shared_ptr<OHOS::Notificat
 bool StsSubscriberInstance::HasOnBatchCancelCallback()
 {
     ANS_LOGD("enter");
-    std::lock_guard<std::mutex> l(lock_);
     ani_env* etsEnv;
     ani_status aniResult = ANI_ERROR;
     ani_options aniArgs { 0, nullptr };
@@ -516,7 +501,6 @@ bool StsSubscriberInstance::HasOnBatchCancelCallback()
 bool StsSubscriberInstance::SetObject(ani_env *env, ani_object obj)
 {
     ANS_LOGD("enter");
-    std::lock_guard<std::mutex> l(lock_);
     if (env == nullptr || obj == nullptr) {
         return false;
     }
@@ -539,7 +523,6 @@ bool StsSubscriberInstance::IsInit()
 bool StsSubscriberInstance::Compare(ani_env *env, ani_object obj)
 {
     ANS_LOGD("enter");
-    std::lock_guard<std::mutex> l(lock_);
     if (!IsInit()) {
         return false;
     }
