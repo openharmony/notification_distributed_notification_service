@@ -24,7 +24,7 @@ type IconType = Resource | image.PixelMap;
 class RecordTools {
   public static GetKeys(record: Record<string, Any>): Array<string> {
     try {
-      let keys: Array<string> = Object.keys(record); 
+      let keys: Array<string> = Array.from(record.keySet());
       return keys;
     } catch (err) {
       return {};
