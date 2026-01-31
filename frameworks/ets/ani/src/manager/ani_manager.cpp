@@ -297,6 +297,18 @@ static std::array kitManagerFunctions = {
         nullptr, reinterpret_cast<void *>(AniIsPriorityEnabledByBundle)},
     ani_native_function {"nativeSetPriorityEnabled", nullptr, reinterpret_cast<void *>(AniSetPriorityEnabled)},
     ani_native_function {"nativeIsPriorityEnabled", nullptr, reinterpret_cast<void *>(AniIsPriorityEnabled)},
+    ani_native_function {"nativeSetPriorityEnabledByBundles", nullptr,
+        reinterpret_cast<void *>(AniSetPriorityEnabledByBundles)},
+    ani_native_function {"nativeGetPriorityEnabledByBundles", nullptr,
+        reinterpret_cast<void *>(AniGetPriorityEnabledByBundles)},
+    ani_native_function {"nativeSetPriorityIntelligentEnabled", nullptr,
+        reinterpret_cast<void *>(AniSetPriorityIntelligentEnabled)},
+    ani_native_function {"nativeIsPriorityIntelligentEnabled", nullptr,
+        reinterpret_cast<void *>(AniIsPriorityIntelligentEnabled)},
+    ani_native_function {"nativeSetPriorityStrategyByBundles", nullptr,
+        reinterpret_cast<void *>(AniSetPriorityStrategyByBundles)},
+    ani_native_function {"nativeGetPriorityStrategyByBundles", nullptr,
+        reinterpret_cast<void *>(AniGetPriorityStrategyByBundles)},
 #else
     ani_native_function {"nativeSetBundlePriorityConfig", nullptr, reinterpret_cast<void *>(ThrowSystemCapErr)},
     ani_native_function {"nativeGetBundlePriorityConfig", nullptr, reinterpret_cast<void *>(ThrowSystemCapErr)},
@@ -304,6 +316,12 @@ static std::array kitManagerFunctions = {
     ani_native_function {"nativeIsPriorityEnabledByBundle", nullptr, reinterpret_cast<void *>(ThrowSystemCapErr)},
     ani_native_function {"nativeSetPriorityEnabled", nullptr, reinterpret_cast<void *>(ThrowSystemCapErr)},
     ani_native_function {"nativeIsPriorityEnabled", nullptr, reinterpret_cast<void *>(ThrowSystemCapErr)},
+    ani_native_function {"nativeSetPriorityEnabledByBundles", nullptr, reinterpret_cast<void *>(ThrowSystemCapErr)},
+    ani_native_function {"nativeGetPriorityEnabledByBundles", nullptr, reinterpret_cast<void *>(ThrowSystemCapErr)},
+    ani_native_function {"nativeSetPriorityIntelligentEnabled", nullptr, reinterpret_cast<void *>(ThrowSystemCapErr)},
+    ani_native_function {"nativeIsPriorityIntelligentEnabled", nullptr, reinterpret_cast<void *>(ThrowSystemCapErr)},
+    ani_native_function {"nativeSetPriorityStrategyByBundles", nullptr, reinterpret_cast<void *>(ThrowSystemCapErr)},
+    ani_native_function {"nativeGetPriorityStrategyByBundles", nullptr, reinterpret_cast<void *>(ThrowSystemCapErr)},
 #endif
 };
 

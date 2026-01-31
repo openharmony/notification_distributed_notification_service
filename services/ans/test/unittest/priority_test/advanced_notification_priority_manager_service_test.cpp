@@ -25,6 +25,9 @@
 #include "bool_wrapper.h"
 #include "mock_accesstoken_kit.h"
 
+extern void MockGetOsAccountLocalIdFromUid(bool mockRet, uint8_t mockCase);
+extern void MockQueryForgroundOsAccountId(bool mockRet, uint8_t mockCase);
+
 using namespace testing::ext;
 using namespace testing;
 
@@ -221,6 +224,20 @@ HWTEST_F(PriorityManagerServiceTest, SetBundlePriorityConfig_0300, Function | Sm
 }
 
 /**
+ * @tc.name: SetBundlePriorityConfigInner_0100
+ * @tc.desc: Test SetBundlePriorityConfigInner with empty value success.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PriorityManagerServiceTest, SetBundlePriorityConfigInner_0100, Function | SmallTest | Level1)
+{
+    MockIsSystemApp(true);
+    MockIsVerfyPermisson(true);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
+    sptr<NotificationBundleOption> bundleOption = new (std::nothrow) NotificationBundleOption("bundleName", 200202);
+    EXPECT_EQ(AdvancedNotificationService::GetInstance()->SetBundlePriorityConfig(bundleOption, ""), ERR_OK);
+}
+
+/**
  * @tc.name: GetBundlePriorityConfig_0100
  * @tc.desc: Test GetBundlePriorityConfig return ERR_ANS_PERMISSION_DENIED.
  * @tc.type: FUNC
@@ -327,7 +344,7 @@ HWTEST_F(PriorityManagerServiceTest, TriggerUpdatePriorityType_0400, Function | 
 
 /**
  * @tc.name: GetRequestsFromNotification_0100
- * @tc.desc: Test GetRequestsFromNotification fail.
+ * @tc.desc: Test GetRequestsFromNotification success.
  * @tc.type: FUNC
  */
 HWTEST_F(PriorityManagerServiceTest, GetRequestsFromNotification_0100, Function | SmallTest | Level1)
@@ -339,12 +356,340 @@ HWTEST_F(PriorityManagerServiceTest, GetRequestsFromNotification_0100, Function 
     extendInfo->SetParam(ANS_EXTENDINFO_INFO_PRE + EXTENDINFO_FLAG, AAFwk::Boolean::Box(true));
     request->SetExtendInfo(extendInfo);
     sptr<Notification> notification1 = new (std::nothrow) Notification(request);
+    sptr<NotificationRequest> request2 = new (std::nothrow) NotificationRequest(10002);
+    request2->SetSlotType(NotificationConstant::SlotType::LIVE_VIEW);
+    sptr<Notification> notification2 = new (std::nothrow) Notification(request2);
+    sptr<NotificationRequest> request3 = new (std::nothrow) NotificationRequest(10003);
+    std::shared_ptr<NotificationNormalContent> normalContent = std::make_shared<NotificationNormalContent>();
+    std::shared_ptr<NotificationContent> content = std::make_shared<NotificationContent>(normalContent);
+    request3->SetContent(content);
+    sptr<Notification> notification3 = new (std::nothrow) Notification(request3);
     notifications.push_back(nullptr);
     notifications.push_back(notification);
     notifications.push_back(notification1);
+    notifications.push_back(notification2);
+    notifications.push_back(notification3);
     std::vector<sptr<NotificationRequest>> requests;
     AdvancedNotificationService::GetInstance()->GetRequestsFromNotification(notifications, requests);
-    EXPECT_EQ(requests.size(), 0);
+    EXPECT_EQ(requests.size(), 1);
+}
+
+/**
+ * @tc.name: SetPriorityEnabledByBundles_0100
+ * @tc.desc: Test SetPriorityEnabledByBundles ERR_ANS_PERMISSION_DENIED.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PriorityManagerServiceTest, SetPriorityEnabledByBundles_0100, Function | SmallTest | Level1)
+{
+    MockIsSystemApp(true);
+    MockIsVerfyPermisson(false);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
+    std::map<sptr<NotificationBundleOption>, bool> priorityEnable;
+    EXPECT_EQ(AdvancedNotificationService::GetInstance()->SetPriorityEnabledByBundles(priorityEnable),
+        ERR_ANS_PERMISSION_DENIED);
+}
+
+/**
+ * @tc.name: SetPriorityEnabledByBundles_0200
+ * @tc.desc: Test SetPriorityEnabledByBundles param ERR_ANS_INVALID_BUNDLE.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PriorityManagerServiceTest, SetPriorityEnabledByBundles_0200, Function | SmallTest | Level1)
+{
+    MockIsSystemApp(true);
+    MockIsVerfyPermisson(true);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
+    sptr<NotificationBundleOption> bundleOption = new (std::nothrow) NotificationBundleOption();
+    bundleOption->SetBundleName("testBundleName");
+    std::map<sptr<NotificationBundleOption>, bool> priorityEnable;
+    priorityEnable[bundleOption] = false;
+    EXPECT_EQ(AdvancedNotificationService::GetInstance()->SetPriorityEnabledByBundles(priorityEnable),
+        ERR_ANS_INVALID_BUNDLE);
+}
+
+/**
+ * @tc.name: SetPriorityEnabledByBundles_0300
+ * @tc.desc: Test SetPriorityEnabledByBundles success.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PriorityManagerServiceTest, SetPriorityEnabledByBundles_0300, Function | SmallTest | Level1)
+{
+    MockIsSystemApp(true);
+    MockIsVerfyPermisson(true);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
+    sptr<NotificationBundleOption> bundleOption = new (std::nothrow) NotificationBundleOption();
+    bundleOption->SetBundleName("bundleName");
+    std::map<sptr<NotificationBundleOption>, bool> priorityEnable;
+    priorityEnable[bundleOption] = true;
+    EXPECT_EQ(AdvancedNotificationService::GetInstance()->SetPriorityEnabledByBundles(priorityEnable), ERR_OK);
+}
+
+/**
+ * @tc.name: GetPriorityEnabledByBundles_0100
+ * @tc.desc: Test GetPriorityEnabledByBundles ERR_ANS_PERMISSION_DENIED.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PriorityManagerServiceTest, GetPriorityEnabledByBundles_0100, Function | SmallTest | Level1)
+{
+    MockIsSystemApp(true);
+    MockIsVerfyPermisson(false);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
+    std::map<sptr<NotificationBundleOption>, bool> priorityEnable;
+    std::vector<sptr<NotificationBundleOption>> bundleOptions;
+    EXPECT_EQ(AdvancedNotificationService::GetInstance()->GetPriorityEnabledByBundles(bundleOptions, priorityEnable),
+        ERR_ANS_PERMISSION_DENIED);
+}
+
+/**
+ * @tc.name: GetPriorityEnabledByBundles_0200
+ * @tc.desc: Test GetPriorityEnabledByBundles param ERR_ANS_INVALID_BUNDLE.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PriorityManagerServiceTest, GetPriorityEnabledByBundles_0200, Function | SmallTest | Level1)
+{
+    MockIsSystemApp(true);
+    MockIsVerfyPermisson(true);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
+    sptr<NotificationBundleOption> bundleOption = new (std::nothrow) NotificationBundleOption();
+    bundleOption->SetBundleName("testBundleName");
+    std::map<sptr<NotificationBundleOption>, bool> priorityEnable;
+    std::vector<sptr<NotificationBundleOption>> bundleOptions;
+    bundleOptions.emplace_back(bundleOption);
+    EXPECT_EQ(AdvancedNotificationService::GetInstance()->GetPriorityEnabledByBundles(bundleOptions, priorityEnable),
+        ERR_ANS_INVALID_BUNDLE);
+}
+
+/**
+ * @tc.name: GetPriorityEnabledByBundles_0300
+ * @tc.desc: Test GetPriorityEnabledByBundles success.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PriorityManagerServiceTest, GetPriorityEnabledByBundles_0300, Function | SmallTest | Level1)
+{
+    MockIsSystemApp(true);
+    MockIsVerfyPermisson(true);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
+    sptr<NotificationBundleOption> bundleOption = new (std::nothrow) NotificationBundleOption();
+    bundleOption->SetBundleName("bundleName");
+    std::map<sptr<NotificationBundleOption>, bool> priorityEnable;
+    std::vector<sptr<NotificationBundleOption>> bundleOptions;
+    bundleOptions.emplace_back(bundleOption);
+    EXPECT_EQ(AdvancedNotificationService::GetInstance()->GetPriorityEnabledByBundles(bundleOptions, priorityEnable),
+        ERR_OK);
+}
+
+/**
+ * @tc.name: SetPriorityIntelligentEnabled_0100
+ * @tc.desc: Test SetPriorityIntelligentEnabled ERR_ANS_PERMISSION_DENIED.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PriorityManagerServiceTest, SetPriorityIntelligentEnabled_0100, Function | SmallTest | Level1)
+{
+    MockIsSystemApp(true);
+    MockIsVerfyPermisson(false);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
+    bool enabled = true;
+    EXPECT_EQ(AdvancedNotificationService::GetInstance()->SetPriorityIntelligentEnabled(enabled),
+        ERR_ANS_PERMISSION_DENIED);
+}
+
+/**
+ * @tc.name: SetPriorityIntelligentEnabled_0200
+ * @tc.desc: Test SetPriorityIntelligentEnabled db fail.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PriorityManagerServiceTest, SetPriorityIntelligentEnabled_0200, Function | SmallTest | Level1)
+{
+    MockQueryForgroundOsAccountId(false, 3);
+    MockIsSystemApp(true);
+    MockIsVerfyPermisson(true);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
+    bool enabled = true;
+    EXPECT_EQ(AdvancedNotificationService::GetInstance()->SetPriorityIntelligentEnabled(enabled),
+        ERR_ANS_PREFERENCES_NOTIFICATION_DB_OPERATION_FAILED);
+    MockQueryForgroundOsAccountId(true, 0);
+}
+
+/**
+ * @tc.name: SetPriorityIntelligentEnabled_0300
+ * @tc.desc: Test SetPriorityIntelligentEnabled success.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PriorityManagerServiceTest, SetPriorityIntelligentEnabled_0300, Function | SmallTest | Level1)
+{
+    MockIsSystemApp(true);
+    MockIsVerfyPermisson(true);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
+    bool enabled = true;
+    EXPECT_EQ(AdvancedNotificationService::GetInstance()->SetPriorityIntelligentEnabled(enabled), ERR_OK);
+}
+
+/**
+ * @tc.name: IsPriorityIntelligentEnabled_0100
+ * @tc.desc: Test IsPriorityIntelligentEnabled ERR_ANS_PERMISSION_DENIED.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PriorityManagerServiceTest, IsPriorityIntelligentEnabled_0100, Function | SmallTest | Level1)
+{
+    MockIsSystemApp(true);
+    MockIsVerfyPermisson(false);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
+    bool enabled = true;
+    EXPECT_EQ(AdvancedNotificationService::GetInstance()->IsPriorityIntelligentEnabled(enabled),
+        ERR_ANS_PERMISSION_DENIED);
+}
+
+/**
+ * @tc.name: IsPriorityIntelligentEnabled_0200
+ * @tc.desc: Test IsPriorityIntelligentEnabled db fail.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PriorityManagerServiceTest, IsPriorityIntelligentEnabled_0200, Function | SmallTest | Level1)
+{
+    MockQueryForgroundOsAccountId(false, 3);
+    MockIsSystemApp(true);
+    MockIsVerfyPermisson(true);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
+    bool enabled = true;
+    EXPECT_EQ(AdvancedNotificationService::GetInstance()->IsPriorityIntelligentEnabled(enabled),
+        ERR_ANS_PREFERENCES_NOTIFICATION_DB_OPERATION_FAILED);
+    MockQueryForgroundOsAccountId(true, 0);
+}
+
+/**
+ * @tc.name: IsPriorityIntelligentEnabled_0300
+ * @tc.desc: Test IsPriorityIntelligentEnabled success.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PriorityManagerServiceTest, IsPriorityIntelligentEnabled_0300, Function | SmallTest | Level1)
+{
+    MockIsSystemApp(true);
+    MockIsVerfyPermisson(true);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
+    bool enabled = true;
+    EXPECT_EQ(AdvancedNotificationService::GetInstance()->IsPriorityIntelligentEnabled(enabled), ERR_OK);
+}
+
+/**
+ * @tc.name: SetPriorityStrategyByBundles_0100
+ * @tc.desc: Test SetPriorityStrategyByBundles ERR_ANS_PERMISSION_DENIED.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PriorityManagerServiceTest, SetPriorityStrategyByBundles_0100, Function | SmallTest | Level1)
+{
+    MockIsSystemApp(true);
+    MockIsVerfyPermisson(false);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
+    std::map<sptr<NotificationBundleOption>, int64_t> strategies;
+    EXPECT_EQ(AdvancedNotificationService::GetInstance()->SetPriorityStrategyByBundles(strategies),
+        ERR_ANS_PERMISSION_DENIED);
+}
+
+/**
+ * @tc.name: SetPriorityStrategyByBundles_0200
+ * @tc.desc: Test SetPriorityStrategyByBundles success.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PriorityManagerServiceTest, SetPriorityStrategyByBundles_0200, Function | SmallTest | Level1)
+{
+    MockIsSystemApp(true);
+    MockIsVerfyPermisson(true);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
+    sptr<NotificationBundleOption> bundleOption = new (std::nothrow) NotificationBundleOption();
+    bundleOption->SetBundleName("bundleName");
+    std::map<sptr<NotificationBundleOption>, int64_t> strategies;
+    strategies[bundleOption] = 32;
+    EXPECT_EQ(AdvancedNotificationService::GetInstance()->SetPriorityStrategyByBundles(strategies), ERR_OK);
+}
+
+/**
+ * @tc.name: SetPriorityStrategyByBundles_0300
+ * @tc.desc: Test SetPriorityStrategyByBundles ERR_ANS_INVALID_PARAM.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PriorityManagerServiceTest, SetPriorityStrategyByBundles_0300, Function | SmallTest | Level1)
+{
+    MockIsSystemApp(true);
+    MockIsVerfyPermisson(true);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
+    sptr<NotificationBundleOption> bundleOption = new (std::nothrow) NotificationBundleOption();
+    bundleOption->SetBundleName("bundleName");
+    std::map<sptr<NotificationBundleOption>, int64_t> strategies;
+    strategies[bundleOption] = -1;
+    EXPECT_EQ(AdvancedNotificationService::GetInstance()->SetPriorityStrategyByBundles(strategies),
+        ERR_ANS_INVALID_PARAM);
+}
+
+/**
+ * @tc.name: SetPriorityStrategyByBundles_0400
+ * @tc.desc: Test SetPriorityStrategyByBundles ERR_ANS_INVALID_BUNDLE.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PriorityManagerServiceTest, SetPriorityStrategyByBundles_0400, Function | SmallTest | Level1)
+{
+    MockIsSystemApp(true);
+    MockIsVerfyPermisson(true);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
+    sptr<NotificationBundleOption> bundleOption = new (std::nothrow) NotificationBundleOption();
+    bundleOption->SetBundleName("testBundleName");
+    std::map<sptr<NotificationBundleOption>, int64_t> strategies;
+    strategies[bundleOption] = 32;
+    EXPECT_EQ(AdvancedNotificationService::GetInstance()->SetPriorityStrategyByBundles(strategies),
+        ERR_ANS_INVALID_BUNDLE);
+}
+
+/**
+ * @tc.name: GetPriorityStrategyByBundles_0100
+ * @tc.desc: Test GetPriorityStrategyByBundles ERR_ANS_PERMISSION_DENIED.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PriorityManagerServiceTest, GetPriorityStrategyByBundles_0100, Function | SmallTest | Level1)
+{
+    MockIsSystemApp(true);
+    MockIsVerfyPermisson(false);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
+    std::map<sptr<NotificationBundleOption>, int64_t> strategies;
+    std::vector<sptr<NotificationBundleOption>> bundleOptions;
+    EXPECT_EQ(AdvancedNotificationService::GetInstance()->GetPriorityStrategyByBundles(bundleOptions, strategies),
+        ERR_ANS_PERMISSION_DENIED);
+}
+
+/**
+ * @tc.name: GetPriorityStrategyByBundles_0200
+ * @tc.desc: Test GetPriorityStrategyByBundles success.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PriorityManagerServiceTest, GetPriorityStrategyByBundles_0200, Function | SmallTest | Level1)
+{
+    MockIsSystemApp(true);
+    MockIsVerfyPermisson(true);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
+    sptr<NotificationBundleOption> bundleOption = new (std::nothrow) NotificationBundleOption();
+    bundleOption->SetBundleName("bundleName");
+    std::map<sptr<NotificationBundleOption>, int64_t> strategies;
+    std::vector<sptr<NotificationBundleOption>> bundleOptions;
+    bundleOptions.emplace_back(bundleOption);
+    EXPECT_EQ(AdvancedNotificationService::GetInstance()->GetPriorityStrategyByBundles(bundleOptions, strategies),
+        ERR_OK);
+}
+
+/**
+ * @tc.name: GetPriorityStrategyByBundles_0300
+ * @tc.desc: Test GetPriorityStrategyByBundles ERR_ANS_INVALID_BUNDLE.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PriorityManagerServiceTest, GetPriorityStrategyByBundles_0300, Function | SmallTest | Level1)
+{
+    MockIsSystemApp(true);
+    MockIsVerfyPermisson(true);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
+    sptr<NotificationBundleOption> bundleOption = new (std::nothrow) NotificationBundleOption();
+    bundleOption->SetBundleName("testBundleName");
+    std::map<sptr<NotificationBundleOption>, int64_t> strategies;
+    std::vector<sptr<NotificationBundleOption>> bundleOptions;
+    bundleOptions.emplace_back(bundleOption);
+    EXPECT_EQ(AdvancedNotificationService::GetInstance()->GetPriorityStrategyByBundles(bundleOptions, strategies),
+        ERR_ANS_INVALID_BUNDLE);
 }
 }
 }

@@ -20,6 +20,34 @@
 
 namespace OHOS {
 namespace NotificationNapi {
+const int32_t GET_PRIORITY_ENABLE_MAX_PARA = 1;
+const int32_t SET_PRIORITY_ENABLE_MAX_PARA = 1;
+
+struct AsyncCallbackInfoPriorityEnabled {
+    napi_env env = nullptr;
+    napi_async_work asyncWork = nullptr;
+    std::vector<NotificationBundleOption> bundles;
+    std::map<sptr<NotificationBundleOption>, bool> priorityEnable;
+    std::map<sptr<NotificationBundleOption>, int64_t> priorityStrategy;
+    CallbackPromiseInfo info;
+};
+
+void AsyncCompleteCallbackNapiSetPriorityEnabled(napi_env env, napi_status status, void *data)
+{
+    if (!data) {
+        ANS_LOGE("Invalid async callback data");
+        return;
+    }
+    AsyncCallbackInfoEnabled *asynccallbackinfo = static_cast<AsyncCallbackInfoEnabled *>(data);
+    Common::CreateReturnValue(env, asynccallbackinfo->info, Common::NapiGetNull(env));
+    if (asynccallbackinfo->info.callback != nullptr) {
+        napi_delete_reference(env, asynccallbackinfo->info.callback);
+    }
+    napi_delete_async_work(env, asynccallbackinfo->asyncWork);
+    delete asynccallbackinfo;
+    asynccallbackinfo = nullptr;
+}
+
 napi_value NapiSetPriorityEnabled(napi_env env, napi_callback_info info)
 {
     ANS_LOGD("called");
@@ -50,22 +78,7 @@ napi_value NapiSetPriorityEnabled(napi_env env, napi_callback_info info)
                     NotificationHelper::SetPriorityEnabled(asynccallbackinfo->enable);
                 ANS_LOGD("errorCode = %{public}d", asynccallbackinfo->info.errorCode);
             }
-        },
-        [] (napi_env env, napi_status status, void *data) {
-            ANS_LOGD("NapiSetPriorityEnabled work complete.");
-            AsyncCallbackInfoEnabled *asynccallbackinfo = static_cast<AsyncCallbackInfoEnabled *>(data);
-            if (asynccallbackinfo) {
-                Common::CreateReturnValue(env, asynccallbackinfo->info, Common::NapiGetNull(env));
-                if (asynccallbackinfo->info.callback != nullptr) {
-                    ANS_LOGD("Delete NapiSetPriorityEnabled callback reference.");
-                    napi_delete_reference(env, asynccallbackinfo->info.callback);
-                }
-                napi_delete_async_work(env, asynccallbackinfo->asyncWork);
-                delete asynccallbackinfo;
-                asynccallbackinfo = nullptr;
-            }
-            ANS_LOGD("NapiSetPriorityEnabled work complete end.");
-        }, (void *)asynccallbackinfo, &asynccallbackinfo->asyncWork);
+        }, AsyncCompleteCallbackNapiSetPriorityEnabled, (void *)asynccallbackinfo, &asynccallbackinfo->asyncWork);
     napi_queue_async_work_with_qos(env, asynccallbackinfo->asyncWork, napi_qos_user_initiated);
     return promise;
 }
@@ -122,29 +135,24 @@ napi_value NapiSetPriorityEnabledByBundle(napi_env env, napi_callback_info info)
 
 void AsyncCompleteCallbackNapiIsPriorityEnabled(napi_env env, napi_status status, void *data)
 {
-    ANS_LOGD("called");
     if (!data) {
         ANS_LOGE("Invalid async callback data");
         return;
     }
-    ANS_LOGD("IsPriorityEnabled napi_create_async_work end");
     AsyncCallbackInfoEnabled *asynccallbackinfo = static_cast<AsyncCallbackInfoEnabled *>(data);
-    if (asynccallbackinfo) {
-        napi_value result = nullptr;
-        if (asynccallbackinfo->info.errorCode != ERR_OK) {
-            result = Common::NapiGetNull(env);
-        } else {
-            napi_get_boolean(env, asynccallbackinfo->enable, &result);
-        }
-        Common::CreateReturnValue(env, asynccallbackinfo->info, result);
-        if (asynccallbackinfo->info.callback != nullptr) {
-            ANS_LOGD("Delete napiIsPriorityEnabled callback reference.");
-            napi_delete_reference(env, asynccallbackinfo->info.callback);
-        }
-        napi_delete_async_work(env, asynccallbackinfo->asyncWork);
-        delete asynccallbackinfo;
-        asynccallbackinfo = nullptr;
+    napi_value result = nullptr;
+    if (asynccallbackinfo->info.errorCode != ERR_OK) {
+        result = Common::NapiGetNull(env);
+    } else {
+        napi_get_boolean(env, asynccallbackinfo->enable, &result);
     }
+    Common::CreateReturnValue(env, asynccallbackinfo->info, result);
+    if (asynccallbackinfo->info.callback != nullptr) {
+        napi_delete_reference(env, asynccallbackinfo->info.callback);
+    }
+    napi_delete_async_work(env, asynccallbackinfo->asyncWork);
+    delete asynccallbackinfo;
+    asynccallbackinfo = nullptr;
 }
 
 napi_value NapiIsPriorityEnabled(napi_env env, napi_callback_info info)
@@ -354,6 +362,442 @@ napi_value NapiGetBundlePriorityConfig(napi_env env, napi_callback_info info)
             }
         }, AsyncCompleteCallbackNapiGetBundlePriorityConfig,
         (void *)asynccallbackinfo, &asynccallbackinfo->asyncWork);
+    napi_queue_async_work_with_qos(env, asynccallbackinfo->asyncWork, napi_qos_user_initiated);
+    return promise;
+}
+
+
+napi_value ParseParametersForBundles(const napi_env &env, const napi_callback_info &info,
+    std::vector<NotificationBundleOption> &bundles)
+{
+    ANS_LOGD("ParseParametersForBundles");
+    size_t argc = GET_PRIORITY_ENABLE_MAX_PARA;
+    napi_value argv[GET_PRIORITY_ENABLE_MAX_PARA] = {nullptr};
+    napi_value thisVar = nullptr;
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, NULL));
+    if (argc != GET_PRIORITY_ENABLE_MAX_PARA) {
+        ANS_LOGE("Wrong number of arguments.");
+        Common::NapiThrow(env, ERROR_PARAM_INVALID, MANDATORY_PARAMETER_ARE_LEFT_UNSPECIFIED);
+        return nullptr;
+    }
+
+    bool isArray = false;
+    NAPI_CALL(env, napi_is_array(env, argv[PARAM0], &isArray));
+    if (!isArray) {
+        ANS_LOGE("Parameter type error. Array expected.");
+        std::string msg = "Incorrect parameter types.The type of param must be array.";
+        Common::NapiThrow(env, ERROR_PARAM_INVALID, msg);
+        return nullptr;
+    }
+
+    uint32_t len = 0;
+    NAPI_CALL(env, napi_get_array_length(env, argv[PARAM0], &len));
+    if (len == 0) {
+        ANS_LOGD("The array is empty.");
+        std::string msg = "Mandatory parameters are left unspecified. The array is empty.";
+        Common::NapiThrow(env, ERROR_PARAM_INVALID, msg);
+        return nullptr;
+    }
+
+    napi_valuetype valueType = napi_undefined;
+    for (uint32_t index = 0; index < len; ++index) {
+        napi_value nBundle = nullptr;
+        NAPI_CALL(env, napi_get_element(env, argv[PARAM0], index, &nBundle));
+        NAPI_CALL(env, napi_typeof(env, nBundle, &valueType));
+        if (valueType != napi_object) {
+            ANS_LOGE("Wrong argument type. Object expected.");
+            std::string msg = "Incorrect parameter types.The type of param must be object.";
+            Common::NapiThrow(env, ERROR_PARAM_INVALID, msg);
+            return nullptr;
+        }
+        NotificationBundleOption bundle;
+        if (!Common::GetBundleOption(env, nBundle, bundle)) {
+            Common::NapiThrow(env, ERROR_PARAM_INVALID, PARAMETER_VERIFICATION_FAILED);
+            return nullptr;
+        }
+        bundles.emplace_back(bundle);
+    }
+    return Common::NapiGetNull(env);
+}
+
+void AsyncCompleteCallbackNapiGetPriorityEnabledByBundles(napi_env env, napi_status status, void *data)
+{
+    ANS_LOGD("AsyncCompleteCallbackNapiGetPriorityEnabledByBundles work complete.");
+    if (!data) {
+        ANS_LOGE("Invalid async callback data");
+        return;
+    }
+    AsyncCallbackInfoPriorityEnabled *asyncCallbackInfo = static_cast<AsyncCallbackInfoPriorityEnabled*>(data);
+    napi_value resultMap;
+    napi_create_map(env, &resultMap);
+
+    for (auto itr = asyncCallbackInfo->priorityEnable.begin(); itr != asyncCallbackInfo->priorityEnable.end(); ++itr) {
+        if (itr->first == nullptr) {
+            continue;
+        }
+        napi_value jsKey;
+        napi_create_object(env, &jsKey);
+        napi_value bundleValue;
+        napi_create_string_utf8(env, itr->first->GetBundleName().c_str(), NAPI_AUTO_LENGTH, &bundleValue);
+        napi_set_named_property(env, jsKey, "bundle", bundleValue);
+        napi_value uidValue;
+        napi_create_int32(env, itr->first->GetUid(), &uidValue);
+        napi_set_named_property(env, jsKey, "uid", uidValue);
+        napi_value jsValue;
+        napi_get_boolean(env, itr->second, &jsValue);
+        napi_map_set_property(env, resultMap, jsKey, jsValue);
+    }
+    if (asyncCallbackInfo->priorityEnable.empty()) {
+        ANS_LOGW("PriorityEnable is empty.");
+        resultMap  = Common::NapiGetNull(env);
+    }
+
+    Common::CreateReturnValue(env, asyncCallbackInfo->info, resultMap);
+    napi_delete_async_work(env, asyncCallbackInfo->asyncWork);
+    delete asyncCallbackInfo;
+    asyncCallbackInfo = nullptr;
+    return;
+}
+
+napi_value NapiGetPriorityEnabledByBundles(napi_env env, napi_callback_info info)
+{
+    ANS_LOGD("NapiGetPriorityEnabledByBundles");
+    std::vector<NotificationBundleOption> bundles;
+    if (ParseParametersForBundles(env, info, bundles) == nullptr) {
+        Common::NapiThrow(env, ERROR_PARAM_INVALID);
+        return Common::NapiGetUndefined(env);
+    }
+
+    AsyncCallbackInfoPriorityEnabled *asynccallbackinfo =
+        new (std::nothrow) AsyncCallbackInfoPriorityEnabled {.env = env, .asyncWork = nullptr, .bundles = bundles};
+    if (!asynccallbackinfo) {
+        Common::NapiThrow(env, ERROR_INTERNAL_ERROR);
+        return Common::JSParaError(env, nullptr);
+    }
+
+    napi_value promise = nullptr;
+    Common::PaddingCallbackPromiseInfo(env, nullptr, asynccallbackinfo->info, promise);
+    napi_value resourceName = nullptr;
+    napi_create_string_latin1(env, "getPriorityEnabledByBundles", NAPI_AUTO_LENGTH, &resourceName);
+
+    napi_create_async_work(env, nullptr, resourceName,
+        [](napi_env env, void *data) {
+            ANS_LOGD("Napi get priorityEnable by bundles work excute.");
+            AsyncCallbackInfoPriorityEnabled *asynccallbackinfo =
+                static_cast<AsyncCallbackInfoPriorityEnabled *>(data);
+            if (asynccallbackinfo) {
+                asynccallbackinfo->info.errorCode = NotificationHelper::GetPriorityEnabledByBundles(
+                    asynccallbackinfo->bundles, asynccallbackinfo->priorityEnable);
+            }
+        },
+        AsyncCompleteCallbackNapiGetPriorityEnabledByBundles,
+        (void *)asynccallbackinfo,
+        &asynccallbackinfo->asyncWork);
+
+    napi_queue_async_work_with_qos(env, asynccallbackinfo->asyncWork, napi_qos_user_initiated);
+    return promise;
+}
+
+napi_value PreParseParametersForSetPriorityEnable(
+    const napi_env& env, const napi_callback_info& info, napi_value &iter, napi_value &nextFn)
+{
+    size_t argc = SET_PRIORITY_ENABLE_MAX_PARA;
+    napi_value argv[SET_PRIORITY_ENABLE_MAX_PARA] = { nullptr };
+    napi_value thisVar = nullptr;
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
+    if (argc != SET_PRIORITY_ENABLE_MAX_PARA) {
+        return nullptr;
+    }
+
+    napi_value entriesFn = nullptr;
+    NAPI_CALL(env, napi_get_named_property(env, argv[PARAM0], "entries", &entriesFn));
+    NAPI_CALL(env, napi_call_function(env, argv[PARAM0], entriesFn, 0, nullptr, &iter));
+    NAPI_CALL(env, napi_get_named_property(env, iter, "next", &nextFn));
+    return Common::NapiGetNull(env);
+}
+
+template <typename T>
+napi_value ParseParametersForSetPriorityEnable(const napi_env& env, const napi_callback_info& info,
+    std::map<sptr<NotificationBundleOption>, T> &params, const NotificationConstant::TypePriorityParam type)
+{
+    ANS_LOGD("ParseParameters priorityEnable");
+    napi_value iter = nullptr;
+    napi_value nextFn = nullptr;
+    if (PreParseParametersForSetPriorityEnable(env, info, iter, nextFn) == nullptr) {
+        Common::NapiThrow(env, ERROR_PARAM_INVALID, MANDATORY_PARAMETER_ARE_LEFT_UNSPECIFIED);
+        return nullptr;
+    }
+
+    bool done = false;
+    while (!done) {
+        napi_value resultObj;
+        NAPI_CALL(env, napi_call_function(env, iter, nextFn, 0, nullptr, &resultObj));
+
+        napi_value doneVal;
+        NAPI_CALL(env, napi_get_named_property(env, resultObj, "done", &doneVal));
+
+        NAPI_CALL(env, napi_get_value_bool(env, doneVal, &done));
+        if (done) {
+            break;
+        }
+
+        napi_value pairArr;
+        NAPI_CALL(env, napi_get_named_property(env, resultObj, "value", &pairArr));
+        napi_value jsKey = nullptr;
+        napi_value jsVal = nullptr;
+        NAPI_CALL(env, napi_get_element(env, pairArr, 0, &jsKey));
+        NAPI_CALL(env, napi_get_element(env, pairArr, 1, &jsVal));
+        NotificationBundleOption bundle;
+        if (!Common::GetBundleOption(env, jsKey, bundle)) {
+            std::string msg = "Invalid bundleOption in map.";
+            Common::NapiThrow(env, ERROR_PARAM_INVALID, msg);
+            return nullptr;
+        }
+        sptr<NotificationBundleOption> bo = new (std::nothrow) NotificationBundleOption(bundle);
+        if (bo == nullptr) {
+            Common::NapiThrow(env, ERROR_NO_MEMORY);
+            return nullptr;
+        }
+        if (type == NotificationConstant::TypePriorityParam::TYPE_BOOL) {
+            bool enable = false;
+            NAPI_CALL(env, napi_get_value_bool(env, jsVal, &enable));
+            params[bo] = enable;
+        }
+        if (type == NotificationConstant::TypePriorityParam::TYPE_LONG) {
+            uint32_t uintFlag = 0;
+            NAPI_CALL(env, napi_get_value_uint32(env, jsVal, &uintFlag));
+            int64_t flag = uintFlag;
+            params[bo] = flag;
+        }
+    }
+    return Common::NapiGetNull(env);
+}
+
+napi_value NapiSetPriorityEnabledByBundles(napi_env env, napi_callback_info info)
+{
+    ANS_LOGD("NapiSetPriorityEnabledByBundles");
+    std::map<sptr<NotificationBundleOption>, bool> params;
+    if (ParseParametersForSetPriorityEnable(
+        env, info, params, NotificationConstant::TypePriorityParam::TYPE_BOOL) == nullptr) {
+        Common::NapiThrow(env, ERROR_PARAM_INVALID);
+        return Common::NapiGetUndefined(env);
+    }
+
+    AsyncCallbackInfoPriorityEnabled *asynccallbackinfo =
+        new (std::nothrow) AsyncCallbackInfoPriorityEnabled {
+        .env = env, .asyncWork = nullptr, .priorityEnable = std::move(params)};
+    if (!asynccallbackinfo) {
+        Common::NapiThrow(env, ERROR_INTERNAL_ERROR);
+        return Common::JSParaError(env, nullptr);
+    }
+    napi_value promise = nullptr;
+    Common::PaddingCallbackPromiseInfo(env, nullptr, asynccallbackinfo->info, promise);
+
+    napi_value resourceName = nullptr;
+    napi_create_string_latin1(env, "setPriorityEnabledByBundles", NAPI_AUTO_LENGTH, &resourceName);
+
+    napi_create_async_work(env, nullptr, resourceName,
+        [](napi_env env, void *data) {
+            ANS_LOGD("NapiSetPriorityEnabledByBundles work execute.");
+            AsyncCallbackInfoPriorityEnabled *asynccallbackinfo = static_cast<AsyncCallbackInfoPriorityEnabled *>(data);
+            if (asynccallbackinfo != nullptr) {
+                asynccallbackinfo->info.errorCode = NotificationHelper::SetPriorityEnabledByBundles(
+                    asynccallbackinfo->priorityEnable);
+            }
+        },
+        [](napi_env env, napi_status status, void *data) {
+            AsyncCallbackInfoPriorityEnabled *asynccallbackinfo = static_cast<AsyncCallbackInfoPriorityEnabled *>(data);
+            if (asynccallbackinfo != nullptr) {
+                Common::CreateReturnValue(env, asynccallbackinfo->info, Common::NapiGetNull(env));
+                napi_delete_async_work(env, asynccallbackinfo->asyncWork);
+                delete asynccallbackinfo;
+                asynccallbackinfo = nullptr;
+                ANS_LOGD("NapiSetPriorityEnabledByBundles work complete end.");
+            }
+        },
+        (void *)asynccallbackinfo,
+        &asynccallbackinfo->asyncWork);
+    napi_queue_async_work_with_qos(env, asynccallbackinfo->asyncWork, napi_qos_user_initiated);
+    return promise;
+}
+
+napi_value NapiIsPriorityIntelligentEnabled(napi_env env, napi_callback_info info)
+{
+    auto asynccallbackinfo = new (std::nothrow) AsyncCallbackInfoEnabled {
+        .env = env, .asyncWork = nullptr, .enable = false };
+    if (!asynccallbackinfo) {
+        ANS_LOGE("Create asyncCallbackinfo fail.");
+        std::string msg = "Low memory.";
+        Common::NapiThrow(env, ERROR_NO_MEMORY, msg);
+        return Common::JSParaError(env, nullptr);
+    }
+    napi_value promise = nullptr;
+    Common::PaddingCallbackPromiseInfo(env, nullptr, asynccallbackinfo->info, promise);
+
+    napi_value resourceName = nullptr;
+    napi_create_string_latin1(env, "isPriorityIntelligentEnabled", NAPI_AUTO_LENGTH, &resourceName);
+    // Asynchronous function call
+    napi_create_async_work(env, nullptr, resourceName,
+        [] (napi_env env, void *data) {
+            ANS_LOGD("NapiIsPriorityIntelligentEnabled work excute.");
+            AsyncCallbackInfoEnabled *asynccallbackinfo = static_cast<AsyncCallbackInfoEnabled *>(data);
+
+            if (asynccallbackinfo) {
+                asynccallbackinfo->info.errorCode =
+                    NotificationHelper::IsPriorityIntelligentEnabled(asynccallbackinfo->enable);
+                ANS_LOGI("IsPriorityIntelligentEnabled enable=%{public}d", asynccallbackinfo->enable);
+            }
+        }, AsyncCompleteCallbackNapiIsPriorityEnabled, (void *)asynccallbackinfo, &asynccallbackinfo->asyncWork);
+    napi_queue_async_work_with_qos(env, asynccallbackinfo->asyncWork, napi_qos_user_initiated);
+    return promise;
+}
+
+napi_value NapiSetPriorityIntelligentEnabled(napi_env env, napi_callback_info info)
+{
+    EnabledParams params{};
+    if (ParsePriorityParameters(env, info, params) == nullptr) {
+        ANS_LOGE("null ParseParameters");
+        return Common::NapiGetUndefined(env);
+    }
+    AsyncCallbackInfoEnabled *asynccallbackinfo =
+        new (std::nothrow) AsyncCallbackInfoEnabled { .env = env, .asyncWork = nullptr, .enable = params.enable };
+    if (!asynccallbackinfo) {
+        ANS_LOGE("Create asyncCallbackinfo fail.");
+        std::string msg = "Low memory.";
+        Common::NapiThrow(env, ERROR_NO_MEMORY, msg);
+        return Common::JSParaError(env, nullptr);
+    }
+    napi_value promise = nullptr;
+    Common::PaddingCallbackPromiseInfo(env, nullptr, asynccallbackinfo->info, promise);
+    napi_value resourceName = nullptr;
+    napi_create_string_latin1(env, "setPriorityIntelligentEnabled", NAPI_AUTO_LENGTH, &resourceName);
+    // Async function call
+    napi_create_async_work(env, nullptr, resourceName,
+        [] (napi_env env, void *data) {
+            AsyncCallbackInfoEnabled *asynccallbackinfo = static_cast<AsyncCallbackInfoEnabled *>(data);
+            if (asynccallbackinfo) {
+                asynccallbackinfo->info.errorCode =
+                    NotificationHelper::SetPriorityIntelligentEnabled(asynccallbackinfo->enable);
+                ANS_LOGI("SetPriorityIntelligentEnabled errorCode = %{public}d", asynccallbackinfo->info.errorCode);
+            }
+        }, AsyncCompleteCallbackNapiSetPriorityEnabled, (void *)asynccallbackinfo, &asynccallbackinfo->asyncWork);
+    napi_queue_async_work_with_qos(env, asynccallbackinfo->asyncWork, napi_qos_user_initiated);
+    return promise;
+}
+
+void AsyncCompleteCallbackNapiGetPriorityStrategyByBundles(napi_env env, napi_status status, void *data)
+{
+    ANS_LOGD("AsyncCompleteCallbackNapiGetPriorityStrategyByBundles work complete.");
+    if (!data) {
+        ANS_LOGE("Invalid async callback data");
+        return;
+    }
+    AsyncCallbackInfoPriorityEnabled *asyncCallbackInfo = static_cast<AsyncCallbackInfoPriorityEnabled*>(data);
+    napi_value resultMap;
+    napi_create_map(env, &resultMap);
+    if (asyncCallbackInfo->priorityStrategy.empty()) {
+        ANS_LOGW("priorityStrategy is empty.");
+        resultMap = Common::NapiGetNull(env);
+    }
+    for (auto itr = asyncCallbackInfo->priorityStrategy.begin();
+        itr != asyncCallbackInfo->priorityStrategy.end(); ++itr) {
+        if (itr->first == nullptr) {
+            continue;
+        }
+        napi_value jsKey;
+        napi_create_object(env, &jsKey);
+        napi_value bundleValue;
+        napi_create_string_utf8(env, itr->first->GetBundleName().c_str(), NAPI_AUTO_LENGTH, &bundleValue);
+        napi_set_named_property(env, jsKey, "bundle", bundleValue);
+        napi_value uidValue;
+        napi_create_int32(env, itr->first->GetUid(), &uidValue);
+        napi_set_named_property(env, jsKey, "uid", uidValue);
+        napi_value jsValue;
+        uint32_t priorityStrategy = itr->second;
+        napi_create_uint32(env, priorityStrategy, &jsValue);
+        napi_map_set_property(env, resultMap, jsKey, jsValue);
+    }
+    Common::CreateReturnValue(env, asyncCallbackInfo->info, resultMap);
+    napi_delete_async_work(env, asyncCallbackInfo->asyncWork);
+    delete asyncCallbackInfo;
+    asyncCallbackInfo = nullptr;
+}
+
+napi_value NapiGetPriorityStrategyByBundles(napi_env env, napi_callback_info info)
+{
+    std::vector<NotificationBundleOption> bundles;
+    if (ParseParametersForBundles(env, info, bundles) == nullptr) {
+        Common::NapiThrow(env, ERROR_PARAM_INVALID);
+        return Common::NapiGetUndefined(env);
+    }
+
+    AsyncCallbackInfoPriorityEnabled *asynccallbackinfo =
+        new (std::nothrow) AsyncCallbackInfoPriorityEnabled {.env = env, .asyncWork = nullptr, .bundles = bundles};
+    if (!asynccallbackinfo) {
+        Common::NapiThrow(env, ERROR_NO_MEMORY);
+        return Common::JSParaError(env, nullptr);
+    }
+
+    napi_value promise = nullptr;
+    Common::PaddingCallbackPromiseInfo(env, nullptr, asynccallbackinfo->info, promise);
+    napi_value resourceName = nullptr;
+    napi_create_string_latin1(env, "getPriorityStrategyByBundles", NAPI_AUTO_LENGTH, &resourceName);
+
+    napi_create_async_work(env, nullptr, resourceName,
+        [](napi_env env, void *data) {
+            ANS_LOGD("Napi getPriorityStrategyByBundles by bundles work excute.");
+            AsyncCallbackInfoPriorityEnabled *asynccallbackinfo =
+                static_cast<AsyncCallbackInfoPriorityEnabled *>(data);
+            if (asynccallbackinfo) {
+                asynccallbackinfo->info.errorCode = NotificationHelper::GetPriorityStrategyByBundles(
+                    asynccallbackinfo->bundles, asynccallbackinfo->priorityStrategy);
+            }
+            ANS_LOGI("GetPriorityStrategyByBundles errorCode = %{public}d", asynccallbackinfo->info.errorCode);
+        },
+        AsyncCompleteCallbackNapiGetPriorityStrategyByBundles,
+        (void *)asynccallbackinfo, &asynccallbackinfo->asyncWork);
+    napi_queue_async_work_with_qos(env, asynccallbackinfo->asyncWork, napi_qos_user_initiated);
+    return promise;
+}
+
+napi_value NapiSetPriorityStrategyByBundles(napi_env env, napi_callback_info info)
+{
+    std::map<sptr<NotificationBundleOption>, int64_t> params;
+    if (ParseParametersForSetPriorityEnable(
+        env, info, params, NotificationConstant::TypePriorityParam::TYPE_LONG) == nullptr) {
+        Common::NapiThrow(env, ERROR_PARAM_INVALID);
+        return Common::NapiGetUndefined(env);
+    }
+    AsyncCallbackInfoPriorityEnabled *asynccallbackinfo =
+        new (std::nothrow) AsyncCallbackInfoPriorityEnabled {
+        .env = env, .asyncWork = nullptr, .priorityStrategy = std::move(params)};
+    if (!asynccallbackinfo) {
+        Common::NapiThrow(env, ERROR_NO_MEMORY);
+        return Common::JSParaError(env, nullptr);
+    }
+    napi_value promise = nullptr;
+    Common::PaddingCallbackPromiseInfo(env, nullptr, asynccallbackinfo->info, promise);
+    napi_value resourceName = nullptr;
+    napi_create_string_latin1(env, "setPriorityStrategyByBundles", NAPI_AUTO_LENGTH, &resourceName);
+    napi_create_async_work(env, nullptr, resourceName,
+        [](napi_env env, void *data) {
+            ANS_LOGD("NapiSetPriorityStrategyByBundles work execute.");
+            AsyncCallbackInfoPriorityEnabled *asynccallbackinfo = static_cast<AsyncCallbackInfoPriorityEnabled *>(data);
+            if (asynccallbackinfo != nullptr) {
+                asynccallbackinfo->info.errorCode =
+                    NotificationHelper::SetPriorityStrategyByBundles(asynccallbackinfo->priorityStrategy);
+            }
+            ANS_LOGI("SetPriorityStrategyByBundles errorCode = %{public}d", asynccallbackinfo->info.errorCode);
+        },
+        [](napi_env env, napi_status status, void *data) {
+            AsyncCallbackInfoPriorityEnabled *asynccallbackinfo = static_cast<AsyncCallbackInfoPriorityEnabled *>(data);
+            if (asynccallbackinfo != nullptr) {
+                Common::CreateReturnValue(env, asynccallbackinfo->info, Common::NapiGetNull(env));
+                napi_delete_async_work(env, asynccallbackinfo->asyncWork);
+                delete asynccallbackinfo;
+                asynccallbackinfo = nullptr;
+            }
+        }, (void *)asynccallbackinfo, &asynccallbackinfo->asyncWork);
     napi_queue_async_work_with_qos(env, asynccallbackinfo->asyncWork, napi_qos_user_initiated);
     return promise;
 }

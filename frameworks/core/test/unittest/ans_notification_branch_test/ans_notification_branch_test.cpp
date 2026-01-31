@@ -756,6 +756,17 @@ public:
         return ERR_ANS_INVALID_PARAM;
     }
 
+    ErrCode GetPriorityEnabledByBundles(const std::vector<sptr<NotificationBundleOption>> &bundleOptions,
+        std::map<sptr<NotificationBundleOption>, bool> &priorityEnable) override
+    {
+        return ERR_ANS_INVALID_PARAM;
+    }
+
+    ErrCode SetPriorityEnabledByBundles(const std::map<sptr<NotificationBundleOption>, bool> &priorityEnable) override
+    {
+        return ERR_ANS_INVALID_PARAM;
+    }
+
     ErrCode SetBundlePriorityConfig(
         const sptr<NotificationBundleOption> &bundleOption, const std::string &value) override
     {
@@ -763,6 +774,27 @@ public:
     }
 
     ErrCode GetBundlePriorityConfig(const sptr<NotificationBundleOption> &bundleOption, std::string &value) override
+    {
+        return ERR_ANS_INVALID_PARAM;
+    }
+
+    ErrCode IsPriorityIntelligentEnabled(bool &enabled) override
+    {
+        return ERR_ANS_INVALID_PARAM;
+    }
+
+    ErrCode SetPriorityIntelligentEnabled(const bool enabled) override
+    {
+        return ERR_ANS_INVALID_PARAM;
+    }
+
+    ErrCode GetPriorityStrategyByBundles(const std::vector<sptr<NotificationBundleOption>> &bundleOptions,
+        std::map<sptr<NotificationBundleOption>, int64_t> &strategies) override
+    {
+        return ERR_ANS_INVALID_PARAM;
+    }
+
+    ErrCode SetPriorityStrategyByBundles(const std::map<sptr<NotificationBundleOption>, int64_t> &strategies) override
     {
         return ERR_ANS_INVALID_PARAM;
     }
