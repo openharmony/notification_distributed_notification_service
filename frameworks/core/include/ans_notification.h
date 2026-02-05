@@ -1018,6 +1018,20 @@ public:
      */
     ErrCode GetEnabledForBundleSlotSelf(const NotificationConstant::SlotType &slotType, bool &enabled);
 
+#ifdef ANM_SUPPORT_DUMP
+    /**
+     * @brief Obtains specific datas via specified dump option.
+     *
+     * @param cmd Indicates the specified dump command.
+     * @param bundle Indicates the specified bundle name.
+     * @param userId Indicates the specified userId.
+     * @param recvUserId Indicates the specified receiver userId.
+     * @param dumpInfo Indicates the container containing datas.
+     * @return Returns check result.
+     */
+    ErrCode ShellDump(const std::string &cmd, const std::string &bundle, int32_t userId, int32_t recvUserId,
+        std::vector<std::string> &dumpInfo);
+#endif
     /**
      * @brief Set whether to sync notifications to devices that do not have the app installed.
      *
@@ -1169,6 +1183,24 @@ public:
      */
     ErrCode IsPriorityEnabledByBundle(
         const NotificationBundleOption &bundleOption, NotificationConstant::PriorityEnableStatus &enableStatus);
+
+    /**
+     * @brief Configuring whether to allow sending priority notification by bundles.
+     *
+     * @param priorityEnable indicates the bundle name, uid and priority enable status of the application.
+     * @return Returns configuring Whether to allow sending priority notification by bundles.
+     */
+    ErrCode SetPriorityEnabledByBundles(const std::map<sptr<NotificationBundleOption>, bool> &priorityEnable);
+
+    /**
+     * @brief Query switch for sending priority notification by bundles.
+     *
+     * @param bundleOption Indicates the bundle name and uid of the application.
+     * @param priorityEnable indicates whether to allow sending priority notification by bundles.
+     * @return Returns configuring Whether to allow sending priority notification by bundles.
+     */
+    ErrCode GetPriorityEnabledByBundles(const std::vector<NotificationBundleOption> &bundleOptions,
+        std::map<sptr<NotificationBundleOption>, bool> &priorityEnable);
 
     /**
      * @brief Update priority type of notification and notify subscriber.

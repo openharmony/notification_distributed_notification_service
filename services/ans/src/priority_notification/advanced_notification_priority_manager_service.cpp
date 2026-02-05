@@ -53,7 +53,8 @@ ErrCode AdvancedNotificationService::SetPriorityEnabledInner(const bool enabled)
         }
         std::vector<sptr<NotificationRequest>> requests;
         GetRequestsFromNotification(GetAllNotification(), requests);
-        refreshResult = AdvancedNotificationPriorityHelper::GetInstance()->RefreshPriorityType(requests);
+        refreshResult = AdvancedNotificationPriorityHelper::GetInstance()->RefreshPriorityType(
+            requests, NotificationAiExtensionWrapper::REFRESH_SWITCH_PRIORITY_TYPE);
 #endif
     }));
     ANS_COND_DO_ERR(submitResult != ERR_OK, return submitResult, "Set priority enable.");
@@ -115,7 +116,8 @@ ErrCode AdvancedNotificationService::SetPriorityEnabledByBundleInner(
         }
         std::vector<sptr<NotificationRequest>> requests;
         GetRequestsFromNotification(GetNotificationsByBundle(bundleOption), requests);
-        refreshResult = AdvancedNotificationPriorityHelper::GetInstance()->RefreshPriorityType(requests);
+        refreshResult = AdvancedNotificationPriorityHelper::GetInstance()->RefreshPriorityType(
+            requests, NotificationAiExtensionWrapper::REFRESH_SWITCH_PRIORITY_TYPE);
 #endif
     }));
     ANS_COND_DO_ERR(submitResult != ERR_OK, return submitResult, "Set bundle priority enable.");
@@ -239,7 +241,8 @@ ErrCode AdvancedNotificationService::SetBundlePriorityConfigInner(
         }
         std::vector<sptr<NotificationRequest>> requests;
         GetRequestsFromNotification(GetNotificationsByBundle(bundleOption), requests);
-        refreshResult = AdvancedNotificationPriorityHelper::GetInstance()->RefreshPriorityType(requests);
+        refreshResult = AdvancedNotificationPriorityHelper::GetInstance()->RefreshPriorityType(
+            requests, NotificationAiExtensionWrapper::REFRESH_KEYWORD_PRIORITY_TYPE);
 #endif
     }));
     ANS_COND_DO_ERR(submitResult != ERR_OK, return submitResult, "Set priority config.");
@@ -290,6 +293,33 @@ void AdvancedNotificationService::GetRequestsFromNotification(
         }
         requests.push_back(newNotification->GetNotificationRequestPoint());
     }
+}
+
+ErrCode AdvancedNotificationService::SetPriorityEnabledByBundles(
+    const std::map<sptr<NotificationBundleOption>, bool> &priorityEnable)
+{
+    ANS_LOGD("SetPriorityEnabledByBundles");
+    return ERR_OK;
+    if (priorityEnable.empty()) {
+        return ERR_ANS_INVALID_PARAM;
+    }
+    ErrCode result = SystemPermissionCheck();
+    if (result != ERR_OK) {
+        return result;
+    }
+    return ERR_OK;
+}
+
+ErrCode AdvancedNotificationService::GetPriorityEnabledByBundles(
+    const std::vector<sptr<NotificationBundleOption>> &bundleOptions,
+    std::map<sptr<NotificationBundleOption>, bool> &priorityEnable)
+{
+    ANS_LOGD("GetPriorityEnabledByBundles called");
+    ErrCode result = SystemPermissionCheck();
+    if (result != ERR_OK) {
+        return result;
+    }
+    return ERR_OK;
 }
 }  // namespace Notification
 }  // namespa OHOS

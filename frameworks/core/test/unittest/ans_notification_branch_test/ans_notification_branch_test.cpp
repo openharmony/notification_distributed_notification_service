@@ -644,6 +644,13 @@ public:
     {
         return ERR_ANS_INVALID_PARAM;
     }
+#ifdef ANM_SUPPORT_DUMP
+    ErrCode ShellDump(const std::string &cmd, const std::string &bundle, int32_t userId, int32_t recvUserId,
+        std::vector<std::string> &dumpInfo) override
+    {
+        return ERR_ANS_INVALID_PARAM;
+    }
+#endif
 
     ErrCode SetSyncNotificationEnabledWithoutApp(const int32_t userId, const bool enabled) override
     {
@@ -745,6 +752,17 @@ public:
 
     ErrCode IsPriorityEnabledByBundle(
         const sptr<NotificationBundleOption> &bundleOption, int32_t &enableStatusInt) override
+    {
+        return ERR_ANS_INVALID_PARAM;
+    }
+
+    ErrCode GetPriorityEnabledByBundles(const std::vector<sptr<NotificationBundleOption>> &bundleOptions,
+        std::map<sptr<NotificationBundleOption>, bool> &priorityEnable) override
+    {
+        return ERR_ANS_INVALID_PARAM;
+    }
+
+    ErrCode SetPriorityEnabledByBundles(const std::map<sptr<NotificationBundleOption>, bool> &priorityEnable) override
     {
         return ERR_ANS_INVALID_PARAM;
     }
