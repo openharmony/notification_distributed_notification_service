@@ -1097,6 +1097,29 @@ HWTEST_F(AnsNotificationUnitTest, SetEnabledForBundleSlot_0100, Function | Mediu
     ErrCode ret2 = ans_->GetEnabledForBundleSlot(bundleOption, slotType, enabled);
     EXPECT_EQ(ret2, ERR_ANS_SERVICE_NOT_CONNECTED);
 }
+#ifdef ANM_SUPPORT_DUMP
+/*
+ * @tc.name: ShellDump_0100
+ * @tc.desc: test ShellDump ErrCode ERR_ANS_SERVICE_NOT_CONNECTED.
+ * @tc.type: FUNC
+ * @tc.require: #I62SME
+ */
+HWTEST_F(AnsNotificationUnitTest, ShellDump_0100, Function | MediumTest | Level1)
+{
+    MockWriteInterfaceToken(false);
+    sptr<MockIRemoteObject> iremoteObject = new (std::nothrow) MockIRemoteObject();
+    ASSERT_NE(nullptr, iremoteObject);
+    std::shared_ptr<AnsManagerProxy> proxy = std::make_shared<AnsManagerProxy>(iremoteObject);
+    ASSERT_NE(nullptr, proxy);
+    ans_->GetAnsManagerProxy();
+    std::string cmd = "this is cmd";
+    std::string bundle = "this is bundle";
+    int32_t userId = 1;
+    std::vector<std::string> dumpInfo;
+    ErrCode ret1 = ans_->ShellDump(cmd, bundle, userId, 0, dumpInfo);
+    EXPECT_EQ(ret1, ERR_ANS_SERVICE_NOT_CONNECTED);
+}
+#endif
 
 /*
  * @tc.name: SetSyncNotificationEnabledWithoutApp_0100
@@ -2096,6 +2119,65 @@ HWTEST_F(AnsNotificationUnitTest, SetPriorityEnabledByBundle_0300, Function | Me
     ret = ans_->IsPriorityEnabledByBundle(bo, enableStatus);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(enableStatus, NotificationConstant::PriorityEnableStatus::ENABLE_BY_INTELLIGENT);
+}
+
+/*
+ * @tc.name: GetPriorityEnabledByBundles_0100
+ * @tc.desc: test GetPriorityEnabledByBundles with empty bundleName.
+ * @tc.type: FUNC
+ * @tc.require: #I62SME
+ */
+HWTEST_F(AnsNotificationUnitTest, GetPriorityEnabledByBundles_0100, Function | MediumTest | Level1)
+{
+    std::vector<NotificationBundleOption> bundleOptions;
+    std::map<sptr<NotificationBundleOption>, bool> switches;
+    ErrCode ret = ans_->GetPriorityEnabledByBundles(bundleOptions, switches);
+    EXPECT_EQ(ret, ERR_ANS_INVALID_PARAM);
+}
+
+/*
+ * @tc.name: GetPriorityEnabledByBundles_0200
+ * @tc.desc: test GetPriorityEnabledByBundles with null proxy.
+ * @tc.type: FUNC
+ * @tc.require: #I62SME
+ */
+HWTEST_F(AnsNotificationUnitTest, GetPriorityEnabledByBundles_0200, Function | MediumTest | Level1)
+{
+    std::vector<NotificationBundleOption> bundleOptions;
+    std::map<sptr<NotificationBundleOption>, bool> switches;
+    NotificationBundleOption bo;
+    bo.SetBundleName("bundleName");
+    bo.SetUid(1);
+    bundleOptions.emplace_back(bo);
+    ErrCode ret = ans_->GetPriorityEnabledByBundles(bundleOptions, switches);
+    EXPECT_EQ(ret, ERR_OK);
+}
+/*
+ * @tc.name: SetPriorityEnabledByBundles_0100
+ * @tc.desc: test GetPriorityEnabledByBundles with empty bundleName.
+ * @tc.type: FUNC
+ * @tc.require: #I62SME
+ */
+HWTEST_F(AnsNotificationUnitTest, SetPriorityEnabledByBundles_0100, Function | MediumTest | Level1)
+{
+    std::map<sptr<NotificationBundleOption>, bool> switches;
+    ErrCode ret = ans_->SetPriorityEnabledByBundles(switches);
+    EXPECT_EQ(ret, ERR_ANS_INVALID_PARAM);
+}
+
+/*
+ * @tc.name: SetPriorityEnabledByBundles_0200
+ * @tc.desc: test SetPriorityEnabledByBundles with null proxy.
+ * @tc.type: FUNC
+ * @tc.require: #I62SME
+ */
+HWTEST_F(AnsNotificationUnitTest, SetPriorityEnabledByBundles_0200, Function | MediumTest | Level1)
+{
+    std::map<sptr<NotificationBundleOption>, bool> switches;
+    sptr<NotificationBundleOption> bo = new (std::nothrow) NotificationBundleOption("bundle", 100);
+    switches[bo] = true;
+    ErrCode ret = ans_->SetPriorityEnabledByBundles(switches);
+    EXPECT_EQ(ret, ERR_OK);
 }
 
 /*

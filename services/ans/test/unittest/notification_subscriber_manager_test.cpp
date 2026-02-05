@@ -81,6 +81,11 @@ private:
         {
             isCallback_ = true;
         }
+        void OnEnabledSilentReminderChanged(
+            const std::shared_ptr<EnabledSilentReminderCallbackData> &callbackData) override
+        {
+            isCallback_ = true;
+        }
         void OnCanceled(const std::shared_ptr<Notification> &request,
             const std::shared_ptr<NotificationSortingMap> &sortingMap, int deleteReason) override
         {
@@ -983,6 +988,137 @@ HWTEST_F(NotificationSubscriberManagerTest, NotifyEnabledNotificationChangedInne
 
     notificationSubscriberManager.NotifyEnabledNotificationChangedInner(callback);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    isCallback = testAnsSubscriber->GetCallBack();
+    ASSERT_FALSE(isCallback);
+}
+
+/**
+ * @tc.number    : NotifyEnabledSilentReminderChangedInner_001
+ * @tc.name      : test enable silent reminder changed to trigger call back success
+ */
+HWTEST_F(NotificationSubscriberManagerTest, NotifyEnabledSilentReminderChangedInner_001, Level1)
+{
+    //build silentReminderCallbackData
+    sptr<EnabledSilentReminderCallbackData> callback(new EnabledSilentReminderCallbackData());
+    std::string bundle = "com.example.test";
+    callback->SetBundle(bundle);
+    callback->SetUid(101);
+    callback->SetEnableStatus(NotificationConstant::SWITCH_STATE::SYSTEM_DEFAULT_ON);
+
+    //build subscriber
+    std::shared_ptr<TestAnsSubscriber> testAnsSubscriber = std::make_shared<TestAnsSubscriber>();
+    sptr<IAnsSubscriber> subscriber(new (std::nothrow) SubscriberListener(testAnsSubscriber));
+    auto isCallback = testAnsSubscriber->GetCallBack();
+    ASSERT_FALSE(isCallback);
+
+    NotificationSubscriberManager notificationSubscriberManager;
+    sptr<NotificationSubscribeInfo> info(new NotificationSubscribeInfo());
+    info->AddAppUserId(100);
+    info->AddAppName(bundle);
+    info->SetSubscribedFlags(testAnsSubscriber->GetSubscribedFlags());
+    ASSERT_EQ(notificationSubscriberManager.AddSubscriberInner(subscriber, info), (int)ERR_OK);
+
+    notificationSubscriberManager.NotifyEnabledSilentReminderChangedInner(callback);
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    isCallback = testAnsSubscriber->GetCallBack();
+    ASSERT_TRUE(isCallback);
+}
+
+/**
+ * @tc.number    : NotifyEnabledSilentReminderChangedInner_002
+ * @tc.name      : test enable silent reminder changed with DISABLED status
+ */
+HWTEST_F(NotificationSubscriberManagerTest, NotifyEnabledSilentReminderChangedInner_002, Level1)
+{
+    //build silentReminderCallbackData
+    sptr<EnabledSilentReminderCallbackData> callback(new EnabledSilentReminderCallbackData());
+    std::string bundle = "com.example.test2";
+    callback->SetBundle(bundle);
+    callback->SetUid(102);
+    callback->SetEnableStatus(NotificationConstant::SWITCH_STATE::SYSTEM_DEFAULT_OFF);
+
+    //build subscriber
+    std::shared_ptr<TestAnsSubscriber> testAnsSubscriber = std::make_shared<TestAnsSubscriber>();
+    sptr<IAnsSubscriber> subscriber(new (std::nothrow) SubscriberListener(testAnsSubscriber));
+    auto isCallback = testAnsSubscriber->GetCallBack();
+    ASSERT_FALSE(isCallback);
+
+    NotificationSubscriberManager notificationSubscriberManager;
+    sptr<NotificationSubscribeInfo> info(new NotificationSubscribeInfo());
+    info->AddAppUserId(100);
+    info->AddAppName(bundle);
+    info->SetSubscribedFlags(testAnsSubscriber->GetSubscribedFlags());
+    ASSERT_EQ(notificationSubscriberManager.AddSubscriberInner(subscriber, info), (int)ERR_OK);
+
+    notificationSubscriberManager.NotifyEnabledSilentReminderChangedInner(callback);
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    isCallback = testAnsSubscriber->GetCallBack();
+    ASSERT_TRUE(isCallback);
+}
+
+/**
+ * @tc.number    : NotifyEnabledSilentReminderChangedInner_SubscribedFlagsFalse
+ * @tc.name      : test enable silent reminder changed with invalid subscribed flags
+ */
+HWTEST_F(NotificationSubscriberManagerTest, NotifyEnabledSilentReminderChangedInner_SubscribedFlagsFalse, Level1)
+{
+    //build silentReminderCallbackData
+    sptr<EnabledSilentReminderCallbackData> callback(new EnabledSilentReminderCallbackData());
+    std::string bundle = "com.example.test";
+    callback->SetBundle(bundle);
+    callback->SetUid(101);
+    callback->SetEnableStatus(NotificationConstant::SWITCH_STATE::SYSTEM_DEFAULT_OFF);
+
+    //build subscriber
+    std::shared_ptr<TestAnsSubscriber> testAnsSubscriber = std::make_shared<TestAnsSubscriber>();
+    testAnsSubscriber->SetSubscribedFlags(0);
+    sptr<IAnsSubscriber> subscriber(new (std::nothrow) SubscriberListener(testAnsSubscriber));
+    auto isCallback = testAnsSubscriber->GetCallBack();
+    ASSERT_FALSE(isCallback);
+
+    NotificationSubscriberManager notificationSubscriberManager;
+    sptr<NotificationSubscribeInfo> info(new NotificationSubscribeInfo());
+    info->AddAppUserId(100);
+    info->AddAppName(bundle);
+    info->SetSubscribedFlags(testAnsSubscriber->GetSubscribedFlags());
+    ASSERT_EQ(notificationSubscriberManager.AddSubscriberInner(subscriber, info), (int)ERR_OK);
+
+    notificationSubscriberManager.NotifyEnabledSilentReminderChangedInner(callback);
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    isCallback = testAnsSubscriber->GetCallBack();
+    ASSERT_FALSE(isCallback);
+}
+
+/**
+ * @tc.number    : NotifyEnabledSilentReminderChanged_001
+ * @tc.name      : test notify enable silent reminder changed to trigger call back
+ */
+HWTEST_F(NotificationSubscriberManagerTest, NotifyEnabledSilentReminderChanged_001, Level1)
+{
+    //build silentReminderCallbackData
+    sptr<EnabledSilentReminderCallbackData> callback(new EnabledSilentReminderCallbackData());
+    std::string bundle = "com.example.test.notify";
+    callback->SetBundle(bundle);
+    callback->SetUid(101);
+    callback->SetEnableStatus(NotificationConstant::SWITCH_STATE::SYSTEM_DEFAULT_ON);
+
+    //build subscriber
+    std::shared_ptr<TestAnsSubscriber> testAnsSubscriber = std::make_shared<TestAnsSubscriber>();
+    testAnsSubscriber->SetSubscribedFlags(0);
+    sptr<IAnsSubscriber> subscriber(new (std::nothrow) SubscriberListener(testAnsSubscriber));
+    auto isCallback = testAnsSubscriber->GetCallBack();
+    ASSERT_FALSE(isCallback);
+
+    NotificationSubscriberManager notificationSubscriberManager;
+    sptr<NotificationSubscribeInfo> info(new NotificationSubscribeInfo());
+    info->AddAppUserId(100);
+    info->AddAppName(bundle);
+    info->SetSubscribedFlags(testAnsSubscriber->GetSubscribedFlags());
+    ASSERT_EQ(notificationSubscriberManager.AddSubscriberInner(subscriber, info), (int)ERR_OK);
+    
+    // This should not crash even if no subscribers are registered
+    notificationSubscriberManager.NotifyEnabledSilentReminderChanged(callback);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     isCallback = testAnsSubscriber->GetCallBack();
     ASSERT_FALSE(isCallback);
 }
@@ -2023,6 +2159,28 @@ HWTEST_F(NotificationSubscriberManagerTest, GenerateSubscribedNotification_StubS
     sptr<Notification> result = notificationSubscriberManager.GenerateSubscribedNotification(record, notification);
 
     EXPECT_EQ(nullptr, result);
+}
+#endif
+#ifdef ANS_FEATURE_PRIORITY_NOTIFICATION
+HWTEST_F(NotificationSubscriberManagerTest, GenerateSubscribedNotification_ResetPriority, Level1)
+{
+    sptr<NotificationRequest> request(new NotificationRequest());
+    request->SetSlotType(NotificationConstant::SlotType::CONTENT_INFORMATION);
+    request->SetCreatorUserId(101);
+    request->SetCreatorUid(101);
+    request->SetInnerPriorityNotificationType(NotificationConstant::PriorityNotificationType::KEY_PROGRESS);
+    sptr<Notification> notification(new Notification(request));
+    sptr<IAnsSubscriber> subscriber = new MockAnsSubscriber(new MockIRemoteObject());
+    NotificationSubscriberManager notificationSubscriberManager;
+    std::shared_ptr<NotificationSubscriberManager::SubscriberRecord> record =
+        notificationSubscriberManager.CreateSubscriberRecord(subscriber);
+    record->subscriberBundleName_ = "subscriberManagerTestBundleName";
+    record->deviceType = "tablet";
+    sptr<Notification> result = notificationSubscriberManager.GenerateSubscribedNotification(record, notification);
+    EXPECT_NE(nullptr, result);
+    sptr<NotificationRequest> resultRequest = result->GetNotificationRequestPoint();
+    EXPECT_NE(nullptr, resultRequest);
+    EXPECT_EQ(resultRequest->GetPriorityNotificationType(), NotificationConstant::PriorityNotificationType::OTHER);
 }
 #endif
 }  // namespace Notification

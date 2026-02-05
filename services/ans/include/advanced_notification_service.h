@@ -1130,6 +1130,19 @@ public:
         const sptr<NotificationRequest> &request, sptr<NotificationBundleOption> &bundleOption);
     AnsStatus PublishPreparedNotification(const sptr<NotificationRequest> &request,
         const sptr<NotificationBundleOption> &bundleOption, bool isUpdateByOwner = false);
+#ifdef ANM_SUPPORT_DUMP
+    /**
+     * @brief Dump current running status for debuging.
+     *
+     * @param cmd Indicates the specified dump command.
+     * @param bundle Indicates the specified bundle name.
+     * @param userId Indicates the specified userId.
+     * @param dumpInfo Indicates the container containing datas.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode ShellDump(const std::string &cmd, const std::string &bundle, int32_t userId, int32_t recvUserId,
+        std::vector<std::string> &dumpInfo) override;
+#endif
 
     /**
      * @brief Set badge number.
@@ -1597,6 +1610,24 @@ public:
         const sptr<NotificationBundleOption> &bundleOption, int32_t &enableStatusInt) override;
 
     /**
+     * @brief Configuring whether to allow sending priority notification by bundles.
+     *
+     * @param priorityEnable indicates the bundle name, uid and priority enable status of the application.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode SetPriorityEnabledByBundles(const std::map<sptr<NotificationBundleOption>, bool> &priorityEnable) override;
+
+    /**
+     * @brief Query switch for sending priority notification by bundles.
+     *
+     * @param bundleOption Indicates the bundle name and uid of the application.
+     * @param priorityEnable indicates whether to allow sending priority notification by bundles.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode GetPriorityEnabledByBundles(const std::vector<sptr<NotificationBundleOption>> &bundleOptions,
+        std::map<sptr<NotificationBundleOption>, bool> &priorityEnable) override;
+
+    /**
      * @brief Update priority type of notification and notify subscriber.
      *
      * @param request Indicates the NotificationRequest object for setting the notification content.
@@ -1948,7 +1979,14 @@ private:
     ErrCode PublishInNotificationList(const std::shared_ptr<NotificationRecord> &record);
 
     sptr<NotificationSortingMap> GenerateSortingMap();
-
+#ifdef ANM_SUPPORT_DUMP
+    std::string TimeToString(int64_t time);
+    void ExtendDumpForFlags(std::shared_ptr<NotificationFlags>, std::stringstream &stream);
+    ErrCode ActiveNotificationDump(const std::string& bundle, int32_t userId, int32_t recvUserId,
+        std::vector<std::string> &dumpInfo);
+    ErrCode RecentNotificationDump(const std::string& bundle, int32_t userId, int32_t recvUserId,
+        std::vector<std::string> &dumpInfo);
+#endif
     void AddToTriggerNotificationList(const std::shared_ptr<NotificationRecord> &record);
     void ProcForDeleteGeofenceLiveView(const std::shared_ptr<NotificationRecord> &record);
     ErrCode OnNotifyDelayedNotification(const PublishNotificationParameter &parameter);
@@ -2010,6 +2048,13 @@ private:
     void RemoveAllFromTriggerNotificationList(const sptr<NotificationBundleOption> &bundle);
     void RemoveNtfBySlotFromTriggerNotificationList(const sptr<NotificationBundleOption> &bundle,
         const sptr<NotificationSlot> &slot);
+#ifdef ANM_SUPPORT_DUMP
+#ifdef DISTRIBUTED_NOTIFICATION_SUPPORTED
+    ErrCode DistributedNotificationDump(const std::string& bundle, int32_t userId, int32_t recvUserId,
+        std::vector<std::string> &dumpInfo);
+#endif
+    ErrCode SetRecentNotificationCount(const std::string arg);
+#endif
     void UpdateRecentNotification(sptr<Notification> &notification, bool isDelete, int32_t reason);
 
     void AdjustDateForDndTypeOnce(int64_t &beginDate, int64_t &endDate);
@@ -2050,6 +2095,10 @@ private:
     static ErrCode GetAppTargetBundle(const sptr<NotificationBundleOption> &bundleOption,
         sptr<NotificationBundleOption> &targetBundle);
     void ReportInfoToResourceSchedule(const int32_t userId, const std::string &bundleName);
+#ifdef ANM_SUPPORT_DUMP
+    int Dump(int fd, const std::vector<std::u16string> &args) override;
+    void GetDumpInfo(const std::vector<std::u16string> &args, std::string &result);
+#endif
 
     static void SendSubscribeHiSysEvent(int32_t pid, int32_t uid, const sptr<NotificationSubscribeInfo> &info,
         ErrCode errCode);
@@ -2351,6 +2400,7 @@ private:
     bool CheckAdditionalConfigKey(const std::string &key);
     void DistributedEnabledBySlotChangeStrategy(const std::string &deviceType,
         const NotificationConstant::SlotType slotType, const bool enabled, const ErrCode result);
+    ErrCode SetSilentReminderEnabledInner(const sptr<NotificationBundleOption> &bundleOption, const bool enabled);
 private:
     static sptr<AdvancedNotificationService> instance_;
     static ffrt::mutex instanceMutex_;
