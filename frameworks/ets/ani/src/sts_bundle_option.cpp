@@ -422,7 +422,8 @@ bool WrapBundleOptionMap(ani_env *env, ani_object &outAniObj,
 {
     ANS_LOGD("WrapBundleOptionMap call");
     outAniObj = nullptr;
-    outAniObj = CreateMapObject(env, "std.core.Map", ":");
+    outAniObj = CreateMapObject(env, "std.core.Map",
+        "X{C{std.core.Iterable}C{std.core.Null}C{std.core.ReadonlyArray}}:");
     if (outAniObj == nullptr) {
         return false;
     }

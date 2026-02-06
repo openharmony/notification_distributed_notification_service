@@ -1228,7 +1228,8 @@ bool WrapStructuredText(ani_env *env, ani_object &object, const NotificationBasi
     ANS_LOGD("WrapStructuredText enter");
     const auto& texts = basicContent->GetStructuredText();
     ani_object structuredTextObj = nullptr;
-    structuredTextObj = CreateMapObject(env, "std.core.Map", ":");
+    structuredTextObj = CreateMapObject(env, "std.core.Map",
+        "X{C{std.core.Iterable}C{std.core.Null}C{std.core.ReadonlyArray}}:");
     if (structuredTextObj == nullptr) {
         return false;
     }
