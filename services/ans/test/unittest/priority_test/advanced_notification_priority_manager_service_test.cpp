@@ -221,6 +221,20 @@ HWTEST_F(PriorityManagerServiceTest, SetBundlePriorityConfig_0300, Function | Sm
 }
 
 /**
+ * @tc.name: SetBundlePriorityConfigInner_0100
+ * @tc.desc: Test SetBundlePriorityConfigInner with empty value success.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PriorityManagerServiceTest, SetBundlePriorityConfigInner_0100, Function | SmallTest | Level1)
+{
+    MockIsSystemApp(true);
+    MockIsVerfyPermisson(true);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
+    sptr<NotificationBundleOption> bundleOption = new (std::nothrow) NotificationBundleOption("bundleName", 200202);
+    EXPECT_EQ(AdvancedNotificationService::GetInstance()->SetBundlePriorityConfig(bundleOption, ""), ERR_OK);
+}
+
+/**
  * @tc.name: GetBundlePriorityConfig_0100
  * @tc.desc: Test GetBundlePriorityConfig return ERR_ANS_PERMISSION_DENIED.
  * @tc.type: FUNC
