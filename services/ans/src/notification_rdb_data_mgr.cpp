@@ -608,8 +608,8 @@ int32_t NotificationDataMgr::DeleteBatchData(const std::vector<std::string> &key
 
         int32_t rowId = -1;
         for (auto tableName : operatedTables) {
-            NativeRdb::AbsRdbPredicates absRdbPredicates(tableName);
             for (const auto &batchKey : batchKeys) {
+                NativeRdb::AbsRdbPredicates absRdbPredicates(tableName);
                 absRdbPredicates.In(NOTIFICATION_KEY, batchKey);
                 ret = rdbStore_->Delete(rowId, absRdbPredicates);
                 if (ret == NativeRdb::E_SQLITE_CORRUPT) {
@@ -617,7 +617,7 @@ int32_t NotificationDataMgr::DeleteBatchData(const std::vector<std::string> &key
                     break;
                 }
                 if (ret != NativeRdb::E_OK) {
-                    ANS_LOGD("Delete operation failed from %{public}s, result: %{public}d.",
+                    ANS_LOGE("Delete operation failed from %{public}s, result: %{public}d.",
                         tableName.c_str(), ret);
                     return NativeRdb::E_ERROR;
                 }

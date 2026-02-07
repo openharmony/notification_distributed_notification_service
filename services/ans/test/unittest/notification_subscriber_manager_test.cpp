@@ -210,8 +210,7 @@ HWTEST_F(NotificationSubscriberManagerTest, NotificationSubscriberManagerTest_00
     // Test NotifyDisturbModeChanged function.
     sptr<NotificationDoNotDisturbDate> date =
         new NotificationDoNotDisturbDate(NotificationConstant::DoNotDisturbType::NONE, 0, 0);
-    std::string bundle = "com.example.test";
-    notificationSubscriberManager_->NotifyDoNotDisturbDateChanged(0, date, bundle);
+    notificationSubscriberManager_->NotifyDoNotDisturbDateChanged(0, date, 200200);
 
     // Test AddSubscriber function.
     sptr<NotificationSubscribeInfo> info = new NotificationSubscribeInfo();
@@ -894,7 +893,7 @@ HWTEST_F(NotificationSubscriberManagerTest, NotifyDoNotDisturbDateChangedInner_0
     info->SetSubscribedFlags(testAnsSubscriber->GetSubscribedFlags());
     ASSERT_EQ(notificationSubscriberManager.AddSubscriberInner(subscriber, info), (int)ERR_OK);
 
-    notificationSubscriberManager.NotifyDoNotDisturbDateChangedInner(101, date, bundle);
+    notificationSubscriberManager.NotifyDoNotDisturbDateChangedInner(101, date, 200200);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     isCallback = testAnsSubscriber->GetCallBack();
     ASSERT_TRUE(isCallback);
@@ -921,7 +920,7 @@ HWTEST_F(NotificationSubscriberManagerTest, NotifyDoNotDisturbDateChangedInner_S
     info->SetSubscribedFlags(testAnsSubscriber->GetSubscribedFlags());
     ASSERT_EQ(notificationSubscriberManager.AddSubscriberInner(subscriber, info), (int)ERR_OK);
 
-    notificationSubscriberManager.NotifyDoNotDisturbDateChangedInner(101, date, bundle);
+    notificationSubscriberManager.NotifyDoNotDisturbDateChangedInner(101, date, 200200);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     isCallback = testAnsSubscriber->GetCallBack();
     ASSERT_FALSE(isCallback);
