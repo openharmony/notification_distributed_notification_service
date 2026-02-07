@@ -60,6 +60,12 @@ public:
     void SetVibrationEnabled(NotificationConstant::FlagStatus vibrationEnabled);
 
     /**
+     * Checks whether enable vibration.
+     * @return vibration enable.
+     */
+    NotificationConstant::FlagStatus IsVibrationEnabled() const;
+
+    /**
      * Sets the notification whether enable lock screen.
      * @param lockScreenEnabled whether enable lock screen.
      */
@@ -82,12 +88,6 @@ public:
      * @return banner enable.
      */
     NotificationConstant::FlagStatus IsBannerEnabled() const;
-
-    /**
-     * Checks whether enable vibration.
-     * @return vibration enable.
-     */
-    NotificationConstant::FlagStatus IsVibrationEnabled() const;
 
     /**
      * Get reminder flags.

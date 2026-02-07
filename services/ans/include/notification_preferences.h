@@ -200,7 +200,7 @@ public:
      * @brief Get private notification enable in the of bunlde from DB.
      *
      * @param bundleOption Indicates bunlde info label.
-     * @param state Indicates to whether to enable.
+     * @param state Indicates to whether set switch state.
      * @return Return ERR_OK on success, others on failure.
      */
     ErrCode GetNotificationsEnabledForBundle(const sptr<NotificationBundleOption> &bundleOption,
@@ -282,11 +282,6 @@ public:
      */
     ErrCode GetAllNotificationEnabledBundles(std::vector<NotificationBundleOption> &bundleOption);
     ErrCode GetAllNotificationEnabledBundles(std::vector<NotificationBundleOption> &bundleOption, const int32_t userId);
-
-    ErrCode GetAllLiveViewEnabledBundles(const int32_t userId, std::vector<NotificationBundleOption> &bundleOption);
-
-    ErrCode GetAllDistribuedEnabledBundles(int32_t userId,
-        const std::string &deviceType, std::vector<NotificationBundleOption> &bundleOption);
 
     /**
      * @brief Remove all proferences info from DB.
@@ -526,6 +521,11 @@ public:
      * @return true if get the permission; returns false otherwise.
      */
     bool GetBundleSoundPermission(bool &allPackage, std::set<std::string> &bundleNames);
+
+    ErrCode GetAllLiveViewEnabledBundles(const int32_t userId, std::vector<NotificationBundleOption> &bundleOption);
+
+    ErrCode GetAllDistribuedEnabledBundles(int32_t userId,
+        const std::string &deviceType, std::vector<NotificationBundleOption> &bundleOption);
 
     ErrCode UpdateDoNotDisturbProfiles(int32_t userId, int64_t profileId,
         const std::string& name, const std::vector<NotificationBundleOption>& bundleList);
