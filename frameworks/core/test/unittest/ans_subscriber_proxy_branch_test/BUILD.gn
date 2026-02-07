@@ -24,7 +24,14 @@ ohos_unittest("ans_subscriber_proxy_branch_test") {
     "${core_path}/include",
     "../mock/",
   ]
-
+  sanitize = {
+    integer_overflow = true
+    ubsan = true
+    boundary_sanitize = true
+    cfi = false
+    cfi_cross_dso = false
+    debug = false
+  }
   sources = [ "ans_subscriber_proxy_branch_test.cpp" ]
 
   deps = [
