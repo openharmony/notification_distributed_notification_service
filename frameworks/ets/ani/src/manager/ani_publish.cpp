@@ -117,7 +117,7 @@ ani_object AniPublish(ani_env *env, ani_object obj, ani_object callback)
     }
     int32_t ret = NotificationSts::UnWarpNotificationRequest(env, obj, asyncCallbackInfo->notificationRequest);
     if (ret != ERR_OK) {
-        NotificationSts::ThrowInternerErrorWithLogE(env, "UnWarpNotificationRequest failed");
+        NotificationSts::ThrowErrorWithCode(env, ret);
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
     }
@@ -154,7 +154,7 @@ ani_object AniPublishWithId(ani_env *env, ani_object obj, ani_int userId, ani_ob
     }
     int32_t ret = NotificationSts::UnWarpNotificationRequest(env, obj, asyncCallbackInfo->notificationRequest);
     if (ret != ERR_OK) {
-        NotificationSts::ThrowInternerErrorWithLogE(env, "UnWarpNotificationRequest failed");
+        NotificationSts::ThrowErrorWithCode(env, ret);
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
     }
@@ -191,7 +191,7 @@ ani_object AniPublishAsBundle(ani_env *env, ani_object request, ani_string repre
     }
     int32_t ret = NotificationSts::UnWarpNotificationRequest(env, request, asyncCallbackInfo->notificationRequest);
     if (ret != ERR_OK) {
-        NotificationSts::ThrowInternerErrorWithLogE(env, "UnWarpNotificationRequest failed");
+        NotificationSts::ThrowErrorWithCode(env, ret);
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
     }
@@ -236,7 +236,7 @@ ani_object AniPublishAsBundleWithBundleOption(ani_env *env, ani_object represent
     }
     int32_t ret = NotificationSts::UnWarpNotificationRequest(env, request, asyncCallbackInfo->notificationRequest);
     if (ret != ERR_OK) {
-        NotificationSts::ThrowInternerErrorWithLogE(env, "UnWarpNotificationRequest failed");
+        NotificationSts::ThrowErrorWithCode(env, ret);
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
     }
