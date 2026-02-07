@@ -524,7 +524,7 @@ ani_status GetMapIteratorStringValue(ani_env *env, ani_ref &next, std::string &s
     }
     return status;
 }
- 
+
 ani_status GetMapByAniMap(ani_env *env, ani_object &mapObj,
     std::vector<std::pair<std::string, std::string>> &out)
 {

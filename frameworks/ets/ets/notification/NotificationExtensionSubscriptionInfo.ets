@@ -16,11 +16,12 @@
 import type notificationExtensionSubscription from '@ohos.notificationExtensionSubscription';
 
 export interface NotificationExtensionSubscriptionInfo {
-	addr:string;
-	type: notificationExtensionSubscription.SubscribeType;
+    addr:string;
+    type: notificationExtensionSubscription.SubscribeType;
 }
 
 export class NotificationExtensionSubscriptionInfoInner implements NotificationExtensionSubscriptionInfo {
-	public addr: string = '';
-	public type: notificationExtensionSubscription.SubscribeType = notificationExtensionSubscription.SubscribeType.BLUETOOTH;
+    public addr: string = '';
+    public type: notificationExtensionSubscription.SubscribeType =
+        notificationExtensionSubscription.SubscribeType.BLUETOOTH;
 }
