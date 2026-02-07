@@ -564,8 +564,8 @@ void NotificationPreferencesInfo::GetAllCLoneBundlesInfo(const int32_t &dbUserId
             ANS_LOGI("Anco userid %{public}s %{public}d.", bundleItem.second.c_str(), iter->second.GetBundleUid());
             continue;
         }
-
-        if (userId != ZERO_USERID &&
+ 
+        if (dbUserId != ZERO_USERID &&
             BundleManagerHelper::GetInstance()->IsAncoApp(iter->second.GetBundleName(), iter->second.GetBundleUid())) {
             ANS_LOGI("Anco bundle info %{public}s.", bundleItem.second.c_str());
             continue;
@@ -603,7 +603,6 @@ void NotificationPreferencesInfo::GetAllCLoneBundlesInfo(const int32_t &dbUserId
         }
         cloneBundles.emplace_back(cloneBundleInfo);
     }
-    ANS_LOGI("GetAllCLoneBundlesInfo size: %{public}zu.", cloneBundles.size());
 }
 
 bool NotificationPreferencesInfo::GetDoNotDisturbDate(const int32_t &userId,

@@ -96,8 +96,7 @@ void DistributedOperationService::RemoveOperationResponse(const std::string& has
         if (iterTimer->second == NotificationConstant::INVALID_TIMER_ID) {
             return;
         }
-        ANS_LOGI("Operation timer erase %{public}s %{public}s", hashCode.c_str(),
-            std::to_string(iterTimer->second).c_str());
+        ANS_LOGI("Operation timer erase %{public}s %{public}" PRIu64, hashCode.c_str(), iterTimer->second);
         MiscServices::TimeServiceClient::GetInstance()->StopTimer(iterTimer->second);
         MiscServices::TimeServiceClient::GetInstance()->DestroyTimer(iterTimer->second);
         timerMap_.erase(iterTimer);
@@ -119,8 +118,8 @@ void DistributedOperationService::ReplyOperationResponse(const std::string& hash
         if (iterTimer->second == NotificationConstant::INVALID_TIMER_ID) {
             return;
         }
-        ANS_LOGI("Operation timer erase %{public}s %{public}s", hashCode.c_str(),
-            std::to_string(iterTimer->second).c_str());
+        ANS_LOGI("Operation timer erase %{public}s %{public}" PRIu64, hashCode.c_str(),
+            iterTimer->second);
         MiscServices::TimeServiceClient::GetInstance()->StopTimer(iterTimer->second);
         MiscServices::TimeServiceClient::GetInstance()->DestroyTimer(iterTimer->second);
         timerMap_.erase(iterTimer);

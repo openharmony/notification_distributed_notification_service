@@ -117,7 +117,7 @@ public:
      * @param bundle Indicates which bundle need consume the update nofitication
      */
     void NotifyDoNotDisturbDateChanged(const int32_t &userId, const sptr<NotificationDoNotDisturbDate> &date,
-        const std::string &bundle);
+        int32_t uid);
 
     void NotifyEnabledNotificationChanged(const sptr<EnabledNotificationCallbackData> &callbackData);
 
@@ -194,7 +194,7 @@ public:
      */
     ErrCode DistributeOperation(
         const sptr<NotificationOperationInfo>& operationInfo, const sptr<NotificationRequest>& request);
- 
+
     ErrCode DistributeOperationTask(const sptr<NotificationOperationInfo>& operationInfo,
         const sptr<NotificationRequest>& request, int32_t &funcResult);
 
@@ -241,7 +241,7 @@ private:
         const sptr<NotificationSortingMap> &notificationMap, int32_t deleteReason);
     void NotifyUpdatedInner(const sptr<NotificationSortingMap> &notificationMap);
     void NotifyDoNotDisturbDateChangedInner(const int32_t &userId, const sptr<NotificationDoNotDisturbDate> &date,
-        const std::string &bundle);
+        int32_t uid);
     void NotifyEnabledNotificationChangedInner(const sptr<EnabledNotificationCallbackData> &callbackData);
     void NotifyEnabledSilentReminderChangedInner(const sptr<EnabledSilentReminderCallbackData> &callbackData);
     void NotifyEnabledWatchStatusChangedInner(const uint32_t watchStatus);
