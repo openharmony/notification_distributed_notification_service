@@ -73,6 +73,8 @@ extern const std::string ANS_EXTENDINFO_DEVICE_ID;
 extern const std::string EXTENDINFO_FLAG;
 extern const std::string EXTENDINFO_PRIORITY_TYPE;
 
+const static std::string DEFAULT_TEMPLATE_PATH("/system/etc/notification_template/external.json");
+
 #ifdef DISTRIBUTED_NOTIFICATION_SUPPORTED
 constexpr NotificationConstant::DistributedReminderPolicy DEFAULT_DISTRIBUTED_REMINDER_POLICY =
     NotificationConstant::DistributedReminderPolicy::DEFAULT;

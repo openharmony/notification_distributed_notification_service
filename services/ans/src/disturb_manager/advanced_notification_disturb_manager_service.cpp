@@ -209,7 +209,7 @@ ErrCode AdvancedNotificationService::SetDoNotDisturbDateByUser(const int32_t &us
         ANS_LOGE("Failed to create NotificationDoNotDisturbDate instance");
         return ERR_NO_MEMORY;
     }
-    std::string bundle = GetClientBundleName();
+    int32_t uid = IPCSkeleton::GetCallingUid();
 
     sptr<NotificationBundleOption> bundleOption = GenerateBundleOption();
     if (bundleOption == nullptr) {
@@ -221,7 +221,7 @@ ErrCode AdvancedNotificationService::SetDoNotDisturbDateByUser(const int32_t &us
         ANS_LOGD("ffrt enter!");
         result = NotificationPreferences::GetInstance()->SetDoNotDisturbDate(userId, newConfig);
         if (result == ERR_OK) {
-            NotificationSubscriberManager::GetInstance()->NotifyDoNotDisturbDateChanged(userId, newConfig, bundle);
+            NotificationSubscriberManager::GetInstance()->NotifyDoNotDisturbDateChanged(userId, newConfig, uid);
         }
     }));
     ANS_COND_DO_ERR(submitResult != ERR_OK, return submitResult, "Set donot disturb date by user.");
