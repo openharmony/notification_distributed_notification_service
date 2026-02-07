@@ -112,6 +112,20 @@ public:
     std::string GetDeviceType() const;
 
     /**
+     * @brief Obtains notify application change.
+     *
+     * @return Returns the result.
+     **/
+    bool GetNeedNotifyApplication() const;
+
+    /**
+     * @brief Obtains notify application change.
+     *
+     * @return Returns the result.
+     **/
+    void SetNeedNotifyApplication(bool isNeed);
+
+    /**
      * @brief Marshals a NotificationSubscribeInfo object into a Parcel.
      *
      * @param parcel Indicates the Parcel object for marshalling.
@@ -161,20 +175,6 @@ public:
      * @return Returns the filter type of subscriber.
      **/
     uint32_t GetFilterType() const;
-
-    /**
-     * @brief Obtains notify application change.
-     *
-     * @return Returns the result.
-     **/
-    bool GetNeedNotifyApplication() const;
-
-    /**
-     * @brief Obtains notify application change.
-     *
-     * @return Returns the result.
-     **/
-    void SetNeedNotifyApplication(bool isNeed);
 
     /**
      * @brief Obtains notify repsponse.
