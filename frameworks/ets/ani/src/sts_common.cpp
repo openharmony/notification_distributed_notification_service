@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 #include "sts_common.h"
-#include <cinttypes>
 
 #include "ans_log_wrapper.h"
 #include "ani_common_util.h"
