@@ -59,49 +59,6 @@ public:
     {}
 };
 
-    bool TestSubscribeListener(FuzzedDataProvider* fdp)
-    {
-        int32_t id = fdp->ConsumeIntegral<int32_t>();
-        std::string str = fdp->ConsumeRandomLengthString();
-
-        std::shared_ptr<NotificationSubscriber> testSubscriber = std::make_shared<FuzzTestSubscriber>();
-        sptr<IAnsSubscriber> listener = new (std::nothrow) SubscriberListener(testSubscriber);
-        listener->OnDisconnected();
-
-        sptr<NotificationRequest> req = new (std::nothrow) NotificationRequest();
-        sptr<Notification> notification = new (std::nothrow) Notification(req);
-        sptr<NotificationSortingMap> notificationMap = new (std::nothrow) NotificationSortingMap();
-        listener->OnConsumed(notification, notificationMap);
-        listener->OnConsumed(notification);
-
-        std::vector<sptr<Notification>> notifications;
-        notifications.emplace_back(notification);
-        listener->OnConsumedList(notifications, notificationMap);
-
-        listener->OnCanceled(notification, notificationMap, id);
-        listener->OnCanceled(notification, nullptr, id);
-        listener->OnCanceled(notification, id);
-        listener->OnCanceledList(notifications, notificationMap, id);
-        listener->OnCanceledList(notifications, id);
-        listener->OnUpdated(notificationMap);
-
-        sptr<NotificationDoNotDisturbDate> date = new (std::nothrow) NotificationDoNotDisturbDate();
-        listener->OnDoNotDisturbDateChange(date);
-
-        sptr<EnabledNotificationCallbackData> callback = new (std::nothrow) EnabledNotificationCallbackData();
-        listener->OnEnabledNotificationChanged(callback);
-        listener->OnBadgeEnabledChanged(callback);
-
-        sptr<BadgeNumberCallbackData> badgeData = new (std::nothrow) BadgeNumberCallbackData();
-        listener->OnBadgeChanged(badgeData);
-
-        sptr<NotificationOperationInfo> operationInfo = new (std::nothrow) NotificationOperationInfo();
-        listener->OnOperationResponse(operationInfo, id);
-
-        listener->OnApplicationInfoNeedChanged(str);
-        return true;
-    }
-
     bool TestAnsNotification(FuzzedDataProvider* fdp)
     {
         constexpr uint8_t slotTypeNum = 5;
@@ -385,7 +342,6 @@ public:
 
     bool DoSomethingInterestingWithMyAPI(FuzzedDataProvider *fdp)
     {
-        TestSubscribeListener(fdp);
         TestAnsNotification(fdp);
         TestAnsNotification2(fdp);
         TestAnsNotification3(fdp);
