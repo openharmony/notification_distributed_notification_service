@@ -65,6 +65,11 @@ constexpr int64_t PRIORITY_STRATEGY_DEFAULT = static_cast<int64_t>(
     NotificationConstant::PriorityStrategyStatus::STATUS_INTELLIGENT |
     NotificationConstant::PriorityStrategyStatus::STATUS_USER_DEFINED |
     NotificationConstant::PriorityStrategyStatus::STATUS_APPLICATION_DEFINED);
+constexpr int64_t PRIORITY_STRATEGY_INTELLIGENT = static_cast<int64_t>(
+    NotificationConstant::PriorityStrategyStatus::STATUS_SYSTEM_RULE |
+    NotificationConstant::PriorityStrategyStatus::STATUS_INTELLIGENT |
+    NotificationConstant::PriorityStrategyStatus::STATUS_USER_DEFINED |
+    NotificationConstant::PriorityStrategyStatus::STATUS_APPLICATION_DEFINED);
 constexpr int64_t PRIORITY_STRATEGY_MAX = static_cast<int64_t>(
     NotificationConstant::PriorityStrategyStatus::STATUS_SYSTEM_DEFAULT |
     NotificationConstant::PriorityStrategyStatus::STATUS_SYSTEM_RULE |
