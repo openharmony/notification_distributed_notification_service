@@ -45,7 +45,7 @@ public:
     static const char* NOTIFICATION_SYNC_MODE;
 
     /** The current database schema version number. Increment this when schema changes. */
-    constexpr static int32_t NOTIFICATION_RDB_VERSION = 2;
+    constexpr static int32_t NOTIFICATION_RDB_VERSION = 3;
 };
 }  // namespace OHOS::Notification::Infra
 

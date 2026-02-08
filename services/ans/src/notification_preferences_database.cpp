@@ -1379,10 +1379,10 @@ void NotificationPreferencesDatabase::ParsePriorityInfosFromDisturbeDB(
         priorityInfo.SetBundleName(bundleName);
         priorityInfo.SetAppIndex(BundleManagerHelper::GetInstance()->GetAppIndexByUid(uid));
         priorityInfo.SetClonePriorityType(type);
-        if (type == NotificationClonePriorityInfo::CLONE_PRIORITY_TYPE::PRIORITY_ENABLE_FOR_BUNDLE) {
-            priorityInfo.SetSwitchState(StringToInt(item.second));
-        } else {
+        if (type == NotificationClonePriorityInfo::CLONE_PRIORITY_TYPE::PRIORITY_CONFIG) {
             priorityInfo.SetPriorityConfig(item.second);
+        } else {
+            priorityInfo.SetSwitchState(StringToInt(item.second));
         }
         cloneInfos.emplace_back(priorityInfo);
     }

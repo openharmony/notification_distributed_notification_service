@@ -32,7 +32,8 @@ std::shared_ptr<Infra::NotificationRdbMgr> GetAnsNotificationRdbMgrInstance()
     };
     static std::set<Infra::RdbEventHandlerType> eventHandlerTypes = {
         Infra::RdbEventHandlerType::ON_CREATE_INIT_DEFAULT_TABLE,
-        Infra::RdbEventHandlerType::ON_UPGRADE_LIVE_VIEW_MIGRATION
+        Infra::RdbEventHandlerType::ON_UPGRADE_LIVE_VIEW_MIGRATION,
+        Infra::RdbEventHandlerType::ON_UPGRADE_PRIORITY_INFO_MIGRATION
     };
     static std::shared_ptr<Infra::NotificationRdbMgr> instance =
         std::make_shared<Infra::NotificationRdbMgr>(config, hooks, eventHandlerTypes);
