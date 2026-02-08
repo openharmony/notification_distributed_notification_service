@@ -19,19 +19,21 @@ module_output_path =
     "${component_name}/distributed_notification_service/unittest"
 
 ohos_unittest("ans_subscriber_proxy_branch_test") {
+  sanitize = {
+    integer_overflow = true
+    ubsan = true
+    boundary_sanitize = true
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
   include_dirs = [
     "${core_path}/include",
     "../mock/",
   ]
-  sanitize = {
-    integer_overflow = true
-    ubsan = true
-    boundary_sanitize = true
-    cfi = false
-    cfi_cross_dso = false
-    debug = false
-  }
+
   sources = [ "ans_subscriber_proxy_branch_test.cpp" ]
 
   deps = [
