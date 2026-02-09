@@ -1425,7 +1425,7 @@ ani_array GetAniNotificationRequestArray(ani_env *env, std::vector<sptr<Notifica
         ANS_LOGE("arrayObj is nullptr");
         return nullptr;
     }
-    ani_size index = 0;
+    int32_t index = 0;
     for (auto &request : requests) {
         ani_class requestCls;
         ani_object requestObj;
@@ -1449,7 +1449,7 @@ ani_array GetAniNotificationRequestArrayByNotifocations(ani_env *env, std::vecto
         ANS_LOGE("arrayObj is nullptr");
         return nullptr;
     }
-    ani_size index = 0;
+    int32_t index = 0;
     for (auto &request : requests) {
         ani_class requestCls;
         ani_object requestObj;

@@ -257,11 +257,9 @@ void DistributedService::HandleStatusChange(const DeviceStatueChangeInfo& change
 void DistributedService::HandleSwitchChange(const DeviceStatueChangeInfo &changeInfo)
 {
     for (const auto& peer : DistributedDeviceService::GetInstance().GetDeviceList()) {
-        if (peer.second.peerState_ != DeviceState::STATE_ONLINE) {
-            continue;
-        }
-        if (changeInfo.deviceType != NotificationConstant::CURRENT_DEVICE_TYPE &&
-            DistributedDeviceService::DeviceTypeToTypeString(peer.second.deviceType_) != changeInfo.deviceType) {
+        // for master node, close switch only remove pc/pad collaborated notifictaion.
+        if (changeInfo.deviceType != NotificationConstant::CURRENT_DEVICE_TYPE || !peer.second.IsPadOrPc() ||
+            peer.second.peerState_ != DeviceState::STATE_ONLINE) {
             continue;
         }
         ANS_LOGI(
@@ -293,7 +291,10 @@ void DistributedService::HandleStatusChange(const DeviceStatueChangeInfo& change
         DistributedDeviceService::GetInstance().SetSubscribeAllConnect(true);
     }
 
-    if (changeInfo.changeType == DeviceStatueChangeType::NOTIFICATION_ENABLE_CHANGE) {
+    // for slave node, collaborated switch only for pc/pad needs send to master node.
+    if (changeInfo.changeType == DeviceStatueChangeType::NOTIFICATION_ENABLE_CHANGE &&
+        (changeInfo.deviceType == NotificationConstant::PAD_DEVICE_TYPE ||
+        changeInfo.deviceType == NotificationConstant::PC_DEVICE_TYPE)) {
         DistributedDeviceService::GetInstance().SyncDeviceStatus(DistributedDeviceService::STATE_TYPE_SWITCH,
             false, changeInfo.enableChange, changeInfo.liveViewChange);
     }

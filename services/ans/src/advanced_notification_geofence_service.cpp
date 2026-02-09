@@ -24,7 +24,7 @@
 #include "ans_trace_wrapper.h"
 #include "int_wrapper.h"
 #include "ipc_skeleton.h"
-#include "liveview_all_scenarios_extension_wrapper.h"
+#include "all_scenarios_extension_wrapper.h"
 #include "notification_config_parse.h"
 #include "notification_preferences.h"
 #include "os_account_manager_helper.h"
@@ -130,7 +130,7 @@ ErrCode AdvancedNotificationService::OnNotifyDelayedNotificationInner(const Publ
         return ERR_ANS_INVALID_PARAM;
     }
 
-    auto result = LIVEVIEW_ALL_SCENARIOS_EXTENTION_WRAPPER->OnNotifyDelayedNotification(parameter.request);
+    auto result = Infra::ALL_SCENARIOS_EXTENTION_WRAPPER.OnNotifyDelayedNotification(parameter.request);
     HaMetaMessage message = HaMetaMessage(EventSceneId::SCENE_32, EventBranchId::BRANCH_4);
     uint32_t configPath = static_cast<uint32_t>(parameter.request->GetNotificationTrigger()->GetConfigPath());
     message.Message("Ntf TriggerKey:" + parameter.request->GetTriggerSecureKey() + "_" +
@@ -504,7 +504,7 @@ ErrCode AdvancedNotificationService::ClearAllGeofenceNotificationRequests(const 
     }
     if (!triggerKeys.empty()) {
         ANS_LOGD("Invoke ext OnNotifyClearNotification");
-        result = LIVEVIEW_ALL_SCENARIOS_EXTENTION_WRAPPER->OnNotifyClearNotification(triggerKeys);
+        result = Infra::ALL_SCENARIOS_EXTENTION_WRAPPER.OnNotifyClearNotification(triggerKeys);
         if (result != ERR_OK) {
             HaMetaMessage message = HaMetaMessage(EventSceneId::SCENE_32, EventBranchId::BRANCH_12);
             message.Message("OnNotifyClearNotification");
@@ -598,7 +598,7 @@ void AdvancedNotificationService::ProcForDeleteGeofenceLiveView(const std::share
         record->request->GetReceiverUserId());
     std::vector<std::string> triggerKeys;
     triggerKeys.push_back(record->request->GetTriggerSecureKey());
-    auto result = LIVEVIEW_ALL_SCENARIOS_EXTENTION_WRAPPER->OnNotifyClearNotification(triggerKeys);
+    auto result = Infra::ALL_SCENARIOS_EXTENTION_WRAPPER.OnNotifyClearNotification(triggerKeys);
     if (result != ERR_OK) {
         HaMetaMessage message = HaMetaMessage(EventSceneId::SCENE_32, EventBranchId::BRANCH_13);
         message.Message("Clear Ntf");
