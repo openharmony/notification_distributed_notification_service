@@ -30,13 +30,6 @@ void AdvancedAggregationDataRoamingObserver::OnChange()
     std::string enable = "";
     AdvancedNotificationService::GetInstance()->GetUnifiedGroupInfoFromDb(enable);
     ANS_LOGI("GetUnifiedGroupInfoFromDb enter, enable:%{public}s", enable.c_str());
-
-#ifdef ENABLE_ANS_AGGREGATION
-    EXTENTION_WRAPPER->SetlocalSwitch(enable);
-    AdvancedNotificationService::GetInstance()->ClearAllNotificationGroupInfo(enable);
-#else
-    ANS_LOGD("Not enabled ans_ext");
-#endif
 }
 } // namespace Telephony
 } // namespace OHOS
