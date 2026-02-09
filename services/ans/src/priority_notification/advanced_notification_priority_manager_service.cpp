@@ -234,8 +234,9 @@ ErrCode AdvancedNotificationService::SetBundlePriorityConfigInner(
     ANS_COND_DO_ERR(submitResult != ERR_OK, return submitResult, "Set priority config.");
     message.ErrorCode(result).Append(", refreshResult:" + std::to_string(refreshResult));
     NotificationAnalyticsUtil::ReportModifyEvent(message);
-    ANS_LOGI("SetBundlePriorityConfig %{public}s_%{public}d, result: %{public}d, refreshResult: %{public}d",
-        bundleOption->GetBundleName().c_str(), bundleOption->GetUid(), result, refreshResult);
+    ANS_LOGI("SetBundlePriorityConfig %{public}s_%{public}d, result: %{public}d,"
+        "refreshResult: %{public}d, cfg: %{public}d", bundleOption->GetBundleName().c_str(),
+        bundleOption->GetUid(), result, refreshResult, static_cast<int32_t>(value.size()));
     return result;
 }
 
