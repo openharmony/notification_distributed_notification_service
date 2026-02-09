@@ -73,14 +73,14 @@ public:
     void AddSlotInfo(const SlotInfo &slotInfo);
     std::vector<SlotInfo> GetSlotInfo() const;
 
+    void AddRingtoneInfo(sptr<NotificationRingtoneInfo> ringtoneInfo);
+    sptr<NotificationRingtoneInfo> GetRingtoneInfo() const;
+
     void SetExtensionSubscriptionInfos(const std::vector<sptr<NotificationExtensionSubscriptionInfo>>& infos);
     const std::vector<sptr<NotificationExtensionSubscriptionInfo>>& GetExtensionSubscriptionInfos() const;
 
     void SetExtensionSubscriptionBundles(const std::vector<sptr<NotificationBundleOption>>& bundles);
     const std::vector<sptr<NotificationBundleOption>>& GetExtensionSubscriptionBundles() const;
-
-    void AddRingtoneInfo(sptr<NotificationRingtoneInfo> ringtoneInfo);
-    sptr<NotificationRingtoneInfo> GetRingtoneInfo() const;
 
     void ToJson(nlohmann::json &jsonObject) const;
     void FromJson(const nlohmann::json &root);
@@ -99,13 +99,13 @@ private:
     bool isShowBadge_ = false;
     bool hasPoppedDialog_ = false;
     bool ishasPoppedSupportClone_ = false;
-    NotificationConstant::SWITCH_STATE isEnabledNotification_ = NotificationConstant::SWITCH_STATE::SYSTEM_DEFAULT_OFF;
-    std::vector<SlotInfo> slotsInfo_;
+    NotificationConstant::SWITCH_STATE isEnabledNotification_ {NotificationConstant::SWITCH_STATE::SYSTEM_DEFAULT_OFF};
     sptr<NotificationRingtoneInfo> ringtoneInfo_ = nullptr;
-    NotificationConstant::SWITCH_STATE silentReminderEnabled_;
+    std::vector<SlotInfo> slotsInfo_;
+    NotificationConstant::SWITCH_STATE silentReminderEnabled_ {NotificationConstant::SWITCH_STATE::SYSTEM_DEFAULT_OFF};
     std::vector<sptr<NotificationExtensionSubscriptionInfo>> extensionSubscriptionInfos_;
     NotificationConstant::SWITCH_STATE enabledExtensionSubscription_ =
-        NotificationConstant::SWITCH_STATE::SYSTEM_DEFAULT_OFF;
+    NotificationConstant::SWITCH_STATE::SYSTEM_DEFAULT_OFF;
     std::vector<sptr<NotificationBundleOption>> extensionSubscriptionBundles_;
 };
 } // namespace Notification

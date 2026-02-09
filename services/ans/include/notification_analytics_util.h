@@ -274,8 +274,6 @@ private:
 
     static std::string GetDeviceStatus(const sptr<NotificationRequest>& request);
 
-    static std::list<std::chrono::system_clock::time_point> GetFlowListByType(const int32_t reportType);
-
     static FlowControllerOption GetFlowOptionByType(const int32_t reportType);
 
     static std::string BuildExtraInfo(const HaMetaMessage& message);
