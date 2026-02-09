@@ -89,7 +89,7 @@ ErrCode AdvancedNotificationService::Publish(const std::string &label, const spt
 
     auto fullTokenID = IPCSkeleton::GetCallingFullTokenID();
     if (Security::AccessToken::AccessTokenKit::IsAtomicServiceByFullTokenID(fullTokenID)) {
-        ANS_LOGE("AtomicService is not allowed to publish");
+        ANS_LOGE("AtomicService is not allowed to publish notification");
         return ERR_ANS_PERMISSION_DENIED;
     }
 
@@ -235,7 +235,7 @@ ErrCode AdvancedNotificationService::PublishNotificationForIndirectProxy(const s
 
     auto fullTokenID = IPCSkeleton::GetCallingFullTokenID();
     if (Security::AccessToken::AccessTokenKit::IsAtomicServiceByFullTokenID(fullTokenID)) {
-        ANS_LOGE("AtomicService is not allowed to publish");
+        ANS_LOGE("AtomicService is not allowed to publish notification");
         return ERR_ANS_PERMISSION_DENIED;
     }
 
@@ -291,7 +291,7 @@ ErrCode AdvancedNotificationService::PublishNotificationForIndirectProxy(const s
 
     SetRequestBySlotType(record->request, bundleOption);
 
-    const int32_t ipcUid = IPCSkeleton::GetCallingUid();
+    auto ipcUid = IPCSkeleton::GetCallingUid();
     auto submitResult = notificationSvrQueue_.SyncSubmit([&]() {
 #ifdef NOTIFICATION_MULTI_FOREGROUND_USER
         if (IsDisableNotification(bundle, record->notification->GetRecvUserId())) {

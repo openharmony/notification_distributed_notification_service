@@ -251,7 +251,7 @@ ErrCode AdvancedNotificationService::GetShowBadgeEnabledForBundles(
         return ERR_ANS_NON_SYSTEM_APP;
     }
     if (!AccessTokenHelper::CheckPermission(OHOS_PERMISSION_NOTIFICATION_CONTROLLER)) {
-        ANS_LOGE("Permission Denied");
+        ANS_LOGE("Permission Denied.");
         NotificationAnalyticsUtil::ReportModifyEvent(message.ErrorCode(ERR_ANS_PERMISSION_DENIED).BranchId(BRANCH_1));
         return ERR_ANS_PERMISSION_DENIED;
     }
@@ -344,7 +344,7 @@ ErrCode AdvancedNotificationService::SetBadgeNumber(int32_t badgeNumber, const s
     sptr<BadgeNumberCallbackData> badgeData = new (std::nothrow) BadgeNumberCallbackData(
         bundleName, instanceKey, callingUid, badgeNumber);
     if (badgeData == nullptr) {
-        ANS_LOGE("Null badgeData.");
+        ANS_LOGE("null badgeData");
         return ERR_ANS_NO_MEMORY;
     }
 
@@ -393,7 +393,7 @@ ErrCode AdvancedNotificationService::SetBadgeNumberForDhByBundle(
     sptr<BadgeNumberCallbackData> badgeData = new (std::nothrow) BadgeNumberCallbackData(
             bundleOption->GetBundleName(), bundleOption->GetUid(), badgeNumber);
     if (badgeData == nullptr) {
-        ANS_LOGE("Null badgeData.");
+        ANS_LOGE("null badgeData");
         return ERR_ANS_NO_MEMORY;
     }
 
@@ -450,7 +450,7 @@ ErrCode AdvancedNotificationService::SetBadgeNumberByBundle(
     sptr<BadgeNumberCallbackData> badgeData = new (std::nothrow) BadgeNumberCallbackData(
             bundle->GetBundleName(), bundle->GetUid(), badgeNumber);
     if (badgeData == nullptr) {
-        ANS_LOGE("Null badgeData.");
+        ANS_LOGE("Failed to create badge number callback data.");
         return ERR_ANS_NO_MEMORY;
     }
 
