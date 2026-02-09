@@ -37,10 +37,6 @@ void DeleteCallBackInfoWithoutPromise(ani_env* env, AsyncCallbackProfileInfo* as
         DeleteAsyncWork(env, asyncCallbackInfo->asyncWork);
         asyncCallbackInfo->asyncWork = nullptr;
     }
-    if (asyncCallbackInfo->doNotDisturbProfile != nullptr) {
-        delete asyncCallbackInfo->doNotDisturbProfile;
-        asyncCallbackInfo->doNotDisturbProfile = nullptr;
-    }
     delete asyncCallbackInfo;
     asyncCallbackInfo = nullptr;
 }
@@ -131,7 +127,6 @@ ani_object AniAddDoNotDisturbProfile(ani_env *env, ani_object obj, ani_object ca
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
     env->GetVM(&asyncCallbackInfo->vm);
-
     WorkStatus status = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackProfileInfo*>(data);
@@ -295,7 +290,7 @@ ani_object AniGetDoNotDisturbProfile(ani_env *env, ani_long id, ani_object callb
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
     env->GetVM(&asyncCallbackInfo->vm);
-    asyncCallbackInfo->functionType == GET_DO_NOT_DISTURB_PROFILE;
+    asyncCallbackInfo->functionType = GET_DO_NOT_DISTURB_PROFILE;
     WorkStatus status = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackProfileInfo*>(data);
@@ -338,7 +333,7 @@ ani_object AniGetDoNotDisturbProfileByUserId(ani_env *env, ani_long id, ani_int 
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
     env->GetVM(&asyncCallbackInfo->vm);
-    asyncCallbackInfo->functionType == GET_DO_NOT_DISTURB_PROFILE_BY_USER_ID;
+    asyncCallbackInfo->functionType = GET_DO_NOT_DISTURB_PROFILE_BY_USER_ID;
     WorkStatus status = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackProfileInfo*>(data);
