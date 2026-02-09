@@ -32,7 +32,6 @@
 #include "ans_permission_def.h"
 #include "errors.h"
 #include "notification_extension_wrapper.h"
-#include "notification_bundle_option.h"
 #include "notification_record.h"
 #include "os_account_manager_helper.h"
 #include "os_account_manager.h"
@@ -99,11 +98,11 @@ constexpr int32_t WINDOW_DEFAULT_WIDTH = 720;
 constexpr int32_t WINDOW_DEFAULT_HEIGHT = 1280;
 constexpr int32_t UI_HALF = 2;
 constexpr int32_t MAX_LIVEVIEW_HINT_COUNT = 1;
-constexpr int32_t MAX_SOUND_ITEM_LENGTH = 2048;
 constexpr int32_t BUNDLE_OPTION_UID_DEFAULT_VALUE = 0;
+constexpr int32_t MAX_SOUND_ITEM_LENGTH = 2048;
 constexpr int32_t RSS_UID = 1096;
-constexpr int32_t TYPE_CODE_VOIP = 0;
 constexpr int32_t CONTROL_BY_DO_NOT_DISTURB_MODE = 1 << 14;
+constexpr int32_t TYPE_CODE_VOIP = 0;
 constexpr int32_t CONTROL_BY_INTELLIGENT_EXPERIENCE = 1 << 31;
 constexpr int32_t FIRST_USERID = 0;
 constexpr int32_t PUSH_CHECK_WEAK_NETWORK = 7788;
@@ -166,8 +165,13 @@ AnsStatus AdvancedNotificationService::PrepareNotificationRequest(const sptr<Not
                     EventSceneId::SCENE_14, EventBranchId::BRANCH_3);
             }
             if (request->GetOwnerUid() == DEFAULT_UID) {
-                OsAccountManagerHelper::GetInstance().GetCurrentActiveUserId(userId);
-                uid = bundleManager->GetDefaultUidByBundleName(request->GetOwnerBundleName(), userId);
+                if (bundleManager != nullptr) {
+                    OsAccountManagerHelper::GetInstance().GetCurrentActiveUserId(userId);
+                    uid = bundleManager->GetDefaultUidByBundleName(request->GetOwnerBundleName(), userId);
+                }
+                if (uid < 0) {
+                    return AnsStatus::InvalidUid(EventSceneId::SCENE_14, EventBranchId::BRANCH_2);
+                }
             } else {
                 uid = request->GetOwnerUid();
             }
@@ -358,7 +362,7 @@ AdvancedNotificationService::AdvancedNotificationService()
 
 AdvancedNotificationService::~AdvancedNotificationService()
 {
-    ANS_LOGI("deconstructor");
+    ANS_LOGD("called");
 }
 
 void AdvancedNotificationService::SelfClean()
@@ -798,9 +802,6 @@ AnsStatus AdvancedNotificationService::PublishPreparedNotificationInner(
     }
     bool isDisableNotification = IsNeedToControllerByDisableNotification(request);
     auto ownerBundleName = request->GetOwnerBundleName();
-#ifdef ENABLE_ANS_AGGREGATION
-    EXTENTION_WRAPPER->GetUnifiedGroupInfo(request);
-#endif
     int32_t uid = parameter.uid;
     auto submitResult = notificationSvrQueue_.SyncSubmit(std::bind([&]() {
         ANS_LOGD("ffrt enter!");
@@ -897,7 +898,7 @@ void AdvancedNotificationService::QueryDoNotDisturbProfile(const int32_t &userId
 
 void AdvancedNotificationService::RegisterNotDisturbEnableListener()
 {
-    ANS_LOGE("Register notdisturb enabled state listener start.");
+    ANS_LOGI("Register notdisturb enabled state listener start.");
     auto datashareHelper = DelayedSingleton<AdvancedDatashareHelper>::GetInstance();
     if (datashareHelper == nullptr) {
         ANS_LOGE("datashareHelper is null");
@@ -907,18 +908,14 @@ void AdvancedNotificationService::RegisterNotDisturbEnableListener()
     if (observer != nullptr) {
         Uri enableUri(datashareHelper->GetFocusModeEnableUri(DEFAULT_USER_ID));
         AdvancedDatashareObserver::GetInstance().RegisterSettingsObserver(enableUri, observer);
-    } else {
-        ANS_LOGE("Register not disturb listener failed.");
     }
     sptr<AdvancedNotdisturbWhiteListObserver> whiteListObserver =
         new (std::nothrow) AdvancedNotdisturbWhiteListObserver();
     if (whiteListObserver != nullptr) {
         Uri whiteListUri(datashareHelper->GetNodistubrSoundWhiteListUri(DEFAULT_USER_ID));
         AdvancedDatashareObserver::GetInstance().RegisterSettingsObserver(whiteListUri, whiteListObserver);
-    } else {
-        ANS_LOGE("Register white list listener failed.");
     }
-    ANS_LOGE("Register notdisturb enabled state listener end.");
+    ANS_LOGI("Register notdisturb enabled state listener end.");
 }
 
 void AdvancedNotificationService::RefreshNotDisturbEnableState()
@@ -946,6 +943,7 @@ ErrCode AdvancedNotificationService::SetNotDisturbWhiteList(int32_t userId)
         datashareHelper->QueryByDataShare(whiteListUri, KEY_FOCUS_MODE_SOUND_WHITE_LIST, soundWhiteListString_);
     if (!isSuccess) {
         ANS_LOGE("Query sound white list failed");
+        return ERROR_INTERNAL_ERROR;
     }
     return ERR_OK;
 }
@@ -962,6 +960,7 @@ ErrCode AdvancedNotificationService::SetNotDisturbEnableState(int32_t userId, bo
     bool ret = datashareHelper->QueryByDataShare(enableUri, KEY_FOCUS_MODE_ENABLE, doNotDisturbEnabledState);
     if (!ret) {
         ANS_LOGE("Query focus mode enable failed");
+        return ERROR_INTERNAL_ERROR;
     }
     if (doNotDisturbEnabledState == DO_NOT_DISTURB_MODE) {
         ANS_LOGI("Currently is focus mode.");
@@ -1313,16 +1312,16 @@ void AdvancedNotificationService::ChangeNotificationByControlFlagsFor3rdApp(
         record->request->SetDistributedFlagBit(NotificationConstant::ReminderFlag::SOUND_FLAG, false);
         record->notification->SetEnableSound(false);
     }
-
+ 
     if ((notificationControlFlags & NotificationConstant::ReminderFlag::LOCKSCREEN_FLAG) != 0) {
         record->request->SetDistributedFlagBit(NotificationConstant::ReminderFlag::LOCKSCREEN_FLAG, false);
         record->request->SetVisibleness(NotificationConstant::VisiblenessType::SECRET);
     }
-
+ 
     if ((notificationControlFlags & NotificationConstant::ReminderFlag::BANNER_FLAG) != 0) {
         record->request->SetDistributedFlagBit(NotificationConstant::ReminderFlag::BANNER_FLAG, false);
     }
-
+ 
     if ((notificationControlFlags & NotificationConstant::ReminderFlag::VIBRATION_FLAG) != 0) {
         record->request->SetDistributedFlagBit(NotificationConstant::ReminderFlag::VIBRATION_FLAG, false);
         record->notification->SetEnableVibration(false);
@@ -1675,25 +1674,6 @@ void AdvancedNotificationService::CancelWantAgent(const sptr<Notification> &noti
             }
         }
     }
-
-    if (!notification->GetNotificationRequestPoint()->IsCommonLiveView()) {
-        return;
-    }
-    if (content == nullptr) {
-        return;
-    }
-    auto notificationContent = content->GetNotificationContent();
-    if (notificationContent == nullptr) {
-        return;
-    }
-    auto liveViewContent = std::static_pointer_cast<NotificationLiveViewContent>(notificationContent);
-    if (liveViewContent == nullptr) {
-        return;
-    }
-    auto want = liveViewContent->GetExtensionWantAgent();
-    if (want != nullptr) {
-        CancelOnceWantAgent(want);
-    }
 }
 
 ErrCode AdvancedNotificationService::RemoveFromNotificationList(const sptr<NotificationBundleOption> &bundleOption,
@@ -2043,7 +2023,7 @@ ErrCode AdvancedNotificationService::RegisterPushCallback(
     }
     {
         std::lock_guard<ffrt::mutex> lock(pushMutex_);
-        pushRecipient_ = new (std::nothrow) PushCallbackRecipient();
+        pushRecipient_ = new (std::nothrow) PushCallbackRecipient(slotType);
         if (!pushRecipient_) {
             ANS_LOGE("Failed to create death Recipient ptr PushCallbackRecipient!");
             return ERR_NO_INIT;
@@ -2084,7 +2064,7 @@ ErrCode AdvancedNotificationService::UnregisterPushCallback()
         NotificationAnalyticsUtil::ReportModifyEvent(message.ErrorCode(ERR_INVALID_OPERATION));
         return ERR_INVALID_OPERATION;
     }
-
+    
     {
         std::lock_guard<ffrt::mutex> lock(pushMutex_);
         pushCallBacks_.clear();
@@ -2226,6 +2206,7 @@ AnsStatus AdvancedNotificationService::PushCheck(const sptr<NotificationRequest>
             }
         }
     }
+
     ErrCode result = pushCallBack->OnCheckNotification(jsonObject.dump(), pushCallBackParam);
     if (result != ERR_OK) {
         AnsStatus ansStatus = HandlePushCheckFailed(request, result);
@@ -2349,13 +2330,12 @@ ErrCode AdvancedNotificationService::CheckSoundPermission(const sptr<Notificatio
         ANS_LOGD("request sound length empty");
         return ERR_OK;
     }
-
+ 
     int32_t length = request->GetSound().length();
     if (length > MAX_SOUND_ITEM_LENGTH) {
         ANS_LOGE("Check sound length failed: %{public}d", length);
         return ERR_ANS_INVALID_PARAM;
     }
-
     return ERR_OK;
 }
 
@@ -2451,11 +2431,6 @@ void PushCallbackRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 
 void AdvancedNotificationService::RemoveNotificationList(const std::shared_ptr<NotificationRecord> &record)
 {
-#ifdef ENABLE_ANS_AGGREGATION
-    std::vector<sptr<Notification>> notifications;
-    notifications.emplace_back(record->notification);
-    EXTENTION_WRAPPER->UpdateByCancel(notifications, NotificationConstant::FLOW_CONTROL_REASON_DELETE);
-#endif
     notificationList_.remove(record);
 }
 

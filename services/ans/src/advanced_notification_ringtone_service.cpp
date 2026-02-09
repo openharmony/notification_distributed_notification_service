@@ -105,7 +105,7 @@ void AdvancedNotificationService::ClearRingtoneByApplication(int32_t userId,
     const std::vector<NotificationRingtoneInfo> cloneRingtoneInfos)
 {
     if (cloneRingtoneInfos.empty()) {
-        ANS_LOGE("Invalid ffrt queue %{public}zu.", cloneRingtoneInfos.size());
+        ANS_LOGE("Empty queue %{public}d %{public}zu.", userId, cloneRingtoneInfos.size());
         return;
     }
     notificationSvrQueue_.Submit(std::bind([&, userId, cloneRingtoneInfos]() {
@@ -122,10 +122,13 @@ void AdvancedNotificationService::ClearRingtoneByApplication(int32_t userId,
 
             if (savedInfo->GetRingtoneType() == NotificationConstant::RingtoneType::RINGTONE_TYPE_LOCAL ||
                 savedInfo->GetRingtoneType() == NotificationConstant::RingtoneType::RINGTONE_TYPE_ONLINE) {
+                ANS_LOGI("Get application %{public}s %{public}s.", item.second.c_str(),
+                    savedInfo->GetRingtoneUri().c_str());
                 uris.insert(savedInfo->GetRingtoneUri());
             }
         }
-        ANS_LOGI("Get all application %{public}zu %{public}zu.", uris.size(), cloneRingtoneInfos.size());
+        ANS_LOGI("Get all application %{public}d %{public}zu %{public}zu.", userId, uris.size(),
+            cloneRingtoneInfos.size());
         std::vector<NotificationRingtoneInfo> delRingtoneInfos;
         for (auto item : cloneRingtoneInfos) {
             if (item.GetRingtoneUri().empty()) {

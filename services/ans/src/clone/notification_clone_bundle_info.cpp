@@ -35,10 +35,10 @@ constexpr const char *BUNDLE_INFO_SLOT_ENABLE = "slotEnable";
 constexpr const char *BUNDLE_INFO_SLOT_CONTROL = "slotControl";
 constexpr const char *BUNDLE_INFO_SILENT_REMINDER = "enabledSilentReminder";
 constexpr const char *BUNDLE_INFO_SLOT_AUTHSTATUS = "slotAuthorized";
+constexpr const char *BUNDLE_INFO_RINGTONE_INFO = "ringtone";
 constexpr const char *BUNDLE_INFO_SUBSCRIPTION_INFO = "extensionSubscriptionInfo";
 constexpr const char *BUNDLE_INFO_SUBSCRIPTION_ENABLED = "enableExtensionSubscription";
 constexpr const char *BUNDLE_INFO_SUBSCRIPTION_BUNDLES = "extensionSubscriptionBundles";
-constexpr const char *BUNDLE_INFO_RINGTONE_INFO = "ringtone";
 constexpr int32_t CONST_ENABLE_INT = 1;
 }
 void NotificationCloneBundleInfo::SetBundleName(const std::string &name)
@@ -192,6 +192,10 @@ void NotificationCloneBundleInfo::ToJson(nlohmann::json &jsonObject) const
         jsonObject[BUNDLE_INFO_SLOT_LIST] = jsonNodes;
     }
 
+    if (ringtoneInfo_ != nullptr) {
+        jsonObject[BUNDLE_INFO_RINGTONE_INFO] = ringtoneInfo_->ToJson();
+    }
+
     if (!extensionSubscriptionInfos_.empty()) {
         nlohmann::json jsonNodes = nlohmann::json::array();
         for (const auto& info : extensionSubscriptionInfos_) {
@@ -211,9 +215,7 @@ void NotificationCloneBundleInfo::ToJson(nlohmann::json &jsonObject) const
         }
         jsonObject[BUNDLE_INFO_SUBSCRIPTION_BUNDLES] = jsonNodes;
     }
-    if (ringtoneInfo_ != nullptr) {
-        jsonObject[BUNDLE_INFO_RINGTONE_INFO] = ringtoneInfo_->ToJson();
-    }
+
     jsonObject[BUNDLE_INFO_NAME] = bundleName_;
     jsonObject[BUNDLE_INFO_APP_INDEX] = appIndex_;
     jsonObject[BUNDLE_INFO_SLOT_FLAGS] = slotFlags_;
@@ -362,7 +364,7 @@ void NotificationCloneBundleInfo::FromJson(const nlohmann::json &jsonObject)
 std::string NotificationCloneBundleInfo::SlotInfo::Dump() const
 {
     return "type: " + std::to_string(slotType_) + " " + std::to_string(enable_) + " "
-        + std::to_string(isForceControl_)  + " " + std::to_string(authorizedStatus_);
+        + std::to_string(isForceControl_) + " " + std::to_string(authorizedStatus_);
 }
 
 void NotificationCloneBundleInfo::AddRingtoneInfo(sptr<NotificationRingtoneInfo> ringtoneInfo)
@@ -374,7 +376,7 @@ sptr<NotificationRingtoneInfo> NotificationCloneBundleInfo::GetRingtoneInfo() co
 {
     return ringtoneInfo_;
 }
-
+ 
 void NotificationCloneBundleInfo::RingtoneFromJson(const nlohmann::json &jsonObject)
 {
     if (jsonObject.contains(BUNDLE_INFO_RINGTONE_INFO) && jsonObject[BUNDLE_INFO_RINGTONE_INFO].is_string()) {
