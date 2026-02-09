@@ -771,7 +771,7 @@ export default namespace notificationManager {
         let result: Promise<long>;
         try {
             result = nativeGetSlotNumByBundle(bundle, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -788,7 +788,7 @@ export default namespace notificationManager {
         }
         try {
             nativeGetSlotNumByBundle(bundle, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -808,7 +808,7 @@ export default namespace notificationManager {
         }
         try {
             nativeSetSlotByBundle(bundle, slot, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -826,7 +826,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeSetSlotByBundle(bundle, slot, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -839,7 +839,7 @@ export default namespace notificationManager {
         }
         try {
             nativeRemoveAllSlots(callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -849,7 +849,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeRemoveAllSlots(undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -862,7 +862,7 @@ export default namespace notificationManager {
         }
         try {
             nativeRemoveSlot(slotType, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -872,7 +872,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeRemoveSlot(slotType, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -883,7 +883,7 @@ export default namespace notificationManager {
         let result: Promise<Array<NotificationSlot>>;
         try {
             result = nativeGetSlots(undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -896,7 +896,7 @@ export default namespace notificationManager {
         }
         try {
             nativeGetSlots(callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -906,7 +906,7 @@ export default namespace notificationManager {
         let result: Promise<NotificationSlot|null>;
         try {
             result = nativeGetSlot(slotType, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -919,7 +919,7 @@ export default namespace notificationManager {
         }
         try {
             nativeGetSlot(slotType, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -933,7 +933,7 @@ export default namespace notificationManager {
         let result: Promise<NotificationSlot|null>;
         try {
             result = nativeGetSlotByBundle(bundle, slotType, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -947,7 +947,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeAddSlots(slots, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -963,7 +963,7 @@ export default namespace notificationManager {
         }
         try {
             nativeAddSlots(slots, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -977,7 +977,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeAddSlotByNotificationSlot(slot, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -994,7 +994,7 @@ export default namespace notificationManager {
         }
         try {
             nativeAddSlotByNotificationSlot(slot, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1006,7 +1006,7 @@ export default namespace notificationManager {
         }
         try {
             nativeAddSlotBySlotType(type, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1016,7 +1016,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeAddSlotBySlotType(type, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1032,7 +1032,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeSetNotificationEnable(bundle, enable, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1050,7 +1050,7 @@ export default namespace notificationManager {
         }
         try {
             nativeSetNotificationEnable(bundle, enable, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1067,7 +1067,7 @@ export default namespace notificationManager {
         }
         try {
             nativeIsNotificationEnabledWithBundleOption(bundleOption, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1082,7 +1082,7 @@ export default namespace notificationManager {
         let result: Promise<boolean>;
         try {
             result = nativeIsNotificationEnabledWithBundleOption(bundleOption, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1096,7 +1096,7 @@ export default namespace notificationManager {
         }
         try {
             nativeIsNotificationEnabledWithId(userId, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1107,7 +1107,7 @@ export default namespace notificationManager {
         let result: Promise<boolean>;
         try {
             result = nativeIsNotificationEnabledWithId(userId, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1121,7 +1121,7 @@ export default namespace notificationManager {
         }
         try {
             nativeIsNotificationEnabled(callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1132,7 +1132,7 @@ export default namespace notificationManager {
         let result: Promise<boolean>;
         try {
             result = nativeIsNotificationEnabled(undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1158,7 +1158,7 @@ export default namespace notificationManager {
         } as EnableSlotParameter;
         try {
             nativeSetNotificationEnableSlotWithForce(enableSlotParameter, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1190,7 +1190,7 @@ export default namespace notificationManager {
         }
         try {
             result = nativeSetNotificationEnableSlotWithForce(enableSlotParameter, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1206,7 +1206,7 @@ export default namespace notificationManager {
         }
         try {
             nativeSetNotificationEnableSlot(bundle, type, enable, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1221,7 +1221,7 @@ export default namespace notificationManager {
         let result: Promise<boolean>;
         try {
             result = nativeIsNotificationSlotEnabled(bundle, type, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1239,7 +1239,7 @@ export default namespace notificationManager {
         }
         try {
             nativeIsNotificationSlotEnabled(bundle, type, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1256,7 +1256,7 @@ export default namespace notificationManager {
         }
         try {
             nativeGetSlotsByBundle(bundle, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1271,7 +1271,7 @@ export default namespace notificationManager {
         let result: Promise<Array<NotificationSlot>>;
         try {
             result = nativeGetSlotsByBundle(bundle, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1286,7 +1286,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeSetSlotFlagsByBundle(bundle, slotFlags, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1301,7 +1301,7 @@ export default namespace notificationManager {
         let result: Promise<long>;
         try {
             result = nativeGetSlotFlagsByBundle(bundle, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1318,7 +1318,7 @@ export default namespace notificationManager {
         }
         try {
             nativePublish(request, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1332,7 +1332,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativePublish(request, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1349,7 +1349,7 @@ export default namespace notificationManager {
         }
         try {
             nativePublishWithUserId(request, userId, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1363,7 +1363,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativePublishWithUserId(request, userId, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1384,7 +1384,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeTriggerSystemLiveView(bundle, notificationId, buttonOptions, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1399,7 +1399,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeSubscribeSystemLiveView(subscriber, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1413,7 +1413,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeRemoveDoNotDisturbProfile(templates, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1427,7 +1427,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeRemoveDoNotDisturbProfileByUserId(templates, userId, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1441,7 +1441,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeAddDoNotDisturbProfile(templates, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1455,7 +1455,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeAddDoNotDisturbProfileByUserId(templates, userId, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1468,7 +1468,7 @@ export default namespace notificationManager {
         }
         try {
             nativeGetAllActiveNotifications(callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1478,7 +1478,7 @@ export default namespace notificationManager {
         let result: Promise<Array<NotificationRequest>>;
         try {
             result = nativeGetAllActiveNotifications(undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1489,7 +1489,7 @@ export default namespace notificationManager {
         let result: Promise<Array<NotificationRequest>>;
         try {
             result = nativeGetActiveNotifications(undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1502,7 +1502,7 @@ export default namespace notificationManager {
         }
         try {
             nativeGetActiveNotifications(callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1515,7 +1515,7 @@ export default namespace notificationManager {
         }
         try {
             nativeGetActiveNotificationCount(callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1525,7 +1525,7 @@ export default namespace notificationManager {
         let result: Promise<long>;
         try {
             result = nativeGetActiveNotificationCount(undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1542,7 +1542,7 @@ export default namespace notificationManager {
         }
         try {
             nativeDisplayBadge(bundle, enable, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1556,7 +1556,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeDisplayBadge(bundle, enable, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1570,7 +1570,7 @@ export default namespace notificationManager {
         }
         try {
             nativeIsBadgeDisplayed(bundle, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1584,7 +1584,7 @@ export default namespace notificationManager {
         let result: Promise<boolean>;
         try {
             result = nativeIsBadgeDisplayed(bundle, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1599,7 +1599,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeCancelWithBundle(bundle, id, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1616,11 +1616,13 @@ export default namespace notificationManager {
             } else {
                 result = nativeCancelWithIdLabel(id, label as string, undefined);
             }
-        } catch (err: Error) {
-            let error: BusinessError = err as BusinessError;
-            throw error;
-        } catch (err: BusinessError) {
-            throw err;
+        } catch (err) {
+            if (err instanceof BusinessError) {
+                throw err;
+            } else {
+                let error: BusinessError = err as BusinessError;
+                throw error;
+            }
         }
         return result;
     }
@@ -1636,7 +1638,7 @@ export default namespace notificationManager {
         }
         try {
             nativeCancelWithIdLabel(id, label, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1648,7 +1650,7 @@ export default namespace notificationManager {
         }
         try {
             nativeCancelWithId(id, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1658,7 +1660,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeCancelWithId(id, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1669,7 +1671,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeCancelAll(undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1682,7 +1684,7 @@ export default namespace notificationManager {
         }
         try {
             nativeCancelAll(callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1833,7 +1835,7 @@ export default namespace notificationManager {
         let result: Promise<Array<BundleOption>>;
         try {
             result = nativeGetAllNotificationEnabledBundles(undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1845,7 +1847,7 @@ export default namespace notificationManager {
         let result: Promise<Array<BundleOption>>;
         try {
             result = nativeGetAllNotificationEnabledBundlesByUserId(userId, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1861,7 +1863,7 @@ export default namespace notificationManager {
         let result: Promise<long>;
         try {
             result = nativeGetBadgeNumber(undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1902,7 +1904,7 @@ export default namespace notificationManager {
         }
         try {
             nativeSetBadgeNumber(badgeNumber, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1912,7 +1914,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeSetBadgeNumber(badgeNumber, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1928,7 +1930,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeSetBadgeNumberByBundle(bundle, badgeNumber, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1946,7 +1948,7 @@ export default namespace notificationManager {
         }
         try {
             nativeGetActiveNotificationByFilter(filter, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1961,7 +1963,7 @@ export default namespace notificationManager {
         let result: Promise<NotificationRequest|null>;
         try {
             result = nativeGetActiveNotificationByFilter(filter, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1973,7 +1975,7 @@ export default namespace notificationManager {
         let result: Promise<boolean>;
         try {
             result = nativeIsSupportTemplate(templateName, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -1994,7 +1996,7 @@ export default namespace notificationManager {
         }
         try {
             nativeRemoveGroupByBundle(bundle, groupName, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2012,7 +2014,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeRemoveGroupByBundle(bundle, groupName, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2034,7 +2036,7 @@ export default namespace notificationManager {
         }
         try {
             nativePublishAsBundle(request, representativeBundle, userId, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2052,7 +2054,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativePublishAsBundle(request, representativeBundle, userId, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2072,7 +2074,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativePublishAsBundleWithBundleOption(representativeBundle, request, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2089,7 +2091,7 @@ export default namespace notificationManager {
         }
         try {
             nativeCancelAsBundle(id, representativeBundle, userId, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2103,7 +2105,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeCancelAsBundle(id, representativeBundle, userId, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2119,7 +2121,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeCancelAsBundleWithBundleOption(representativeBundle, userId, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2136,7 +2138,7 @@ export default namespace notificationManager {
         }
         try {
             nativeCancelGroup(groupName, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2150,7 +2152,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeCancelGroup(groupName, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2168,7 +2170,7 @@ export default namespace notificationManager {
         }
         try {
             nativeSetDoNotDisturbDate(date, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2183,7 +2185,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeSetDoNotDisturbDate(date, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2201,7 +2203,7 @@ export default namespace notificationManager {
         }
         try {
             nativeSetDoNotDisturbDateWithId(date, userId, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2216,7 +2218,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeSetDoNotDisturbDateWithId(date, userId, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2230,7 +2232,7 @@ export default namespace notificationManager {
         }
         try {
             nativeGetDoNotDisturbDate(callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2241,7 +2243,7 @@ export default namespace notificationManager {
         let result: Promise<DoNotDisturbDate>;
         try {
             result = nativeGetDoNotDisturbDate(undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2255,7 +2257,7 @@ export default namespace notificationManager {
         }
         try {
             nativeGetDoNotDisturbDateWithId(userId, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2266,7 +2268,7 @@ export default namespace notificationManager {
         let result: Promise<DoNotDisturbDate>;
         try {
             result = nativeGetDoNotDisturbDateWithId(userId, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2280,7 +2282,7 @@ export default namespace notificationManager {
         }
         try {
             nativeIsSupportDoNotDisturbMode(callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2293,7 +2295,7 @@ export default namespace notificationManager {
         }
         try {
             nativeIsSupportTemplate(templateName, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2304,7 +2306,7 @@ export default namespace notificationManager {
         let result: Promise<boolean>;
         try {
             result = nativeIsSupportDoNotDisturbMode(undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2316,7 +2318,7 @@ export default namespace notificationManager {
         let result: Promise<DoNotDisturbProfile>;
         try {
             result = nativeGetDoNotDisturbProfile(id, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2328,7 +2330,7 @@ export default namespace notificationManager {
         let result: Promise<DoNotDisturbProfile>;
         try {
             result = nativeGetDoNotDisturbProfileByUserId(id, userId, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2367,7 +2369,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativesetTargetDeviceStatus(deviceType,status, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2383,7 +2385,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativesetDistributedEnabledByBundle(bundle, deviceType, enable, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2399,7 +2401,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativesetDistributedEnableByBundle(bundle, enable, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2411,7 +2413,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativesetSmartReminderEnabled(deviceType, enable, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2423,7 +2425,7 @@ export default namespace notificationManager {
         let result: Promise<boolean>;
         try {
             result = nativeisSmartReminderEnabled(deviceType, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2435,7 +2437,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativesetDistributedEnabledBySlot(slot, deviceType, enabled, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2447,7 +2449,7 @@ export default namespace notificationManager {
         let result: Promise<boolean>;
         try {
             result = nativeisDistributedEnabledBySlot(slot, deviceType, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2458,7 +2460,7 @@ export default namespace notificationManager {
         let result: Promise<int>;
         try {
             result = nativesetAdditionalConfig(key, value, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2477,7 +2479,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativedisableNotificationFeature(disabled, bundleList, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2488,7 +2490,7 @@ export default namespace notificationManager {
     {
         try {
             nativesetDistributedEnableByBundle(bundle, enable, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2501,7 +2503,7 @@ export default namespace notificationManager {
         }
         try {
             nativeSetDistributedEnable(enable, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2512,7 +2514,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeSetDistributedEnable(enable, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2524,7 +2526,7 @@ export default namespace notificationManager {
         let result: Promise<boolean>;
         try {
             result = nativeIsDistributedEnabled(undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2538,7 +2540,7 @@ export default namespace notificationManager {
         }
         try {
             nativeIsDistributedEnabled(callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2553,7 +2555,7 @@ export default namespace notificationManager {
         let result: Promise<boolean>;
         try {
             result = nativeIsDistributedEnabledByBundle(bundle, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2572,7 +2574,7 @@ export default namespace notificationManager {
         }
         try {
             nativeIsDistributedEnabledByBundle(bundle, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2587,7 +2589,7 @@ export default namespace notificationManager {
         let result: Promise<boolean>;
         try {
             result = nativeIsDistributedEnabledByBundleType(bundle, deviceType, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2599,7 +2601,7 @@ export default namespace notificationManager {
         let result: Promise<DeviceRemindType>;
         try {
             result = nativeGetDeviceRemindType(undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2613,7 +2615,7 @@ export default namespace notificationManager {
         }
         try {
             nativeGetDeviceRemindType(callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2627,7 +2629,7 @@ export default namespace notificationManager {
         }
         try {
             nativeSetSyncNotificationEnabledWithoutApp(userId, enable, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2638,7 +2640,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeSetSyncNotificationEnabledWithoutApp(userId, enable, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2649,7 +2651,7 @@ export default namespace notificationManager {
         let result: Promise<boolean>;
         try {
             result = nativeGetSyncNotificationEnabledWithoutApp(userId, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2663,7 +2665,7 @@ export default namespace notificationManager {
         }
         try {
             nativeGetSyncNotificationEnabledWithoutApp(userId, callback);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2673,7 +2675,7 @@ export default namespace notificationManager {
         let result: Promise<NotificationSetting>;
         try {
             result = nativeGetNotificationSetting(undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2714,7 +2716,7 @@ export default namespace notificationManager {
         let result: Promise<RingtoneInfo>;
         try {
             result = nativeGetRingtoneInfoByBundle(bundle, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2726,7 +2728,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeSetGeofenceEnabled(enable, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2738,7 +2740,7 @@ export default namespace notificationManager {
         let result: Promise<boolean>;
         try {
             result = nativeIsGeofenceEnabled(undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2764,7 +2766,7 @@ export default namespace notificationManager {
         let result: Promise<Array<NotificationReminderInfo>>;
         try {
             result = nativeGetReminderInfoByBundles(bundles, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2778,7 +2780,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeSetReminderInfoByBundles(reminderInfos, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2790,7 +2792,7 @@ export default namespace notificationManager {
         let result: Promise<boolean>;
         try {
             result = nativeIsDistributedEnabledByDeviceType(deviceType, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2813,7 +2815,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeDisableNotificationFeatureWithId(disabled, bundleList, userId, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2828,7 +2830,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeSetDistributedEnabledByDeviceType(enabled, deviceType, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2848,7 +2850,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeSetDistributedEnableByBundles(bundleEnableInfos, deviceType, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2860,7 +2862,7 @@ export default namespace notificationManager {
         let result: Promise<Array<string>>;
         try {
             result = nativeGetDistributedDeviceList(undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2876,7 +2878,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeSetBundlePriorityConfig(bundle, value, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2892,7 +2894,7 @@ export default namespace notificationManager {
         let result: Promise<string>;
         try {
             result = nativeGetBundlePriorityConfig(bundle, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2908,7 +2910,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeSetPriorityEnabledByBundle(bundle, enableStatus, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2924,7 +2926,7 @@ export default namespace notificationManager {
         let result: Promise<PriorityEnableStatus>;
         try {
             result = nativeIsPriorityEnabledByBundle(bundle, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2936,7 +2938,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeSetPriorityEnabled(enable, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2948,7 +2950,7 @@ export default namespace notificationManager {
         let result: Promise<boolean>;
         try {
             result = nativeIsPriorityEnabled(undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2963,7 +2965,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeSetSilentReminderEnabled(bundle, enabled, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2978,7 +2980,7 @@ export default namespace notificationManager {
         let result: Promise<SwitchState>;
         try {
             result = nativeIsSilentReminderEnabled(bundle, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -2992,7 +2994,7 @@ export default namespace notificationManager {
         let result: Promise<void>;
         try {
             result = nativeSetBadgeDisplayStatusByBundles(badges, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
@@ -3006,7 +3008,7 @@ export default namespace notificationManager {
         let result: Promise<Map<BundleOption, boolean>>;
         try {
             result = nativeGetBadgeDisplayStatusByBundles(bundles, undefined);
-        } catch (err: Error) {
+        } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
