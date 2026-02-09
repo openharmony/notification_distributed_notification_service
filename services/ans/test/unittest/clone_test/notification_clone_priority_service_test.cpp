@@ -203,7 +203,6 @@ HWTEST_F(NotificationClonePriorityTest, OnRestoreV2_00001, Function | SmallTest 
  */
 HWTEST_F(NotificationClonePriorityTest, OnRestore_00003, Function | SmallTest | Level1)
 {
-    
     nlohmann::json jsonObject;
     jsonObject = nlohmann::json::array();
     NotificationCloneBundleInfo cloneBundle;

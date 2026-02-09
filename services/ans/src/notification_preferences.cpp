@@ -43,8 +43,6 @@ constexpr static const char* KEY_PRIORITY_NOTIFICATION_SWITCH_FOR_BUNDLE = "prio
 constexpr static const char* KEY_PRIORITY_CONFIG_FOR_BUNDLE = "priorityConfigForBundle";
 constexpr static const char* KEY_PRIORITY_NOTIFICATION_SWITCH_FOR_BUNDLE_V2 = "priorityNotificationSwitchForBundleV2";
 constexpr static const char* KEY_PRIORITY_NOTIFICATION_STRATEGY_FOR_BUNDLE = "priorityStrategyForBundle";
-constexpr static const char* KEY_PRIORITY_NOTIFICATION_SWITCH = "priorityNotificationSwitch";
-constexpr static const char* KEY_PRIORITY_INTELLIGENT_SWITCH  = "priorityIntelligentSwitch";
 const static std::string KEY_UNDER_LINE = "_";
 }
 ffrt::mutex NotificationPreferences::instanceMutex_;
