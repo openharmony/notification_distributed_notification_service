@@ -41,7 +41,6 @@ namespace {
 const static std::string KEY_BUNDLE_LABEL = "label_ans_bundle_";
 constexpr static const char* KEY_PRIORITY_NOTIFICATION_SWITCH_FOR_BUNDLE = "priorityNotificationSwitchForBundle";
 constexpr static const char* KEY_PRIORITY_CONFIG_FOR_BUNDLE = "priorityConfigForBundle";
-const static std::string DEFAULT_TEMPLATE_PATH("/system/etc/notification_template/external.json");
 }
 ffrt::mutex NotificationPreferences::instanceMutex_;
 std::shared_ptr<NotificationPreferences> NotificationPreferences::instance_;
@@ -207,13 +206,18 @@ ErrCode NotificationPreferences::RemoveNotificationForBundle(const sptr<Notifica
     ErrCode result = ERR_OK;
     NotificationPreferencesInfo::BundleInfo bundleInfo;
     if (GetBundleInfo(preferencesInfo, bundleOption, bundleInfo)) {
+        sptr<NotificationRingtoneInfo> savedRingtoneInfo = new (std::nothrow) NotificationRingtoneInfo();
+        if (savedRingtoneInfo != nullptr) {
+            if (preferncesDB_->GetRingtoneInfoByBundle(bundleInfo, savedRingtoneInfo)) {
+                AdvancedNotificationService::GetInstance()->ReportRingtoneChanged(bundleOption,
+                    bundleInfo.GetRingtoneInfo(), NotificationConstant::RingtoneReportType::RINGTONE_REMOVE);
+                SystemSoundHelper::GetInstance()->RemoveCustomizedTone(savedRingtoneInfo);
+            }
+        }
         preferencesInfo.RemoveBundleInfo(bundleOption);
         if (!preferncesDB_->RemoveBundleFromDisturbeDB(GenerateBundleKey(bundleOption), bundleOption->GetUid())) {
             result = ERR_ANS_PREFERENCES_NOTIFICATION_DB_OPERATION_FAILED;
         }
-        AdvancedNotificationService::GetInstance()->ReportRingtoneChanged(
-            bundleOption, bundleInfo.GetRingtoneInfo(), NotificationConstant::RingtoneReportType::RINGTONE_REMOVE);
-        SystemSoundHelper::GetInstance()->RemoveCustomizedTone(bundleInfo.GetRingtoneInfo());
     } else {
         result = ERR_ANS_PREFERENCES_NOTIFICATION_BUNDLE_NOT_EXIST;
     }
@@ -268,22 +272,16 @@ ErrCode NotificationPreferences::GetNotificationSlot(const sptr<NotificationBund
         return ERR_ANS_INVALID_PARAM;
     }
 
-    HaMetaMessage message = HaMetaMessage(EventSceneId::SCENE_5, EventBranchId::BRANCH_7);
     ErrCode result = ERR_OK;
     NotificationPreferencesInfo::BundleInfo bundleInfo;
     std::lock_guard<ffrt::mutex> lock(preferenceMutex_);
     if (GetBundleInfo(preferencesInfo_, bundleOption, bundleInfo)) {
         if (!bundleInfo.GetSlot(type, slot)) {
             result = ERR_ANS_PREFERENCES_NOTIFICATION_SLOT_TYPE_NOT_EXIST;
-            message.ErrorCode(ERR_ANS_PREFERENCES_NOTIFICATION_SLOT_TYPE_NOT_EXIST).Message("Slot type not exist.");
-            NotificationAnalyticsUtil::ReportModifyEvent(message);
-            ANS_LOGE("Slot type not exist.");
         }
     } else {
         ANS_LOGW("bundle not exist");
         result = ERR_ANS_PREFERENCES_NOTIFICATION_SLOT_TYPE_NOT_EXIST;
-        message.ErrorCode(ERR_ANS_PREFERENCES_NOTIFICATION_SLOT_TYPE_NOT_EXIST).Message("Slot type not exist.");
-        NotificationAnalyticsUtil::ReportModifyEvent(message);
     }
     ANS_LOGD("%{public}s status  = %{public}d ", __FUNCTION__, result);
     return result;
@@ -982,28 +980,6 @@ ErrCode NotificationPreferences::GetAllNotificationEnabledBundles(
     return GetAllNotificationEnabledBundlesInner(bundleOption, userId);
 }
 
-ErrCode NotificationPreferences::GetAllLiveViewEnabledBundles(const int32_t userId,
-    std::vector<NotificationBundleOption> &bundleOption)
-{
-    ANS_LOGD("called");
-    std::lock_guard<ffrt::mutex> lock(preferenceMutex_);
-    return preferencesInfo_.GetAllLiveViewEnabledBundles(userId, bundleOption);
-}
-
-ErrCode NotificationPreferences::GetAllDistribuedEnabledBundles(int32_t userId,
-    const std::string &deviceType, std::vector<NotificationBundleOption> &bundleOption)
-{
-    ANS_LOGD("called");
-    std::lock_guard<ffrt::mutex> lock(preferenceMutex_);
-    if (preferncesDB_ == nullptr) {
-        return ERR_ANS_SERVICE_NOT_READY;
-    }
-    if (!preferncesDB_->GetAllDistribuedEnabledBundles(userId, deviceType, bundleOption)) {
-        return ERR_ANS_PREFERENCES_NOTIFICATION_DB_OPERATION_FAILED;
-    }
-    return ERR_OK;
-}
-
 ErrCode NotificationPreferences::ClearNotificationInRestoreFactorySettings()
 {
     ErrCode result = ERR_OK;
@@ -1369,9 +1345,7 @@ ErrCode NotificationPreferences::SetSilentReminderEnabled(const sptr<Notificatio
     NotificationPreferencesInfo::SilentReminderInfo silentReminderInfo;
     silentReminderInfo.bundleName = bundleOption->GetBundleName();
     silentReminderInfo.uid = bundleOption->GetUid();
-    silentReminderInfo.enableStatus =
-        enabled ? NotificationConstant::SWITCH_STATE::USER_MODIFIED_ON
-        : NotificationConstant::SWITCH_STATE::USER_MODIFIED_OFF;
+    silentReminderInfo.enableStatus = static_cast<NotificationConstant::SWITCH_STATE>(enabled);
     bool storeDBResult = true;
     storeDBResult = preferncesDB_->SetSilentReminderEnabled(silentReminderInfo);
     if (storeDBResult) {
@@ -2330,6 +2304,28 @@ ErrCode NotificationPreferences::GetDistributedDevicelist(std::vector<std::strin
         return ERR_ANS_PREFERENCES_NOTIFICATION_DB_OPERATION_FAILED;
     }
     deviceTypes = jsonObject.get<std::vector<std::string>>();
+    return ERR_OK;
+}
+
+ErrCode NotificationPreferences::GetAllLiveViewEnabledBundles(const int32_t userId,
+    std::vector<NotificationBundleOption> &bundleOption)
+{
+    ANS_LOGD("Called.");
+    std::lock_guard<ffrt::mutex> lock(preferenceMutex_);
+    return preferencesInfo_.GetAllLiveViewEnabledBundles(userId, bundleOption);
+}
+ 
+ErrCode NotificationPreferences::GetAllDistribuedEnabledBundles(int32_t userId,
+    const std::string &deviceType, std::vector<NotificationBundleOption> &bundleOption)
+{
+    ANS_LOGD("Called.");
+    std::lock_guard<ffrt::mutex> lock(preferenceMutex_);
+    if (preferncesDB_ == nullptr) {
+        return ERR_ANS_SERVICE_NOT_READY;
+    }
+    if (!preferncesDB_->GetAllDistribuedEnabledBundles(userId, deviceType, bundleOption)) {
+        return ERR_ANS_PREFERENCES_NOTIFICATION_DB_OPERATION_FAILED;
+    }
     return ERR_OK;
 }
 

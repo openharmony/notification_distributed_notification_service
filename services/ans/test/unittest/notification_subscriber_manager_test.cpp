@@ -142,7 +142,7 @@ private:
         {
             isCallback_ = isCallback;
         }
-    
+
     private:
         bool isCallback_;
     };
@@ -215,8 +215,8 @@ HWTEST_F(NotificationSubscriberManagerTest, NotificationSubscriberManagerTest_00
     // Test NotifyDisturbModeChanged function.
     sptr<NotificationDoNotDisturbDate> date =
         new NotificationDoNotDisturbDate(NotificationConstant::DoNotDisturbType::NONE, 0, 0);
-    std::string bundle = "com.example.test";
-    notificationSubscriberManager_->NotifyDoNotDisturbDateChanged(0, date, bundle);
+    int32_t uid = 200200;
+    notificationSubscriberManager_->NotifyDoNotDisturbDateChanged(0, date, uid);
 
     // Test AddSubscriber function.
     sptr<NotificationSubscribeInfo> info = new NotificationSubscribeInfo();
@@ -393,7 +393,7 @@ HWTEST_F(NotificationSubscriberManagerTest, BatchNotifyConsumed_001, Level1)
     sptr<NotificationRequest> request(new NotificationRequest());
     sptr<Notification> notification(new Notification(request));
     notifications.emplace_back(notification);
-     
+
     std::shared_ptr<TestAnsSubscriber> testAnsSubscriber = std::make_shared<TestAnsSubscriber>();
     sptr<IAnsSubscriber> subscriber(new (std::nothrow) SubscriberListener(testAnsSubscriber));
     auto isCallback = testAnsSubscriber->GetCallBack();
@@ -422,7 +422,7 @@ HWTEST_F(NotificationSubscriberManagerTest, BatchNotifyConsumed_subscribedFlagFa
     sptr<NotificationRequest> request(new NotificationRequest());
     sptr<Notification> notification(new Notification(request));
     notifications.emplace_back(notification);
-     
+
     std::shared_ptr<TestAnsSubscriber> testAnsSubscriber = std::make_shared<TestAnsSubscriber>();
     testAnsSubscriber->SetSubscribedFlags(0);
     sptr<IAnsSubscriber> subscriber(new (std::nothrow) SubscriberListener(testAnsSubscriber));
@@ -437,7 +437,7 @@ HWTEST_F(NotificationSubscriberManagerTest, BatchNotifyConsumed_subscribedFlagFa
     isCallback = testAnsSubscriber->GetCallBack();
     ASSERT_FALSE(isCallback);
 }
- 
+
 /**
  * @tc.number    : AddSubscriber001
  * @tc.name      : AddSubscriber and params is nullptr
@@ -449,7 +449,7 @@ HWTEST_F(NotificationSubscriberManagerTest, AddSubscriber_001, Level1)
     NotificationSubscriberManager notificationSubscriberManager;
     std::shared_ptr<TestAnsSubscriber> testAnsSubscriber = std::make_shared<TestAnsSubscriber>();
     sptr<IAnsSubscriber> subscriber(new (std::nothrow) SubscriberListener(testAnsSubscriber));
-    
+
     ASSERT_EQ(notificationSubscriberManager.AddSubscriber(
         subscriber, nullptr, testAnsSubscriber->subscribedFlags_), (int)ERR_ANS_INVALID_PARAM);
 }
@@ -474,7 +474,7 @@ HWTEST_F(NotificationSubscriberManagerTest, AddSubscriber_002, Level1)
 
     ASSERT_EQ(notificationSubscriberManager.AddSubscriber(subscriber, info, testAnsSubscriber->subscribedFlags_),
         (int)ERR_OK);
-    
+
     sptr<NotificationSortingMap> notificationMap(new NotificationSortingMap());
     notificationSubscriberManager.NotifyUpdated(notificationMap);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
@@ -500,7 +500,7 @@ HWTEST_F(NotificationSubscriberManagerTest, NotifyUpdate_SubscribedFlagsFalse, L
 
     ASSERT_EQ(notificationSubscriberManager.AddSubscriber(subscriber, info, testAnsSubscriber->subscribedFlags_),
         (int)ERR_OK);
-    
+
     sptr<NotificationSortingMap> notificationMap(new NotificationSortingMap());
     notificationSubscriberManager.NotifyUpdated(notificationMap);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
@@ -893,13 +893,13 @@ HWTEST_F(NotificationSubscriberManagerTest, NotifyDoNotDisturbDateChangedInner_0
 
     NotificationSubscriberManager notificationSubscriberManager;
     sptr<NotificationSubscribeInfo> info(new NotificationSubscribeInfo());
-    
+
     info->AddAppUserId(101);
     info->AddAppName(bundle);
     info->SetSubscribedFlags(testAnsSubscriber->GetSubscribedFlags());
     ASSERT_EQ(notificationSubscriberManager.AddSubscriberInner(subscriber, info), (int)ERR_OK);
 
-    notificationSubscriberManager.NotifyDoNotDisturbDateChangedInner(101, date, bundle);
+    notificationSubscriberManager.NotifyDoNotDisturbDateChangedInner(101, date, 200200);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     isCallback = testAnsSubscriber->GetCallBack();
     ASSERT_TRUE(isCallback);
@@ -920,13 +920,13 @@ HWTEST_F(NotificationSubscriberManagerTest, NotifyDoNotDisturbDateChangedInner_S
 
     NotificationSubscriberManager notificationSubscriberManager;
     sptr<NotificationSubscribeInfo> info(new NotificationSubscribeInfo());
-    
+
     info->AddAppUserId(101);
     info->AddAppName(bundle);
     info->SetSubscribedFlags(testAnsSubscriber->GetSubscribedFlags());
     ASSERT_EQ(notificationSubscriberManager.AddSubscriberInner(subscriber, info), (int)ERR_OK);
 
-    notificationSubscriberManager.NotifyDoNotDisturbDateChangedInner(101, date, bundle);
+    notificationSubscriberManager.NotifyDoNotDisturbDateChangedInner(101, date, 200200);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     isCallback = testAnsSubscriber->GetCallBack();
     ASSERT_FALSE(isCallback);
@@ -1115,7 +1115,7 @@ HWTEST_F(NotificationSubscriberManagerTest, NotifyEnabledSilentReminderChanged_0
     info->AddAppName(bundle);
     info->SetSubscribedFlags(testAnsSubscriber->GetSubscribedFlags());
     ASSERT_EQ(notificationSubscriberManager.AddSubscriberInner(subscriber, info), (int)ERR_OK);
-    
+
     // This should not crash even if no subscribers are registered
     notificationSubscriberManager.NotifyEnabledSilentReminderChanged(callback);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
