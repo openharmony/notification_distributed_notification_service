@@ -277,7 +277,7 @@ void AdvancedNotificationService::SetAgentNotification(sptr<NotificationRequest>
     auto bundleManager = BundleManagerHelper::GetInstance();
     int32_t activeUserId = -1;
     if (OsAccountManagerHelper::GetInstance().GetCurrentActiveUserId(activeUserId) != ERR_OK) {
-        ANSR_LOGE("Failed to get active user id!");
+        ANSR_LOGW("Failed to get active user id!");
         return;
     }
 
@@ -477,7 +477,7 @@ void AdvancedNotificationService::OnBundleRemovedInner(
         ANS_LOGD("ffrt enter!");
         ErrCode result = NotificationPreferences::GetInstance()->RemoveNotificationForBundle(bundleOption);
         if (result != ERR_OK) {
-            ANS_LOGE("NotificationPreferences::RemoveNotificationForBundle failed: %{public}d", result);
+            ANS_LOGW("NotificationPreferences::RemoveNotificationForBundle failed: %{public}d", result);
         }
 #ifdef DISTRIBUTED_NOTIFICATION_SUPPORTED
         DistributedPreferences::GetInstance()->DeleteDistributedBundleInfo(bundleOption);
@@ -522,10 +522,6 @@ void AdvancedNotificationService::OnBundleRemovedInner(
     ANS_COND_DO_ERR(submitResult != ERR_OK, return, "On bundle removed inner.");
     NotificationPreferences::GetInstance()->RemoveEnabledDbByBundle(bundleOption);
     NotificationPreferences::GetInstance()->RemoveSilentEnabledDbByBundle(bundleOption);
-#ifdef ENABLE_ANS_AGGREGATION
-    EXTENTION_WRAPPER->UpdateByBundle(bundleOption->GetBundleName(),
-        NotificationConstant::PACKAGE_REMOVE_REASON_DELETE);
-#endif
 
     if (!isCachedAppAndDeviceRelationMap_) {
         if (!DelayedSingleton<NotificationConfigParse>::GetInstance()->GetAppAndDeviceRelationMap(
@@ -1449,7 +1445,7 @@ ErrCode AdvancedNotificationService::ShellDump(const std::string &cmd, const std
             result = ERR_ANS_INVALID_PARAM;
         }
     }));
-    ANS_COND_DO_ERR(submitResult != ERR_OK, return submitResult, "Shell dump");
+    ANS_COND_DO_ERR(submitResult != ERR_OK, return submitResult, "Shell dump.");
     return result;
 }
 #endif
@@ -2154,7 +2150,7 @@ void AdvancedNotificationService::UpdateCloneBundleInfoForRingtone(NotificationR
         }
         return;
     }
-
+ 
     // clear last clone save ringtone info by current clone ringtone info, that last info is not set.
     NotificationRingtoneInfo lastCloneRingtone;
     NotificationPreferences::GetInstance()->GetCloneRingtoneInfo(userId, cloneBundleInfo, lastCloneRingtone);
@@ -2167,7 +2163,7 @@ void AdvancedNotificationService::UpdateCloneBundleInfoForRingtone(NotificationR
         }
         NotificationPreferences::GetInstance()->DeleteCloneRingtoneInfo(userId, cloneBundleInfo);
     }
-
+ 
     // if the application has ringtone before clone, clear the information.
     int64_t curTime = GetCurrentTime();
     int64_t cloneTime = NotificationPreferences::GetInstance()->GetCloneTimeStamp();
@@ -2187,7 +2183,7 @@ void AdvancedNotificationService::UpdateCloneBundleInfoForRingtone(NotificationR
             }
             SystemSoundHelper::GetInstance()->RemoveCustomizedTone(oldRingtoneInfo);
         }
-
+ 
         ANS_LOGW("Clone : %{public}d %{public}s", result, oldRingtoneInfo->GetRingtoneUri().c_str());
         NotificationPreferences::GetInstance()->SetRingtoneInfoByBundle(bundle, ringtoneInfoPtr);
     }
@@ -2350,8 +2346,10 @@ void AdvancedNotificationService::UpdateCloneBundleInfoFoSilentReminder(
     const NotificationCloneBundleInfo cloneBundleInfo, const sptr<NotificationBundleOption> bundle)
 {
     auto enableStatus = cloneBundleInfo.GetSilentReminderEnabled();
-    if (SetSilentReminderEnabledInner(bundle, (enableStatus == NotificationConstant::SWITCH_STATE::USER_MODIFIED_ON ||
-        enableStatus == NotificationConstant::SWITCH_STATE::SYSTEM_DEFAULT_ON) ? true : false) != ERR_OK) {
+    if (NotificationPreferences::GetInstance()->SetSilentReminderEnabled(bundle,
+    (enableStatus == NotificationConstant::SWITCH_STATE::USER_MODIFIED_ON ||
+    enableStatus == NotificationConstant::SWITCH_STATE::SYSTEM_DEFAULT_ON) ?
+    true : false) != ERR_OK) {
         ANS_LOGW("SetSilentReminderEnabled failed.");
     }
 }
@@ -2379,7 +2377,7 @@ void AdvancedNotificationService::CheckRemovalWantAgent(const sptr<NotificationR
         bool isSubsystem = AccessTokenHelper::VerifyNativeToken(IPCSkeleton::GetCallingTokenID());
         bool isSystemApp = AccessTokenHelper::IsSystemApp();
         if (!isSubsystem && !isSystemApp && operationType != OPERATION_TYPE_COMMON_EVENT) {
-            ANS_LOGI("SetRemovalWantAgent null");
+            ANS_LOGI("null SetRemovalWantAgent");
             request->SetRemovalWantAgent(nullptr);
         }
     }

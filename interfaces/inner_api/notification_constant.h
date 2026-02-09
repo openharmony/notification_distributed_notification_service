@@ -538,6 +538,8 @@ public:
 
     static constexpr int32_t ANS_UID = 5523;
 
+    static constexpr int32_t BROKER_UID = 5557;
+
     static const int32_t MAX_BTN_NUM = 3;
 
     static const int32_t DISTRIBUTE_JUMP_INVALID = -1;

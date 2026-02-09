@@ -15,108 +15,108 @@
 
 export default class Constants {
   // grid useSizeType
-  public static GUTTER = 0;
-  public static XS_COLUMNS = 2;
-  public static XS_SPAN = 2;
-  public static XS_OFFSET = 0;
-  public static SM_COLUMNS = 4;
-  public static SM_SPAN = 4;
-  public static SM_OFFSET = 0;
-  public static MD_COLUMNS = 8;
-  public static MD_SPAN = 8;
-  public static MD_OFFSET = 0;
-  public static LG_COLUMNS = 12;
-  public static LG_SPAN = 8;
-  public static LG_OFFSET = 2;
+  static GUTTER = 0;
+  static XS_COLUMNS = 2;
+  static XS_SPAN = 2;
+  static XS_OFFSET = 0;
+  static SM_COLUMNS = 4;
+  static SM_SPAN = 4;
+  static SM_OFFSET = 0;
+  static MD_COLUMNS = 8;
+  static MD_SPAN = 8;
+  static MD_OFFSET = 0;
+  static LG_COLUMNS = 12;
+  static LG_SPAN = 8;
+  static LG_OFFSET = 2;
 
-  public static DIALOG_GUTTER = 16;
-  public static DIALOG_MARGIN = 16;
-  public static DIALOG_MARGIN_VERTICAL = 12;
-  public static DIALOG_MD_SPAN = 4;
-  public static DIALOG_MD_OFFSET = 2;
-  public static DIALOG_LG_SPAN = 4;
-  public static DIALOG_LG_OFFSET = 4;
+  static DIALOG_GUTTER = 16;
+  static DIALOG_MARGIN = 16;
+  static DIALOG_MARGIN_VERTICAL = 12;
+  static DIALOG_MD_SPAN = 4;
+  static DIALOG_MD_OFFSET = 2;
+  static DIALOG_LG_SPAN = 4;
+  static DIALOG_LG_OFFSET = 4;
 
   // 100% width,height
-  public static FULL_WIDTH = '100%';
-  public static FULL_HEIGHT = '100%';
+  static FULL_WIDTH = '100%';
+  static FULL_HEIGHT = '100%';
 
   // public property style
-  public static PERMISSION = 1;
-  public static APPLICATION = 0;
-  public static LAYOUT_WEIGHT = 1;
-  public static FLEX_GROW = 1;
-  public static TEXT_BIG_FONT_SIZE = 20;
-  public static TEXT_MIDDLE_FONT_SIZE = 16;
-  public static TEXT_SMALL_FONT_SIZE = 14;
-  public static TEXT_SMALLER_FONT_SIZE = 12;
-  public static TEXT_LINE_HEIGHT = 22;
-  public static TEXT_BIG_LINE_HEIGHT = 28;
-  public static TEXT_SMALL_LINE_HEIGHT = 19;
-  public static CONSTRAINTSIZE_MINHEIGHT = 48;
-  public static LISTITEM_ROW_HEIGHT = 48;
-  public static LISTITEM_PADDING_LEFT = 24;
-  public static LIST_PADDING_LEFT = 12
-  public static LISTITEM_PADDING_RIGHT = 24;
-  public static LISTITEM_PADDING_LEFT_RECORD = 32;
-  public static LISTITEM_PADDING_RIGHT_RECORD = 50;
-  public static LISTITEM_MARGIN_BOTTOM = 12;
-  public static LISTITEM_HEIGHT_PERMISSION = 64;
-  public static LISTITEM_HEIGHT_APPLICATION = 72;
-  public static IMAGE_HEIGHT = 24;
-  public static IMAGE_WIDTH = 12;
-  public static IMAGE_HEIGHT_RECORD = 12;
-  public static IMAGE_WIDTH_RECORD = 24;
-  public static IMAGE_HEIGHT_RECORD_APPLICATION = 16;
-  public static IMAGE_WIDTH_RECORD_APPLICATION = 16;
-  public static TITLE_MARGIN_BOTTOM = 16;
-  public static SUBTITLE_MIN_HEIGHT = 48;
-  public static SUBTITLE_LINE_HEIGHT = 24;
-  public static SUBTITLE_PADDING_TOP = 16;
-  public static SUBTITLE_PADDING_BOTTOM = 8;
-  public static TAB_HEIGHT = 56;
-  public static TAB_LINE_HEIGHT = 100;
-  public static TAB_INNER_PADDING = 8;
-  public static TAB_DECORATION_HEIGHT = 2;
-  public static TAB_DECORATION_POSITION_Y = 6;
-  public static DEFAULT_PADDING_START = 12;
-  public static DEFAULT_PADDING_END = 12;
-  public static DEFAULT_PADDING_TOP = 12;
-  public static DEFAULT_PADDING_BOTTOM = 12;
-  public static DEFAULT_MARGIN_START = 12;
-  public static DEFAULT_MARGIN_END = 12;
-  public static DEFAULT_MARGIN_TOP = 12;
-  public static DEFAULT_MARGIN_BOTTOM = 12;
-  public static DEFAULT_SLIDER_WIDTH = 60;
-  public static DEFAULT_SLIDER_HEIGHT = 40;
-  public static OFFSET = 100;
-  public static CLICK_SHADOW_LENGTH = 48;
-  public static DIVIDER = '1px';
-  public static DIVIDER_HEIGHT = 24;
+  static PERMISSION = 1;
+  static APPLICATION = 0;
+  static LAYOUT_WEIGHT = 1;
+  static FLEX_GROW = 1;
+  static TEXT_BIG_FONT_SIZE = 20;
+  static TEXT_MIDDLE_FONT_SIZE = 16;
+  static TEXT_SMALL_FONT_SIZE = 14;
+  static TEXT_SMALLER_FONT_SIZE = 12;
+  static TEXT_LINE_HEIGHT = 22;
+  static TEXT_BIG_LINE_HEIGHT = 28;
+  static TEXT_SMALL_LINE_HEIGHT = 19;
+  static CONSTRAINTSIZE_MINHEIGHT = 48;
+  static LISTITEM_ROW_HEIGHT = 48;
+  static LISTITEM_PADDING_LEFT = 24;
+  static LIST_PADDING_LEFT = 12
+  static LISTITEM_PADDING_RIGHT = 24;
+  static LISTITEM_PADDING_LEFT_RECORD = 32;
+  static LISTITEM_PADDING_RIGHT_RECORD = 50;
+  static LISTITEM_MARGIN_BOTTOM = 12;
+  static LISTITEM_HEIGHT_PERMISSION = 64;
+  static LISTITEM_HEIGHT_APPLICATION = 72;
+  static IMAGE_HEIGHT = 24;
+  static IMAGE_WIDTH = 12;
+  static IMAGE_HEIGHT_RECORD = 12;
+  static IMAGE_WIDTH_RECORD = 24;
+  static IMAGE_HEIGHT_RECORD_APPLICATION = 16;
+  static IMAGE_WIDTH_RECORD_APPLICATION = 16;
+  static TITLE_MARGIN_BOTTOM = 16;
+  static SUBTITLE_MIN_HEIGHT = 48;
+  static SUBTITLE_LINE_HEIGHT = 24;
+  static SUBTITLE_PADDING_TOP = 16;
+  static SUBTITLE_PADDING_BOTTOM = 8;
+  static TAB_HEIGHT = 56;
+  static TAB_LINE_HEIGHT = 100;
+  static TAB_INNER_PADDING = 8;
+  static TAB_DECORATION_HEIGHT = 2;
+  static TAB_DECORATION_POSITION_Y = 6;
+  static DEFAULT_PADDING_START = 12;
+  static DEFAULT_PADDING_END = 12;
+  static DEFAULT_PADDING_TOP = 12;
+  static DEFAULT_PADDING_BOTTOM = 12;
+  static DEFAULT_MARGIN_START = 12;
+  static DEFAULT_MARGIN_END = 12;
+  static DEFAULT_MARGIN_TOP = 12;
+  static DEFAULT_MARGIN_BOTTOM = 12;
+  static DEFAULT_SLIDER_WIDTH = 60;
+  static DEFAULT_SLIDER_HEIGHT = 40;
+  static OFFSET = 100;
+  static CLICK_SHADOW_LENGTH = 48;
+  static DIVIDER = '1px';
+  static DIVIDER_HEIGHT = 24;
   public static DIVIDER_WIDTH = '2px';
   public static DIVIDER_WIDTH_THIN = '1px';
   public static DIVIDER_WIDTH_NUM = 2;
-  public static DIVIDER_MARGIN_RIGHT_PERMISSION = 52;
-  public static DIVIDER_MARGIN_RIGHT_APPLICATION = 68;
+  static DIVIDER_MARGIN_RIGHT_PERMISSION = 52;
+  static DIVIDER_MARGIN_RIGHT_APPLICATION = 68;
 
-  public static START_SUBSCRIPT = 0;
-  public static END_SUBSCRIPT = 500;
-  public static MAXIMUM_HEADER_LINES = 1;
-  public static MAXIMUM_HEADER_WIDTH = 200;
-  public static MAXIMUM_HEADER_HEIGHT = 500;
-  public static MAXIMUM_HEADER_LENGTH = 1000;
+  static START_SUBSCRIPT = 0;
+  static END_SUBSCRIPT = 500;
+  static MAXIMUM_HEADER_LINES = 1;
+  static MAXIMUM_HEADER_WIDTH = 200;
+  static MAXIMUM_HEADER_HEIGHT = 500;
+  static MAXIMUM_HEADER_LENGTH = 1000;
 
   static RECORD_PADDING_BOTTOM = '20%';
 
   // icon of dialog
-  public static DIALOG_ICON_WIDTH = 32;
-  public static DIALOG_ICON_HEIGHT = 32;
-  public static DIALOG_ICON_MARGIN_TOP = 24;
+  static DIALOG_ICON_WIDTH = 32;
+  static DIALOG_ICON_HEIGHT = 32;
+  static DIALOG_ICON_MARGIN_TOP = 24;
 
   // label text of dialog
-  public static DIALOG_LABEL_FONT_SIZE = 10;
-  public static DIALOG_LABEL_MARGIN_TOP = 2;
-  public static DIALOG_LABEL_LINE_HEIGHT = 14;
+  static DIALOG_LABEL_FONT_SIZE = 10;
+  static DIALOG_LABEL_MARGIN_TOP = 2;
+  static DIALOG_LABEL_LINE_HEIGHT = 14;
 
   // request text of dialog
   public static DIALOG_REQ_FONT_SIZE = 20;
@@ -134,15 +134,15 @@ export default class Constants {
   public static DIALOG_DESP_MARGIN_BOTTOM = 8;
   public static DIALOG_DESP_LINE_HEIGHT = 21;
 
-  public static BUTTON_MARGIN_TOP = 8;
-  public static BUTTON_MARGIN_LEFT = 16;
-  public static BUTTON_MARGIN_RIGHT = 16;
-  public static BUTTON_HEIGHT = 40;
+  static BUTTON_MARGIN_TOP = 8;
+  static BUTTON_MARGIN_LEFT = 16;
+  static BUTTON_MARGIN_RIGHT = 16;
+  static BUTTON_HEIGHT = 40;
   public static BUTTON_LEFT = 8;
   public static BUTTON_RIGHT = 8;
 
-  public static DIALOG_PRIVACY_BORDER_RADIUS = 32;
-  public static DIALOG_PADDING_BOTTOM = 16;
+  static DIALOG_PRIVACY_BORDER_RADIUS = 32;
+  static DIALOG_PADDING_BOTTOM = 16;
   public static DIALOG_PADDING_BOTTOM_LOW = 8;
   public static MARGIN_ZERO = 0;
   public static BUTTON_MARGIN_ROW = 4;
@@ -191,7 +191,7 @@ export default class Constants {
   public static TV_CONTENT_FONT_SIZE = 16;
 
   // ccm config path
-  public static CCM_CONFIG_PATH = "etc/notification/notification_config.json";
+  static CCM_CONFIG_PATH = "etc/notification/notification_config.json";
 
   public static TAG = 'NotificationDialog_Service ';
 

@@ -71,7 +71,6 @@ void AdvancedDatashareObserver::RegisterSettingsObserver(
         return;
     }
     settingHelper->RegisterObserver(uri, dataObserver);
-    settingHelper->Release();
 }
 
 bool AdvancedDatashareObserver::CheckIfSettingsDataReady()
