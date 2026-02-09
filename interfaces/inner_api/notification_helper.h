@@ -1075,26 +1075,6 @@ public:
         std::vector<NotificationBundleOption> &bundleOption, const int32_t userId);
 
     /**
-     * @brief Obtains allow liveview application list.
-     *
-     * @param bundleOption Indicates the bundle bundleOption.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    static ErrCode GetAllLiveViewEnabledBundles(std::vector<NotificationBundleOption> &bundleOption);
-    static ErrCode GetAllLiveViewEnabledBundles(
-        std::vector<NotificationBundleOption> &bundleOption, const int32_t userId);
-
-    /**
-     * @brief Obtains allow distribued application list.
-     *
-     * @param deviceType Indicates device type.
-     * @param bundleOption Indicates the bundle bundleOption.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    static ErrCode GetAllDistribuedEnabledBundles(const std::string &deviceType,
-        std::vector<NotificationBundleOption> &bundleOption);
-
-    /**
      * @brief Register Push Callback.
      *
      * @param pushCallback push appliction's Callback.
@@ -1468,6 +1448,14 @@ public:
     static ErrCode UpdateNotificationTimerByUid(const int32_t uid, const bool isPaused);
 
     /**
+     * @brief Set switch and bundle list of disable notification feature.
+     *
+     * @param notificationDisable Switch and bundle list of disable notification feature.
+     * @return Returns set result.
+     */
+    static ErrCode DisableNotificationFeature(const NotificationDisable &notificationDisable);
+
+    /**
      * @brief Whether reminders are allowed.
      *
      * @param bundleName app bundleName
@@ -1478,12 +1466,24 @@ public:
     static ErrCode AllowUseReminder(const std::string& bundleName, const int32_t userId, bool& isAllowUseReminder);
 
     /**
-     * @brief Set switch and bundle list of disable notification feature.
+     * @brief Obtains allow liveview application list.
      *
-     * @param notificationDisable Switch and bundle list of disable notification feature.
-     * @return Returns set result.
+     * @param bundleOption Indicates the bundle bundleOption.
+     * @return Returns ERR_OK on success, others on failure.
      */
-    static ErrCode DisableNotificationFeature(const NotificationDisable &notificationDisable);
+    static ErrCode GetAllLiveViewEnabledBundles(std::vector<NotificationBundleOption> &bundleOption);
+    static ErrCode GetAllLiveViewEnabledBundles(
+        std::vector<NotificationBundleOption> &bundleOption, const int32_t userId);
+
+    /**
+     * @brief Obtains allow distribued application list.
+     *
+     * @param deviceType Indicates device type.
+     * @param bundleOption Indicates the bundle bundleOption.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    static ErrCode GetAllDistribuedEnabledBundles(const std::string &deviceType,
+        std::vector<NotificationBundleOption> &bundleOption);
 
     /**
      * @brief Distribution operation based on hashCode.
@@ -1581,6 +1581,33 @@ public:
     static ErrCode GetLiveViewConfig(const std::vector<std::string>& bundleList);
 
     /**
+     * @brief Background unaware proxy.
+     *
+     * @param uidList List of uid applications.
+     * @param isProxy Proxy or Cancel proxy
+     * @return Returns request result.
+     */
+    static ErrCode ProxyForUnaware(const std::vector<int32_t>& uidList, bool isProxy);
+
+    /**
+     * @brief Obtains reminder info of application list.
+     *
+     * @param bundles Indicates the bundles bundleOption.
+     * @param reminderInfo Indicates the bundles reminderInfo.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    static ErrCode GetReminderInfoByBundles(
+        const std::vector<NotificationBundleOption> &bundles, std::vector<NotificationReminderInfo> &reminderInfo);
+
+    /**
+     * @brief Set reminder info for application list.
+     *
+     * @param reminderInfo Indicates the bundles reminderInfo.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    static ErrCode SetReminderInfoByBundles(const std::vector<NotificationReminderInfo> &reminderInfo);
+
+    /**
      * @brief Subscribe the notification when the bluetooth addr is connected.
      *
      * @param infos The info to be subscribe.
@@ -1624,24 +1651,6 @@ public:
      * @return Returns set result.
      */
     static ErrCode SetUserGrantedState(const NotificationBundleOption& targetBundle, bool enabled);
-    
-    /**
-     * @brief Obtains reminder info of application list.
-     *
-     * @param bundles Indicates the bundles bundleOption.
-     * @param reminderInfo Indicates the bundles reminderInfo.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    static ErrCode GetReminderInfoByBundles(
-        const std::vector<NotificationBundleOption> &bundles, std::vector<NotificationReminderInfo> &reminderInfo);
-
-    /**
-     * @brief Set reminder info for application list.
-     *
-     * @param reminderInfo Indicates the bundles reminderInfo.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    static ErrCode SetReminderInfoByBundles(const std::vector<NotificationReminderInfo> &reminderInfo);
 
     /**
      * @brief Set geofence switch.
@@ -1703,15 +1712,6 @@ public:
      */
     static ErrCode SetUserGrantedBundleState(const NotificationBundleOption& targetBundle,
         const std::vector<sptr<NotificationBundleOption>>& enabledBundles, bool enabled);
-
-    /**
-     * @brief Background unaware proxy.
-     *
-     * @param uidList List of uid applications.
-     * @param isProxy Proxy or Cancel proxy
-     * @return Returns request result.
-     */
-    static ErrCode ProxyForUnaware(const std::vector<int32_t>& uidList, bool isProxy);
 
     /**
      * @brief Obtains the list of bundleOption which granted by user.
