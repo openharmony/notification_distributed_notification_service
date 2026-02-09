@@ -275,5 +275,42 @@ HWTEST_F(DistributedServiceTest, HandleMatchSync_0100, Function | SmallTest | Le
     DistributedService::GetInstance().HandleMatchSync(box);
     EXPECT_EQ(0, MockInvokeCounting::GetInstance().MockGetCount());
 }
+
+/**
+ * @tc.name   : handle device status change.
+ * @tc.number : DistributedServiceTest_StatusChange_0100
+ * @tc.desc   : test handle device status change.
+ */
+#ifdef DISTRIBUTED_FEATURE_MASTER
+HWTEST_F(DistributedServiceTest, DistributedServiceTest_StatusChange_0100, Function | SmallTest | Level1)
+{
+    DistributedDeviceInfo deviceItem;
+    deviceItem.deviceId_ = "1234";
+    deviceItem.deviceType_ = DistributedHardware::DmDeviceType::DEVICE_TYPE_WATCH;
+    DistributedDeviceService::GetInstance().AddDeviceInfo(deviceItem);
+
+    DeviceStatueChangeInfo changeInfo;
+    changeInfo.enableChange = false;
+    changeInfo.deviceType = NotificationConstant::HEADSET_DEVICE_TYPE;
+    changeInfo.changeType = DeviceStatueChangeType::NOTIFICATION_ENABLE_CHANGE;
+    DistributedService::GetInstance().HandleStatusChange(changeInfo);
+
+    EXPECT_EQ(0, MockInvokeCounting::GetInstance().MockGetCount());
+
+    changeInfo.deviceType = NotificationConstant::CURRENT_DEVICE_TYPE ;
+    DistributedService::GetInstance().HandleStatusChange(changeInfo);
+    EXPECT_EQ(0, MockInvokeCounting::GetInstance().MockGetCount());
+
+    deviceItem.deviceType_ = DistributedHardware::DmDeviceType::DEVICE_TYPE_PAD;
+    DistributedDeviceService::GetInstance().AddDeviceInfo(deviceItem);
+    DistributedService::GetInstance().HandleStatusChange(changeInfo);
+    EXPECT_EQ(0, MockInvokeCounting::GetInstance().MockGetCount());
+
+    deviceItem.peerState_ = DeviceState::STATE_ONLINE;
+    DistributedDeviceService::GetInstance().AddDeviceInfo(deviceItem);
+    DistributedService::GetInstance().HandleStatusChange(changeInfo);
+    EXPECT_NE(0, MockInvokeCounting::GetInstance().MockGetCount());
+}
+#endif
 } // namespace Notification
 } // namespace OHOS

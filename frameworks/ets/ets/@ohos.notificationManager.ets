@@ -1459,6 +1459,7 @@ export default namespace notificationManager {
             let error: BusinessError = err as BusinessError;
             throw error;
         }
+        return result;
     }
 
     export function getAllActiveNotifications(callback: AsyncCallback<Array<NotificationRequest>>): void {

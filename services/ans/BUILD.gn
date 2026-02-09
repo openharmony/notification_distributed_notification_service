@@ -56,7 +56,9 @@ ohos_source_set("ans_service_sources") {
     "${services_path}/ans/include/utils",
     "${services_path}/ans/src",
     "${services_path}/domain/settings/rdb_mgr_repo/include",
+    "${services_path}/infrastructure/external_adapter/extension/include",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
+    "${services_path}/infrastructure/interfaces"
   ]
 
   defines = []
@@ -132,7 +134,6 @@ ohos_source_set("ans_service_sources") {
     "src/priority_notification/advanced_notification_priority_manager_service.cpp",
     "src/priority_notification/advanced_notification_priority_helper.cpp",
     "src/priority_notification/notification_ai_extension_wrapper.cpp",
-    "src/liveview_all_scenarios_extension_wrapper.cpp",
     "src/notification_bluetooth_helper.cpp",
     "src/notification_dialog.cpp",
     "src/notification_dialog_manager.cpp",

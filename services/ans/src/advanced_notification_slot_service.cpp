@@ -40,7 +40,7 @@
 #include "notification_extension_wrapper.h"
 #include "notification_ai_extension_wrapper.h"
 #include "notification_analytics_util.h"
-#include "liveview_all_scenarios_extension_wrapper.h"
+#include "all_scenarios_extension_wrapper.h"
 
 namespace OHOS {
 namespace Notification {
@@ -735,10 +735,10 @@ void AdvancedNotificationService::HandleFlagsWithRequest(const sptr<Notification
 {
     NotificationConstant::SWITCH_STATE enableStatus = NotificationConstant::SWITCH_STATE::SYSTEM_DEFAULT_OFF;
     if (request->IsCommonLiveView()) {
-        LIVEVIEW_ALL_SCENARIOS_EXTENTION_WRAPPER->UpdateLiveviewReminderFlags(request);
+        Infra::ALL_SCENARIOS_EXTENTION_WRAPPER.UpdateLiveviewReminderFlags(request);
         ANS_LOGI("SetFlags- UpdateLiveviewReminderFlags Key=%{public}s flags = %{public}d",
             request->GetBaseKey("").c_str(), request->GetFlags()->GetReminderFlags());
-        LIVEVIEW_ALL_SCENARIOS_EXTENTION_WRAPPER->UpdateLiveviewVoiceContent(request);
+        Infra::ALL_SCENARIOS_EXTENTION_WRAPPER.UpdateLiveviewVoiceContent(request);
     } else if (!request->IsSystemLiveView()) {
         NotificationPreferences::GetInstance()->IsSilentReminderEnabled(bundleOption, enableStatus);
         if (enableStatus == NotificationConstant::SWITCH_STATE::USER_MODIFIED_ON) {
@@ -1186,7 +1186,7 @@ ErrCode AdvancedNotificationService::SetCheckConfig(int32_t response, const std:
 
     auto submitResult = notificationSvrQueue_.SyncSubmit(std::bind([&, response, requestId, value]() {
         if (response == ERR_OK) {
-            LIVEVIEW_ALL_SCENARIOS_EXTENTION_WRAPPER->UpdateLiveViewConfig(value);
+            Infra::ALL_SCENARIOS_EXTENTION_WRAPPER.UpdateLiveViewConfig(value);
             return;
         }
 
