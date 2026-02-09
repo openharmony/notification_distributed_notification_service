@@ -763,6 +763,9 @@ ohos_unittest("distributed_service_test") {
     external_deps += [ "screenlock_mgr:screenlock_client" ]
     defines += [ "SCREENLOCK_MGR_ENABLE" ]
   }
+  if (distributed_notification_service_feature_phone_collaboration) {
+    defines += [ "DISTRIBUTED_FEATURE_MASTER" ]
+  }
 
   subsystem_name = "${subsystem_name}"
   part_name = "${component_name}"
