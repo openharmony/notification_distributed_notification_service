@@ -472,23 +472,6 @@ napi_value SwitchStateInit(napi_env env, napi_value exports)
     return exports;
 }
 
-napi_value SubscribeTypeInit(napi_env env, napi_value exports)
-{
-    ANS_LOGD("%{public}s, called", __func__);
-
-    napi_value obj = nullptr;
-    napi_create_object(env, &obj);
-    
-    SetNamedPropertyByInteger(env, obj, (int32_t)SubscribeType::BLUETOOTH, "BLUETOOTH");
-
-    napi_property_descriptor exportFuncs[] = {
-        DECLARE_NAPI_PROPERTY("SubscribeType", obj),
-    };
-
-    napi_define_properties(env, exports, sizeof(exportFuncs) / sizeof(*exportFuncs), exportFuncs);
-    return exports;
-}
-
 napi_value RingtoneTypeInit(napi_env env, napi_value exports)
 {
     ANS_LOGD("%{public}s, called", __func__);
@@ -503,6 +486,23 @@ napi_value RingtoneTypeInit(napi_env env, napi_value exports)
 
     napi_property_descriptor exportFuncs[] = {
         DECLARE_NAPI_PROPERTY("RingtoneType", obj),
+    };
+
+    napi_define_properties(env, exports, sizeof(exportFuncs) / sizeof(*exportFuncs), exportFuncs);
+    return exports;
+}
+
+napi_value SubscribeTypeInit(napi_env env, napi_value exports)
+{
+    ANS_LOGD("%{public}s, called", __func__);
+
+    napi_value obj = nullptr;
+    napi_create_object(env, &obj);
+    
+    SetNamedPropertyByInteger(env, obj, (int32_t)SubscribeType::BLUETOOTH, "BLUETOOTH");
+
+    napi_property_descriptor exportFuncs[] = {
+        DECLARE_NAPI_PROPERTY("SubscribeType", obj),
     };
 
     napi_define_properties(env, exports, sizeof(exportFuncs) / sizeof(*exportFuncs), exportFuncs);

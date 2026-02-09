@@ -215,10 +215,6 @@ public:
         SUPPORT
     };
 
-    enum class SubscribeType {
-        BLUETOOTH = 0
-    };
-
     enum class PriorityEnableStatus {
         /**
          * disable priority notification
@@ -303,6 +299,10 @@ public:
     enum class RingtoneReportType {
         RINGTONE_UPDATE = 0,
         RINGTONE_REMOVE = 1,
+    };
+
+    enum class SubscribeType {
+        BLUETOOTH = 0
     };
 
     static const int32_t DEFAULT_REASON_DELETE = 0;

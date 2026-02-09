@@ -113,7 +113,8 @@ public:
     /**
      * @brief Add a timestamp to flow control list.
      *
-     * @param record Notification record to acquire owner uid of notification. User should ensure that record is not nullptr.
+     * @param record Notification record to acquire owner uid of notification.
+                     User should ensure that record is not nullptr.
      * @param callingUid Uid of caller.
      * @param now Current time.
      */
