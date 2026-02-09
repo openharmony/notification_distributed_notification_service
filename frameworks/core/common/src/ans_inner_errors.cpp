@@ -47,7 +47,7 @@ static const std::unordered_map<int32_t, std::string> ANS_ERROR_CODE_MESSAGE_MAP
     {ERROR_SETTING_WINDOW_EXIST, "The notification settings window is already displayed"},
     {ERROR_NO_PROFILE_TEMPLATE, "The do-not-disturb profile does not exist"},
     {ERROR_REPEAT_SET, "Repeat create or end"},
-    {ERROR_NO_RIGHT, "Permission denied"},
+    {ERROR_NO_RIGHT, "No permission"},
     {ERROR_EXPIRED_NOTIFICATION, "The notification version for this update is too low"},
     {ERROR_NETWORK_UNREACHABLE, "Network unreachable"},
     {ERROR_REJECTED_WITH_DISABLE_NOTIFICATION,

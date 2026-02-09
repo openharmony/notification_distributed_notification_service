@@ -79,7 +79,7 @@
 #ifdef ALL_SCENARIO_COLLABORATION
 #include "distributed_device_manager.h"
 #endif
-#include "liveview_all_scenarios_extension_wrapper.h"
+#include "all_scenarios_extension_wrapper.h"
 #include "notification_operation_service.h"
 #include "string_wrapper.h"
 #include "notification_liveview_utils.h"
@@ -1422,7 +1422,7 @@ ErrCode AdvancedNotificationService::UpdateInNotificationList(const std::shared_
         if ((*iter)->notification->GetKey() == record->notification->GetKey()) {
             record->request->FillMissingParameters((*iter)->request);
             if (record->request->IsCommonLiveView()) {
-                LIVEVIEW_ALL_SCENARIOS_EXTENTION_WRAPPER->UpdateLiveviewVoiceContent(record->request);
+                Infra::ALL_SCENARIOS_EXTENTION_WRAPPER.UpdateLiveviewVoiceContent(record->request);
             }
             FillLockScreenPicture(record->request, (*iter)->request);
             record->notification->SetAutoDeletedTimer((*iter)->notification->GetAutoDeletedTimer());

@@ -24,12 +24,6 @@
 namespace OHOS {
 namespace NotificationManagerSts {
 using namespace arkts::concurrency_helpers;
-const char KEY_NAME[] = "AGGREGATE_CONFIG";
-const char RING_LIST_KEY_NAME[] = "RING_TRUSTLIST_PKG";
-const char CTRL_LIST_KEY_NAME[] = "NOTIFICATION_CTL_LIST_PKG";
-const char PRIORITY_RULE_CONFIG_KEY_NAME[] = "notificationRuleConfig";
-const char CAMPAIGN_NOTIFICATION_SWITCH_LIST_PKG[] = "CAMPAIGN_NOTIFICATION_SWITCH_LIST_PKG";
-const char HEALTH_BUNDLE_WHITE_LIST[]  = "HEALTH_BUNDLE_WHITE_LIST";
 
 void DeleteCallBackInfoWithoutPromise(ani_env* env, AsyncCallbackConfigInfo* asyncCallbackInfo)
 {
@@ -117,13 +111,6 @@ bool ParsePraramForAdditionalConfig(ani_env *env,
         return false;
     }
     std::string keyStr = NotificationSts::GetResizeStr(tempKey, NotificationSts::STR_MAX_SIZE);
-    if (keyStr.empty() || (keyStr != KEY_NAME && keyStr != RING_LIST_KEY_NAME &&
-        keyStr != CTRL_LIST_KEY_NAME && keyStr != HEALTH_BUNDLE_WHITE_LIST &&
-        keyStr != PRIORITY_RULE_CONFIG_KEY_NAME &&
-        keyStr != CAMPAIGN_NOTIFICATION_SWITCH_LIST_PKG)) {
-        ANS_LOGW("Argument param error. not allow key: %{public}s.", keyStr.c_str());
-        return false;
-    }
     std::string tempValue;
     if (NotificationSts::GetStringByAniString(env, value, tempValue) != ANI_OK) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "Parse value failed");

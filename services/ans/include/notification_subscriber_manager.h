@@ -117,7 +117,7 @@ public:
      * @param bundle Indicates which bundle need consume the update nofitication
      */
     void NotifyDoNotDisturbDateChanged(const int32_t &userId, const sptr<NotificationDoNotDisturbDate> &date,
-        const std::string &bundle);
+        int32_t uid);
 
     void NotifyEnabledNotificationChanged(const sptr<EnabledNotificationCallbackData> &callbackData);
 
@@ -194,7 +194,7 @@ public:
      */
     ErrCode DistributeOperation(
         const sptr<NotificationOperationInfo>& operationInfo, const sptr<NotificationRequest>& request);
- 
+
     ErrCode DistributeOperationTask(const sptr<NotificationOperationInfo>& operationInfo,
         const sptr<NotificationRequest>& request, int32_t &funcResult);
 
@@ -228,20 +228,18 @@ private:
     ErrCode RemoveSubscriberInner(
         const sptr<IAnsSubscriber> &subscriber, const sptr<NotificationSubscribeInfo> &subscribeInfo);
 
-    void UpdatePriorityType(const sptr<Notification> &notification, const sptr<Notification> &originNotification);
-    void NotifyConsumedInner(const sptr<Notification> &notification,
-        const sptr<NotificationSortingMap> &notificationMap, const sptr<Notification> &originNotification);
+    void NotifyConsumedInner(
+        const sptr<Notification> &notification, const sptr<NotificationSortingMap> &notificationMap);
     void BatchNotifyConsumedInner(const std::vector<sptr<Notification>> &notifications,
         const sptr<NotificationSortingMap> &notificationMap,
-        const std::shared_ptr<SubscriberRecord> &record,
-        const std::vector<sptr<Notification>> &originNotifications);
+        const std::shared_ptr<SubscriberRecord> &record);
     void NotifyCanceledInner(const sptr<Notification> &notification,
         const sptr<NotificationSortingMap> &notificationMap, int32_t deleteReason);
     void BatchNotifyCanceledInner(const std::vector<sptr<Notification>> &notifications,
         const sptr<NotificationSortingMap> &notificationMap, int32_t deleteReason);
     void NotifyUpdatedInner(const sptr<NotificationSortingMap> &notificationMap);
     void NotifyDoNotDisturbDateChangedInner(const int32_t &userId, const sptr<NotificationDoNotDisturbDate> &date,
-        const std::string &bundle);
+        int32_t uid);
     void NotifyEnabledNotificationChangedInner(const sptr<EnabledNotificationCallbackData> &callbackData);
     void NotifyEnabledSilentReminderChangedInner(const sptr<EnabledSilentReminderCallbackData> &callbackData);
     void NotifyEnabledWatchStatusChangedInner(const uint32_t watchStatus);
