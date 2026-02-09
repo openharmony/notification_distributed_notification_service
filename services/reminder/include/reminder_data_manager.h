@@ -723,6 +723,7 @@ private:
     bool CheckShowLimit(std::unordered_map<std::string, int32_t>& limits,
         std::unordered_map<int32_t, int32_t>& bundleLimits, int32_t& totalCount,
         sptr<ReminderRequest>& reminder);
+    int64_t CreateReminderLoadTimer(const sptr<MiscServices::TimeServiceClient> timer);
 
     void UpdateReminderFromDb(const std::vector<sptr<ReminderRequest>>& remindersFromDb);
     ErrCode CancelReminderToDb(const int32_t reminderId, const int32_t callingUid);
