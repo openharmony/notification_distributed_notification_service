@@ -1864,7 +1864,7 @@ std::shared_ptr<NotificationRecord> AdvancedNotificationService::GetRecordFromNo
     }
     return nullptr;
 }
-
+#ifdef ANM_SUPPORT_DUMP
 ErrCode AdvancedNotificationService::SetRecentNotificationCount(const std::string arg)
 {
     ANS_LOGD("%{public}s arg = %{public}s", __FUNCTION__, arg.c_str());
