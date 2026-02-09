@@ -166,8 +166,8 @@ AnsStatus AdvancedNotificationService::PrepareNotificationRequest(const sptr<Not
             }
             if (request->GetOwnerUid() == DEFAULT_UID) {
                 if (bundleManager != nullptr) {
-                OsAccountManagerHelper::GetInstance().GetCurrentActiveUserId(userId);
-                uid = bundleManager->GetDefaultUidByBundleName(request->GetOwnerBundleName(), userId);
+                    OsAccountManagerHelper::GetInstance().GetCurrentActiveUserId(userId);
+                    uid = bundleManager->GetDefaultUidByBundleName(request->GetOwnerBundleName(), userId);
                 }
                 if (uid < 0) {
                     return AnsStatus::InvalidUid(EventSceneId::SCENE_14, EventBranchId::BRANCH_2);
