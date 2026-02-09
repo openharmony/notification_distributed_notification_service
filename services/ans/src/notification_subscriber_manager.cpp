@@ -28,6 +28,7 @@
 #include "ans_trace_wrapper.h"
 #include "ipc_skeleton.h"
 #include "notification_flags.h"
+#include "notification_ai_extension_wrapper.h"
 #include "notification_constant.h"
 #include "notification_config_parse.h"
 #include "notification_extension_wrapper.h"
@@ -39,7 +40,6 @@
 
 #include "bool_wrapper.h"
 #include "advanced_notification_inline.h"
-#include "liveview_all_scenarios_extension_wrapper.h"
 #ifdef ALL_SCENARIO_COLLABORATION
 #include "distributed_collaboration_service.h"
 #endif
@@ -198,41 +198,15 @@ void NotificationSubscriberManager::NotifyConsumed(
     }
     AppExecFwk::EventHandler::Callback NotifyConsumedFunc =
         std::bind(&NotificationSubscriberManager::NotifyConsumedInner,
-        this, newNotification, notificationMap, notification);
+        this, newNotification, notificationMap);
     notificationSubQueue_->submit(NotifyConsumedFunc);
 #else
     AppExecFwk::EventHandler::Callback NotifyConsumedFunc =
         std::bind(&NotificationSubscriberManager::NotifyConsumedInner,
-        this, notification, notificationMap, notification);
+        this, notification, notificationMap);
 
     notificationSubQueue_->submit(NotifyConsumedFunc);
 #endif
-}
-
-void NotificationSubscriberManager::NotifyApplicationInfoNeedChanged(const std::string& bundleName)
-{
-    NOTIFICATION_HITRACE(HITRACE_TAG_NOTIFICATION);
-    if (notificationSubQueue_ == nullptr || bundleName.empty()) {
-        ANS_LOGE("null queue");
-        return;
-    }
-    AppExecFwk::EventHandler::Callback NotifyConsumedFunc =
-        std::bind(&NotificationSubscriberManager::NotifyApplicationInfochangedInner, this, bundleName);
-
-    notificationSubQueue_->submit(NotifyConsumedFunc);
-}
-
-
-void NotificationSubscriberManager::NotifyApplicationInfochangedInner(const std::string& bundleName)
-{
-    NOTIFICATION_HITRACE(HITRACE_TAG_NOTIFICATION);
-    ANS_LOGD("bundleName: %{public}s", bundleName.c_str());
-    for (auto record : subscriberRecordList_) {
-        if (record->needNotifyApplicationChanged && (record->subscribedFlags_ &
-            NotificationConstant::SubscribedFlag::SUBSCRIBE_ON_APPLICATIONINFONEED_CHANGED)) {
-            record->subscriber->OnApplicationInfoNeedChanged(bundleName);
-        }
-    }
 }
 
 void NotificationSubscriberManager::BatchNotifyConsumed(const std::vector<sptr<Notification>> &notifications,
@@ -274,11 +248,11 @@ void NotificationSubscriberManager::BatchNotifyConsumed(const std::vector<sptr<N
     }
     AppExecFwk::EventHandler::Callback batchNotifyConsumedFunc = std::bind(
         &NotificationSubscriberManager::BatchNotifyConsumedInner,
-        this, newNotifications, notificationMap, record, notifications);
+        this, newNotifications, notificationMap, record);
 #else
     AppExecFwk::EventHandler::Callback batchNotifyConsumedFunc = std::bind(
         &NotificationSubscriberManager::BatchNotifyConsumedInner,
-        this, notifications, notificationMap, record, notifications);
+        this, notifications, notificationMap, record);
 
     notificationSubQueue_->submit(batchNotifyConsumedFunc);
 #endif
@@ -288,11 +262,6 @@ void NotificationSubscriberManager::NotifyCanceled(
     const sptr<Notification> &notification, const sptr<NotificationSortingMap> &notificationMap, int32_t deleteReason)
 {
     NOTIFICATION_HITRACE(HITRACE_TAG_NOTIFICATION);
-#ifdef ENABLE_ANS_AGGREGATION
-    std::vector<sptr<Notification>> notifications;
-    notifications.emplace_back(notification);
-    EXTENTION_WRAPPER->UpdateByCancel(notifications, deleteReason);
-#endif
 
     if (notificationSubQueue_ == nullptr) {
         ANS_LOGE("null queue");
@@ -311,9 +280,6 @@ void NotificationSubscriberManager::BatchNotifyCanceled(const std::vector<sptr<N
     const sptr<NotificationSortingMap> &notificationMap, int32_t deleteReason)
 {
     NOTIFICATION_HITRACE(HITRACE_TAG_NOTIFICATION);
-#ifdef ENABLE_ANS_AGGREGATION
-    EXTENTION_WRAPPER->UpdateByCancel(notifications, deleteReason);
-#endif
 
     if (notificationSubQueue_ == nullptr) {
         ANS_LOGD("queue is nullptr");
@@ -338,14 +304,14 @@ void NotificationSubscriberManager::NotifyUpdated(const sptr<NotificationSorting
 }
 
 void NotificationSubscriberManager::NotifyDoNotDisturbDateChanged(const int32_t &userId,
-    const sptr<NotificationDoNotDisturbDate> &date, const std::string &bundle)
+    const sptr<NotificationDoNotDisturbDate> &date, int32_t uid)
 {
     if (notificationSubQueue_ == nullptr) {
         ANS_LOGE("null queue");
         return;
     }
     AppExecFwk::EventHandler::Callback func =
-        std::bind(&NotificationSubscriberManager::NotifyDoNotDisturbDateChangedInner, this, userId, date, bundle);
+        std::bind(&NotificationSubscriberManager::NotifyDoNotDisturbDateChangedInner, this, userId, date, uid);
 
     notificationSubQueue_->submit(func);
 }
@@ -413,7 +379,7 @@ void NotificationSubscriberManager::NotifyEnabledWatchChanged(const uint32_t wat
     }
     AppExecFwk::EventHandler::Callback func =
         std::bind(&NotificationSubscriberManager::NotifyEnabledWatchStatusChangedInner, this, watchStatus);
- 
+
     notificationSubQueue_->submit(func);
 }
 
@@ -637,14 +603,16 @@ ErrCode NotificationSubscriberManager::RemoveSubscriberInner(
 }
 
 void NotificationSubscriberManager::NotifyConsumedInner(const sptr<Notification> &notification,
-    const sptr<NotificationSortingMap> &notificationMap, const sptr<Notification> &originNotification)
+    const sptr<NotificationSortingMap> &notificationMap)
 {
     if (notification == nullptr) {
         ANS_LOGE("null notification");
         return;
     }
     NOTIFICATION_HITRACE(HITRACE_TAG_NOTIFICATION);
-    UpdatePriorityType(notification, originNotification);
+#ifdef ANS_FEATURE_PRIORITY_NOTIFICATION
+    AdvancedNotificationPriorityHelper::GetInstance()->UpdatePriorityType(notification->GetNotificationRequestPoint());
+#endif
     for (auto record : subscriberRecordList_) {
         ANS_LOGD("%{public}s record->userId = <%{public}d> BundleName  = <%{public}s deviceType = %{public}s",
             __FUNCTION__, record->userId, notification->GetBundleName().c_str(), record->deviceType.c_str());
@@ -727,7 +695,7 @@ ErrCode NotificationSubscriberManager::IsDeviceTypeAffordConsume(
 
 void NotificationSubscriberManager::BatchNotifyConsumedInner(
     const std::vector<sptr<Notification>> &notifications, const sptr<NotificationSortingMap> &notificationMap,
-    const std::shared_ptr<SubscriberRecord> &record, const std::vector<sptr<Notification>> &originNotifications)
+    const std::shared_ptr<SubscriberRecord> &record)
 {
     NOTIFICATION_HITRACE(HITRACE_TAG_NOTIFICATION);
     if (notifications.empty() || notificationMap == nullptr || record == nullptr) {
@@ -746,7 +714,10 @@ void NotificationSubscriberManager::BatchNotifyConsumedInner(
         if (notification == nullptr) {
             continue;
         }
-        UpdatePriorityType(notification, originNotifications[i]);
+#ifdef ANS_FEATURE_PRIORITY_NOTIFICATION
+        AdvancedNotificationPriorityHelper::GetInstance()->UpdatePriorityType(
+            notification->GetNotificationRequestPoint());
+#endif
         bool wearableFlag = false;
         bool headsetFlag = false;
         bool keyNodeFlag = false;
@@ -775,18 +746,6 @@ void NotificationSubscriberManager::BatchNotifyConsumedInner(
     }
 }
 
-void NotificationSubscriberManager::UpdatePriorityType(
-    const sptr<Notification> &notification, const sptr<Notification> &originNotification)
-{
-#ifdef ANS_FEATURE_PRIORITY_NOTIFICATION
-    AdvancedNotificationPriorityHelper::GetInstance()->UpdatePriorityType(notification->GetNotificationRequestPoint());
-    if (originNotification != nullptr && originNotification->GetNotificationRequestPoint() != nullptr) {
-        originNotification->GetNotificationRequestPoint()->SetInnerPriorityNotificationType(
-            notification->GetNotificationRequestPoint()->GetPriorityNotificationType());
-    }
-#endif
-}
-
 void NotificationSubscriberManager::NotifyCanceledInner(
     const sptr<Notification> &notification, const sptr<NotificationSortingMap> &notificationMap, int32_t deleteReason)
 {
@@ -813,6 +772,13 @@ void NotificationSubscriberManager::NotifyCanceledInner(
             }
     }
     ANS_LOGI("CancelNotification key=%{public}s", notification->GetKey().c_str());
+#ifdef ANS_FEATURE_PRIORITY_NOTIFICATION
+    std::vector<sptr<NotificationBundleOption>> bundleOptions;
+    std::vector<sptr<NotificationRequest>> requests;
+    AdvancedNotificationService::GetInstance()->GetRequestsFromNotification({ notification }, requests);
+    NOTIFICATION_AI_EXTENSION_WRAPPER->NotifyPriorityEvent(
+        NotificationConstant::EVENT_NOTIFICATION_REMOVED, bundleOptions, requests);
+#endif
     for (auto record : subscriberRecordList_) {
         ANS_LOGD("%{public}s record->userId = <%{public}d>", __FUNCTION__, record->userId);
         if (IsSubscribedBysubscriber(record, notification) && IsSubscribedByDeviceType(record, notification, true) &&
@@ -999,7 +965,13 @@ void NotificationSubscriberManager::BatchNotifyCanceledInner(const std::vector<s
         }
     }
     ANS_LOGI("CancelNotification key = %{public}s", notificationKeys.c_str());
-
+#ifdef ANS_FEATURE_PRIORITY_NOTIFICATION
+    std::vector<sptr<NotificationBundleOption>> bundleOptions;
+    std::vector<sptr<NotificationRequest>> requests;
+    AdvancedNotificationService::GetInstance()->GetRequestsFromNotification(notifications, requests);
+    NOTIFICATION_AI_EXTENSION_WRAPPER->NotifyPriorityEvent(
+        NotificationConstant::EVENT_NOTIFICATION_REMOVED, bundleOptions, requests);
+#endif
     for (auto record : subscriberRecordList_) {
         if (record == nullptr) {
             continue;
@@ -1160,13 +1132,13 @@ bool NotificationSubscriberManager::IsNeedNotifySubscribers(const std::shared_pt
 }
 
 void NotificationSubscriberManager::NotifyDoNotDisturbDateChangedInner(const int32_t &userId,
-    const sptr<NotificationDoNotDisturbDate> &date, const std::string &bundle)
+    const sptr<NotificationDoNotDisturbDate> &date, int32_t uid)
 {
     if (date == nullptr) {
         ANS_LOGE("null date");
         return;
     }
-    NotifySubscribers(userId, bundle, NotificationConstant::SubscribedFlag::SUBSCRIBE_ON_DONOTDISTURBDATA_CHANGED,
+    NotifySubscribers(userId, uid, NotificationConstant::SubscribedFlag::SUBSCRIBE_ON_DONOTDISTURBDATA_CHANGED,
         &IAnsSubscriber::OnDoNotDisturbDateChange, date);
 }
 
@@ -1178,9 +1150,9 @@ void NotificationSubscriberManager::NotifyBadgeEnabledChangedInner(
         return;
     }
     int32_t userId = SUBSCRIBE_USER_INIT;
-    OsAccountManagerHelper::GetInstance().GetOsAccountLocalIdFromUid(callbackData->GetUid(), userId);
-    std::string bundle = callbackData->GetBundle();
-    NotifySubscribers(userId, bundle, NotificationConstant::SubscribedFlag::SUBSCRIBE_ON_BADGEENABLE_CHANGED,
+    int32_t uid = callbackData->GetUid();
+    OsAccountManagerHelper::GetInstance().GetOsAccountLocalIdFromUid(uid, userId);
+    NotifySubscribers(userId, uid, NotificationConstant::SubscribedFlag::SUBSCRIBE_ON_BADGEENABLE_CHANGED,
         &IAnsSubscriber::OnBadgeEnabledChanged, callbackData);
 }
 
@@ -1282,9 +1254,9 @@ void NotificationSubscriberManager::SetBadgeNumber(const sptr<BadgeNumberCallbac
     }
     std::function<void()> setBadgeNumberFunc = [this, badgeData] () {
         int32_t userId = SUBSCRIBE_USER_INIT;
-        OsAccountManagerHelper::GetInstance().GetOsAccountLocalIdFromUid(badgeData->GetUid(), userId);
-        std::string bundle = badgeData->GetBundle();
-        NotifySubscribers(userId, bundle, NotificationConstant::SubscribedFlag::SUBSCRIBE_ON_BADGE_CHANGED,
+        int32_t uid = badgeData->GetUid();
+        OsAccountManagerHelper::GetInstance().GetOsAccountLocalIdFromUid(uid, userId);
+        NotifySubscribers(userId, uid, NotificationConstant::SubscribedFlag::SUBSCRIBE_ON_BADGE_CHANGED,
             &IAnsSubscriber::OnBadgeChanged, badgeData);
         NotificationAnalyticsUtil::ReportBadgeChange(badgeData);
     };
@@ -1305,6 +1277,32 @@ void NotificationSubscriberManager::RegisterOnSubscriberAddCallback(
 void NotificationSubscriberManager::UnRegisterOnSubscriberAddCallback()
 {
     onSubscriberAddCallback_ = nullptr;
+}
+
+void NotificationSubscriberManager::NotifyApplicationInfoNeedChanged(const std::string& bundleName)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_NOTIFICATION, __PRETTY_FUNCTION__);
+    if (notificationSubQueue_ == nullptr || bundleName.empty()) {
+        ANS_LOGE("queue is nullptr");
+        return;
+    }
+    AppExecFwk::EventHandler::Callback NotifyConsumedFunc =
+        std::bind(&NotificationSubscriberManager::NotifyApplicationInfochangedInner, this, bundleName);
+
+    notificationSubQueue_->submit(NotifyConsumedFunc);
+}
+
+
+void NotificationSubscriberManager::NotifyApplicationInfochangedInner(const std::string& bundleName)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_NOTIFICATION, __PRETTY_FUNCTION__);
+    ANS_LOGI("NotifyApplicationInfochangedInner %{public}s", bundleName.c_str());
+    for (auto record : subscriberRecordList_) {
+        if (record->needNotifyApplicationChanged && (record->subscribedFlags_ &
+            NotificationConstant::SubscribedFlag::SUBSCRIBE_ON_APPLICATIONINFONEED_CHANGED)) {
+            record->subscriber->OnApplicationInfoNeedChanged(bundleName);
+        }
+    }
 }
 
 using SubscriberRecordPtr = std::shared_ptr<NotificationSubscriberManager::SubscriberRecord>;

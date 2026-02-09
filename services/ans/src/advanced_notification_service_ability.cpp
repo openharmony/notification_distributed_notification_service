@@ -17,7 +17,6 @@
 #include "notification_extension_wrapper.h"
 #include "system_event_observer.h"
 #include "common_event_manager.h"
-#include "liveview_all_scenarios_extension_wrapper.h"
 #ifdef ALL_SCENARIO_COLLABORATION
 #include "distributed_device_manager.h"
 #include "distributed_extension_service.h"
