@@ -38,7 +38,19 @@ public:
         /**
          * Priority config for SetBundlePriorityConfig.
          */
-        PRIORITY_CONFIG
+        PRIORITY_CONFIG,
+        /**
+         * Switch type for SetPriorityEnabledForBundles.
+         */
+        PRIORITY_ENABLE_FOR_BUNDLE_V2,
+        /**
+         * Priority strategy for SetPriorityStrategyForBundles.
+         */
+        PRIORITY_STRATEGY_FOR_BUNDLE,
+        /**
+         * Switch type for PutPriorityIntelligentEnabled.
+         */
+        PRIORITY_INTELLIGENT_ENABLE,
     };
 
     NotificationClonePriorityInfo() = default;

@@ -17,6 +17,7 @@
 #include "ans_log_wrapper.h"
 #include "init_default_table_handler.h"
 #include "live_view_migration_handler.h"
+#include "priorityinfo_migration_handler.h"
 #include "rdb_store.h"
 
 namespace OHOS::Notification::Infra {
@@ -80,6 +81,12 @@ void RdbStoreCallback::InitializeHandlers(const NotificationRdbConfig& config, s
                 auto liveViewMigrationHandler = std::make_shared<LiveViewMigrationHandler>(hookMgr);
                 handlerManager_.RegisterHandler(
                     RdbEventHandlerManager::EventType::ON_UPGRADE, liveViewMigrationHandler);
+                break;
+            }
+            case RdbEventHandlerType::ON_UPGRADE_PRIORITY_INFO_MIGRATION: {
+                auto priorityInfoUpdateHandler = std::make_shared<PriorityInfoMigrationHandler>();
+                handlerManager_.RegisterHandler(
+                    RdbEventHandlerManager::EventType::ON_UPGRADE, priorityInfoUpdateHandler);
                 break;
             }
             default: {

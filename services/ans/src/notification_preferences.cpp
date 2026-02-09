@@ -41,6 +41,9 @@ namespace {
 const static std::string KEY_BUNDLE_LABEL = "label_ans_bundle_";
 constexpr static const char* KEY_PRIORITY_NOTIFICATION_SWITCH_FOR_BUNDLE = "priorityNotificationSwitchForBundle";
 constexpr static const char* KEY_PRIORITY_CONFIG_FOR_BUNDLE = "priorityConfigForBundle";
+constexpr static const char* KEY_PRIORITY_NOTIFICATION_SWITCH_FOR_BUNDLE_V2 = "priorityNotificationSwitchForBundleV2";
+constexpr static const char* KEY_PRIORITY_NOTIFICATION_STRATEGY_FOR_BUNDLE = "priorityStrategyForBundle";
+const static std::string KEY_UNDER_LINE = "_";
 }
 ffrt::mutex NotificationPreferences::instanceMutex_;
 std::shared_ptr<NotificationPreferences> NotificationPreferences::instance_;
@@ -846,6 +849,35 @@ void NotificationPreferences::SetAncoApplicationUserId(const sptr<NotificationBu
     preferncesDB_->PutBundleUserIdToDisturbeDB(setBundlesList, userId, ZERO_USERID);
 }
 
+void NotificationPreferences::GetCloneBundlePriorityInfo(
+    std::vector<NotificationClonePriorityInfo> &cloneInfos,
+    const int32_t &userId,
+    const std::string &key,
+    const NotificationClonePriorityInfo::CLONE_PRIORITY_TYPE &type)
+{
+    std::unordered_map<std::string, std::string> rawMap;
+    if (GetBatchKvsFromDbContainsKey(key, rawMap, userId) != ERR_OK) {
+        ANS_LOGE("Get priority map info failed, key: %{public}s, userId: %{public}d.", key.c_str(), userId);
+        return;
+    }
+    std::unordered_map<std::string, std::string> priorityMap;
+    for (const auto& [fullKey, val] : rawMap) {
+        size_t pos = fullKey.find_last_of(KEY_UNDER_LINE);
+        if (pos == std::string::npos) {
+            continue;
+        }
+        if (fullKey.compare(pos + 1, std::string::npos, key) == 0) {
+            priorityMap.emplace(fullKey, val);
+        }
+    }
+    if (priorityMap.empty()) {
+        ANS_LOGW("No valid priority data found for key: %{public}s", key.c_str());
+        return;
+    }
+    preferncesDB_->ParsePriorityInfosFromDisturbeDB(priorityMap, cloneInfos, type);
+    return;
+}
+
 void NotificationPreferences::GetAllClonePriorityInfo(
     const int32_t userId, std::vector<NotificationClonePriorityInfo> &cloneInfos)
 {
@@ -857,21 +889,23 @@ void NotificationPreferences::GetAllClonePriorityInfo(
         priorityInfo.SetSwitchState(static_cast<int32_t>(enable));
         cloneInfos.emplace_back(priorityInfo);
     }
-    std::unordered_map<std::string, std::string> prioritySwitchMap;
-    if (GetBatchKvsFromDbContainsKey(
-        KEY_PRIORITY_NOTIFICATION_SWITCH_FOR_BUNDLE, prioritySwitchMap, userId) != ERR_OK) {
-        ANS_LOGE("Get priority switch map info failed.");
-    } else {
-        preferncesDB_->ParsePriorityInfosFromDisturbeDB(prioritySwitchMap,
-            cloneInfos, NotificationClonePriorityInfo::CLONE_PRIORITY_TYPE::PRIORITY_ENABLE_FOR_BUNDLE);
+    if (preferncesDB_->GetPriorityIntelligentEnabled(enable)) {
+        NotificationClonePriorityInfo priorityInfo;
+        priorityInfo.SetClonePriorityType(
+            NotificationClonePriorityInfo::CLONE_PRIORITY_TYPE::PRIORITY_INTELLIGENT_ENABLE);
+        priorityInfo.SetSwitchState(static_cast<int32_t>(enable));
+        cloneInfos.emplace_back(priorityInfo);
     }
-    std::unordered_map<std::string, std::string> priorityConfigMap;
-    if (GetBatchKvsFromDbContainsKey(KEY_PRIORITY_CONFIG_FOR_BUNDLE, priorityConfigMap, userId) != ERR_OK) {
-        ANS_LOGE("Get priority config map info failed.");
-        return;
-    }
-    preferncesDB_->ParsePriorityInfosFromDisturbeDB(
-        priorityConfigMap, cloneInfos, NotificationClonePriorityInfo::CLONE_PRIORITY_TYPE::PRIORITY_CONFIG);
+
+    GetCloneBundlePriorityInfo(cloneInfos, userId, KEY_PRIORITY_NOTIFICATION_SWITCH_FOR_BUNDLE,
+        NotificationClonePriorityInfo::CLONE_PRIORITY_TYPE::PRIORITY_ENABLE_FOR_BUNDLE);
+    GetCloneBundlePriorityInfo(cloneInfos, userId, KEY_PRIORITY_CONFIG_FOR_BUNDLE,
+        NotificationClonePriorityInfo::CLONE_PRIORITY_TYPE::PRIORITY_CONFIG);
+    GetCloneBundlePriorityInfo(cloneInfos, userId, KEY_PRIORITY_NOTIFICATION_SWITCH_FOR_BUNDLE_V2,
+        NotificationClonePriorityInfo::CLONE_PRIORITY_TYPE::PRIORITY_ENABLE_FOR_BUNDLE_V2);
+    GetCloneBundlePriorityInfo(cloneInfos, userId, KEY_PRIORITY_NOTIFICATION_STRATEGY_FOR_BUNDLE,
+        NotificationClonePriorityInfo::CLONE_PRIORITY_TYPE::PRIORITY_STRATEGY_FOR_BUNDLE);
+    return;
 }
 
 ErrCode NotificationPreferences::InitBundlesInfo(int32_t userId,
