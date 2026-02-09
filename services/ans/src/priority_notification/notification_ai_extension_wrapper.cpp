@@ -148,7 +148,7 @@ int32_t NotificationAiExtensionWrapper::NotifyPriorityEvent(
     const std::vector<sptr<NotificationBundleOption>> &bundleOptions,
     const std::vector<sptr<NotificationRequest>> &requests)
 {
-    if (notifyPriorityEvent_ == nullptr || bundleOptions.size() <= 0) {
+    if (notifyPriorityEvent_ == nullptr) {
         ANS_LOGE("notify priority event wrapper symbol failed");
         return ErrorCode::ERR_FAIL;
     }
