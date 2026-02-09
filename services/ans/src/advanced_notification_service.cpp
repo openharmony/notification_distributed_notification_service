@@ -1879,6 +1879,7 @@ ErrCode AdvancedNotificationService::SetRecentNotificationCount(const std::strin
     }
     return ERR_OK;
 }
+#endif
 
 void AdvancedNotificationService::UpdateRecentNotification(sptr<Notification> &notification,
     bool isDelete, int32_t reason)
