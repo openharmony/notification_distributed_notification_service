@@ -40,7 +40,6 @@ public:
 
 private:
     std::string commandStr_;
-    void RemoveEnableNotificationDialog();
 };
 } // namespace Notification
 } // namespace OHOS

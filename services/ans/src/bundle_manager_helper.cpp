@@ -23,8 +23,8 @@
 
 #include "ans_const_define.h"
 #include "ans_log_wrapper.h"
-#include "notification_analytics_util.h"
 #include "os_account_manager_helper.h"
+
 
 namespace OHOS {
 namespace Notification {
@@ -475,7 +475,7 @@ bool BundleManagerHelper::GetCloneAppIndexes(
     std::lock_guard<ffrt::mutex> lock(connectionMutex_);
     Connect();
     if (bundleMgr_ == nullptr) {
-        ANS_LOGE("GetCloneAppIndexes bundle proxy failed.");
+        ANS_LOGE("GetBundleInfo bundle proxy failed.");
         return false;
     }
 
@@ -498,7 +498,7 @@ bool BundleManagerHelper::GetCloneBundleInfo(
     std::lock_guard<ffrt::mutex> lock(connectionMutex_);
     Connect();
     if (bundleMgr_ == nullptr) {
-        ANS_LOGE("GetBundleInfo bundle proxy failed.");
+        ANS_LOGE("GetCloneBundleInfo bundle proxy failed.");
         return false;
     }
 
