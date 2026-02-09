@@ -512,6 +512,7 @@ ErrCode AdvancedNotificationService::SetTargetDeviceBundleList(const std::string
 ErrCode AdvancedNotificationService::GetMutilDeviceStatus(const std::string &deviceType, const uint32_t status,
     std::string& deviceId, int32_t& userId)
 {
+#ifdef ALL_SCENARIO_COLLABORATION
     if (deviceType.empty()) {
         return ERR_ANS_INVALID_PARAM;
     }
@@ -527,21 +528,30 @@ ErrCode AdvancedNotificationService::GetMutilDeviceStatus(const std::string &dev
     userId = deviceStatus.userId;
     deviceId = deviceStatus.deviceId;
     return ERR_OK;
+#else
+    return ERR_ANS_INVALID_PARAM;
+#endif
 }
 
 ErrCode AdvancedNotificationService::GetTargetDeviceBundleList(const std::string& deviceType,
     const std::string& deviceId, std::vector<std::string>& bundleList, std::vector<std::string>& labelList)
 {
+#ifdef ALL_SCENARIO_COLLABORATION
     if (deviceType.empty() || deviceId.empty()) {
         return ERR_ANS_INVALID_PARAM;
     }
 
-    if (!AccessTokenHelper::VerifyNativeToken(IPCSkeleton::GetCallingTokenID())) {
+    bool isSubsystem = AccessTokenHelper::VerifyNativeToken(IPCSkeleton::GetCallingTokenID());
+    if (!isSubsystem && !AccessTokenHelper::IsSystemApp()) {
+        ANS_LOGD("isSubsystem is bogus.");
         return ERR_ANS_NON_SYSTEM_APP;
     }
 
     return DistributedDeviceDataService::GetInstance().GetTargetDeviceBundleList(deviceType, deviceId,
         bundleList, labelList);
+#else
+    return ERR_ANS_INVALID_PARAM;
+#endif
 }
 
 ErrCode AdvancedNotificationService::SetTargetDeviceSwitch(const std::string& deviceType,
@@ -630,7 +640,6 @@ ErrCode AdvancedNotificationService::IsSmartReminderEnabled(const std::string &d
         ANS_LOGE("no permission");
         return ERR_ANS_PERMISSION_DENIED;
     }
-
     return NotificationPreferences::GetInstance()->IsSmartReminderEnabled(deviceType, enabled);
 }
 
@@ -665,10 +674,10 @@ ErrCode AdvancedNotificationService::SetDistributedEnabledByBundle(const sptr<No
         ANS_LOGE("bundle is nullptr");
         return ERR_ANS_INVALID_BUNDLE;
     }
-
+    
     ErrCode result = NotificationPreferences::GetInstance()->SetDistributedEnabledByBundle(bundle,
         deviceType, enabled);
-
+    
     ANS_LOGI("%{public}s_%{public}d, deviceType: %{public}s, enabled: %{public}s, "
         "SetDistributedEnabledByBundle result: %{public}d", bundleOption->GetBundleName().c_str(),
         bundleOption->GetUid(), deviceType.c_str(), std::to_string(enabled).c_str(), result);
@@ -707,7 +716,7 @@ ErrCode AdvancedNotificationService::SetDistributedBundleOption(
         NotificationAnalyticsUtil::ReportModifyEvent(message.ErrorCode(ERR_ANS_PERMISSION_DENIED).BranchId(BRANCH_12));
         return ERR_ANS_PERMISSION_DENIED;
     }
-
+    
     std::vector<sptr<DistributedBundleOption>> affectBundleOption;
     ANS_LOGD("deviceType: %{public}s",  deviceType.c_str());
     for (auto distributedBundle : bundles) {
@@ -718,6 +727,12 @@ ErrCode AdvancedNotificationService::SetDistributedBundleOption(
         }
         int32_t uid = distributedBundle->GetBundle()->GetUid();
         sptr<NotificationBundleOption> bundleOption = new (std::nothrow) NotificationBundleOption(bundleName, uid);
+        if (bundleOption == nullptr) {
+            ANS_LOGE("bundleOption is null");
+            NotificationAnalyticsUtil::ReportModifyEvent(
+                message.Message("batch").ErrorCode(ERR_ANS_NO_MEMORY).BranchId(BRANCH_13));
+            return ERR_ANS_NO_MEMORY;
+        }
         sptr<NotificationBundleOption> returnOption = GenerateValidBundleOption(bundleOption);
         if (returnOption == nullptr) {
             ANS_LOGW("unaffet bundle. %{public}s %{public}d", bundleName.c_str(), uid);
@@ -735,7 +750,7 @@ ErrCode AdvancedNotificationService::SetDistributedBundleOption(
             ERR_ANS_DISTRIBUTED_OPERATION_FAILED).BranchId(BRANCH_13));
         return ERR_ANS_DISTRIBUTED_OPERATION_FAILED;
     }
-
+     
     ErrCode result = NotificationPreferences::GetInstance()->SetDistributedBundleOption(
         affectBundleOption, deviceType);
 

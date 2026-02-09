@@ -22,6 +22,7 @@
 #include "distributed_device_manager.h"
 #include "distributed_extension_service.h"
 #endif
+#include "advanced_notification_service.h"
 #ifdef ENABLE_ANS_TELEPHONY_CUST_WRAPPER
 #include "telephony_extension_wrapper.h"
 #endif
@@ -62,7 +63,6 @@ void AdvancedNotificationServiceAbility::OnStart()
     AddSystemAbilityListener(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID);
     AddSystemAbilityListener(COMMON_EVENT_SERVICE_ID);
     AddSystemAbilityListener(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
-
 #ifdef ENABLE_ANS_TELEPHONY_CUST_WRAPPER
     TEL_EXTENTION_WRAPPER->InitTelExtentionWrapper();
 #endif
@@ -85,6 +85,7 @@ void AdvancedNotificationServiceAbility::OnAddSystemAbility(int32_t systemAbilit
 {
     ANS_LOGI("SA %{public}d start", systemAbilityId);
     if (systemAbilityId == DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID) {
+        ANS_LOGW("DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID");
         if (AdvancedDatashareObserver::GetInstance().CheckIfSettingsDataReady()) {
             if (isDatashaReready_) {
                 return;
@@ -97,6 +98,7 @@ void AdvancedNotificationServiceAbility::OnAddSystemAbility(int32_t systemAbilit
             isDatashaReready_ = true;
         }
     } else if (systemAbilityId == COMMON_EVENT_SERVICE_ID) {
+        ANS_LOGW("COMMON_EVENT_SERVICE_ID");
         if (isDatashaReready_) {
             return;
         }
@@ -111,11 +113,13 @@ void AdvancedNotificationServiceAbility::OnAddSystemAbility(int32_t systemAbilit
         }
         EventFwk::CommonEventManager::SubscribeCommonEvent(subscriber_);
     } else if (systemAbilityId == BUNDLE_MGR_SERVICE_SYS_ABILITY_ID) {
+        ANS_LOGW("BUNDLE_MGR_SERVICE_SYS_ABILITY_ID");
         if (isDatashaReready_) {
             return;
         }
         auto notificationService = AdvancedNotificationService::GetInstance();
         if (notificationService == nullptr) {
+            ANS_LOGW("notification service is not initial.");
             return;
         }
         notificationService->ResetDistributedEnabled();

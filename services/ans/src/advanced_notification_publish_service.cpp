@@ -45,6 +45,7 @@
 #include "ans_convert_enum.h"
 #include "notification_analytics_util.h"
 
+#include "bool_wrapper.h"
 #include "advanced_notification_inline.h"
 #include "notification_analytics_util.h"
 #include "advanced_datashare_helper.h"
@@ -61,7 +62,7 @@
 #include "advanced_notification_flow_control_service.h"
 #include "notification_operation_info.h"
 #include "notification_operation_service.h"
-#include "bool_wrapper.h"
+#include "notification_extension_wrapper.h"
 #ifdef ALL_SCENARIO_COLLABORATION
 #include "distributed_collaboration_service.h"
 #endif
@@ -97,8 +98,9 @@ ErrCode AdvancedNotificationService::SetDefaultNotificationEnabled(
     }
     SetSlotFlagsTrustlistsAsBundle(bundle);
     ErrCode result = ERR_OK;
-    NotificationConstant::SWITCH_STATE state = enabled ? NotificationConstant::SWITCH_STATE::SYSTEM_DEFAULT_ON
-                                                        : NotificationConstant::SWITCH_STATE::SYSTEM_DEFAULT_OFF;
+    NotificationConstant::SWITCH_STATE state = enabled ?
+        NotificationConstant::SWITCH_STATE::SYSTEM_DEFAULT_ON :
+        NotificationConstant::SWITCH_STATE::SYSTEM_DEFAULT_OFF;
     result = NotificationPreferences::GetInstance()->SetNotificationsEnabledForBundle(bundle, state);
     if (result == ERR_OK) {
         NotificationSubscriberManager::GetInstance()->NotifyEnabledNotificationChanged(bundleData);
@@ -199,7 +201,7 @@ ErrCode AdvancedNotificationService::CollaborateFilter(const sptr<NotificationRe
         ANS_LOGI("Collaborate filter extend info is null.");
         return ERR_OK;
     }
-
+ 
     auto value = params->GetParam("notification_collaboration_check");
     AAFwk::IBoolean* ao = AAFwk::IBoolean::Query(value);
     if (ao == nullptr) {
@@ -399,8 +401,7 @@ ErrCode AdvancedNotificationService::IsNeedSilentInDoNotDisturbMode(
     return IsNeedSilentInDoNotDisturbModeInner(phoneNumber, callerType, userId);
 }
 
-ErrCode AdvancedNotificationService::CheckNeedSilent(
-    const std::string &phoneNumber, int32_t callerType, int32_t userId)
+ErrCode AdvancedNotificationService::CheckNeedSilent(const std::string &phoneNumber, int32_t callerType, int32_t userId)
 {
     auto datashareHelper = DelayedSingleton<AdvancedDatashareHelper>::GetInstance();
     if (datashareHelper == nullptr) {
@@ -799,9 +800,6 @@ AnsStatus AdvancedNotificationService::PublishNotificationBySa(const sptr<Notifi
     }
 
     SetRequestBySlotType(record->request, bundleOption);
-#ifdef ENABLE_ANS_AGGREGATION
-    EXTENTION_WRAPPER->GetUnifiedGroupInfo(request);
-#endif
 
     auto submitResult = notificationSvrQueue_.SyncSubmit([&]() {
 #ifdef NOTIFICATION_MULTI_FOREGROUND_USER
@@ -1279,18 +1277,17 @@ void AdvancedNotificationService::SetAndPublishSubscriberExistFlag(const std::st
 
     bool headsetExistFlag = false;
     bool wearableExistFlag = false;
-    if (deviceType == NotificationConstant::HEADSET_DEVICE_TYPE) {
+    if (deviceType == DEVICE_TYPE_HEADSET) {
         headsetExistFlag = existFlag;
-        result = NotificationPreferences::GetInstance()->GetSubscriberExistFlag(
-            NotificationConstant::WEARABLE_DEVICE_TYPE, wearableExistFlag);
+        result =
+            NotificationPreferences::GetInstance()->GetSubscriberExistFlag(DEVICE_TYPE_WEARABLE, wearableExistFlag);
         if (result != ERR_OK) {
             ANS_LOGE("GetSubscriberExistFlag failed");
             return;
         }
-    } else if (deviceType == NotificationConstant::WEARABLE_DEVICE_TYPE) {
+    } else if (deviceType == DEVICE_TYPE_WEARABLE) {
         wearableExistFlag = existFlag;
-        result = NotificationPreferences::GetInstance()->GetSubscriberExistFlag(
-            NotificationConstant::HEADSET_DEVICE_TYPE, headsetExistFlag);
+        result = NotificationPreferences::GetInstance()->GetSubscriberExistFlag(DEVICE_TYPE_HEADSET, headsetExistFlag);
         if (result != ERR_OK) {
             ANS_LOGE("GetSubscriberExistFlag failed");
             return;
@@ -1326,7 +1323,7 @@ ErrCode AdvancedNotificationService::RemoveAllNotificationsByBundleName(
 {
     NOTIFICATION_HITRACE(HITRACE_TAG_NOTIFICATION);
     ANS_LOGD("called");
-
+ 
     if (bundleName.empty()) {
         std::string message = "bundle name is empty.";
         OHOS::Notification::HaMetaMessage haMetaMessage = HaMetaMessage(8, 1).ErrorCode(ERR_ANS_INVALID_BUNDLE);
@@ -1364,7 +1361,7 @@ ErrCode AdvancedNotificationService::RemoveAllNotificationsByBundleName(
                 removeList.push_back(record);
             }
         }
-
+ 
         std::vector<sptr<Notification>> notifications;
         std::vector<uint64_t> timerIds;
         for (auto record : removeList) {
@@ -1385,10 +1382,10 @@ ErrCode AdvancedNotificationService::RemoveAllNotificationsByBundleName(
             if (notifications.size() >= MAX_CANCELED_PARCELABLE_VECTOR_NUM) {
                 SendNotificationsOnCanceled(notifications, nullptr, reason);
             }
-
+ 
             TriggerRemoveWantAgent(record->request, reason, record->isThirdparty);
         }
-
+ 
         if (!notifications.empty()) {
             NotificationSubscriberManager::GetInstance()->BatchNotifyCanceled(notifications, nullptr, reason);
         }

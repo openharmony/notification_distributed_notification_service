@@ -16,7 +16,6 @@
 #include "notification_clone_util.h"
 
 #include "bundle_manager_helper.h"
-#include "os_account_manager.h"
 #include "os_account_manager_helper.h"
 
 namespace OHOS {

@@ -254,7 +254,6 @@ struct PermissionDialog {
     this.session = storage.get('session') as UIExtensionContentSession;
     try {
       await this.updateStatus();
-      await this.dialog?.dialogOpenEvent();
     } catch (err) {
       console.error(TAG, `aboutToAppear error : ${err?.code}`);
       await this.dialog?.destroyException();
@@ -282,7 +281,7 @@ struct PermissionDialog {
   }
 
   async updateButtonWidth(): Promise<void> {
-    if(this.buttonWidthAllow > 0 && this.buttonWidthDeny > 0) {
+    if (this.buttonWidthAllow > 0 && this.buttonWidthDeny > 0) {
       console.info(TAG, 'updateButtonWidth');
       if (this.buttonWidthAllow > this.buttonWidthDeny) {
         this.buttonWidth = this.buttonWidthAllow;
