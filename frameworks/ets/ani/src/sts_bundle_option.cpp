@@ -180,7 +180,7 @@ bool UnwrapArrayBundleOption(ani_env *env,
     status = env->Array_GetLength(optionArray, &length);
     if (status != ANI_OK) {
         ANS_LOGE("Array_GetLength fail. status : %{public}d", status);
-        return status;
+        return false;
     }
     int32_t arraySize = static_cast<int32_t>(length);
     for (int32_t i = 0; i < arraySize; i++) {
@@ -340,7 +340,7 @@ bool UnwrapArrayDistributedBundleOption(ani_env *env, ani_object arrayObj,
     status = env->Array_GetLength(optionArray, &length);
     if (status != ANI_OK) {
         ANS_LOGE("Array_GetLength fail. status : %{public}d", status);
-        return status;
+        return false;
     }
     int32_t arraySize = static_cast<int32_t>(length);
     for (int32_t i = 0; i < arraySize; i++) {
@@ -352,7 +352,7 @@ bool UnwrapArrayDistributedBundleOption(ani_env *env, ani_object arrayObj,
         }
         Notification::DistributedBundleOption option;
         if (!UnwrapDistributedBundleOption(env, static_cast<ani_object>(optionRef), option)) {
-            ANS_LOGE("get option status = %{public}d, index = %{public}d", status, i);
+            ANS_LOGE("get option failed, index = %{public}d", i);
             return false;
         }
         options.push_back(option);
