@@ -22,6 +22,7 @@ namespace OHOS {
 namespace NotificationNapi {
 using namespace OHOS::Notification;
 
+napi_value NapiSetTargetDeviceStatus(napi_env env, napi_callback_info info);
 napi_value NapiIsDistributedEnabled(napi_env env, napi_callback_info info);
 napi_value NapiEnableDistributed(napi_env env, napi_callback_info info);
 napi_value NapiEnableDistributedByBundle(napi_env env, napi_callback_info info);
@@ -30,7 +31,6 @@ napi_value NapiIsDistributedEnableByBundle(napi_env env, napi_callback_info info
 napi_value NapiGetDeviceRemindType(napi_env env, napi_callback_info info);
 napi_value NapiSetSyncNotificationEnabledWithoutApp(napi_env env, napi_callback_info info);
 napi_value NapiGetSyncNotificationEnabledWithoutApp(napi_env env, napi_callback_info info);
-napi_value NapiSetTargetDeviceStatus(napi_env env, napi_callback_info info);
 napi_value NapiSetDistributedEnabled(napi_env env, napi_callback_info info);
 napi_value NapiGetDistributedDeviceList(napi_env env, napi_callback_info info);
 }  // namespace NotificationNapi

@@ -270,6 +270,7 @@ ErrCode AnsNotification::PublishNotification(const std::string &label, const Not
         ANS_LOGE("null reqPtr");
         return ERR_ANS_NO_MEMORY;
     }
+
     if (IsNonDistributedNotificationType(reqPtr->GetNotificationType())) {
         reqPtr->SetDistributed(false);
     }
@@ -323,6 +324,7 @@ ErrCode AnsNotification::PublishNotificationForIndirectProxy(const NotificationR
         ANS_LOGE("null reqPtr");
         return ERR_ANS_NO_MEMORY;
     }
+
     if (IsNonDistributedNotificationType(reqPtr->GetNotificationType())) {
         reqPtr->SetDistributed(false);
     }
@@ -1827,13 +1829,12 @@ void AnsNotification::Reconnect()
     for (int32_t i = 0; i < MAX_RETRY_TIME; i++) {
         // try to connect ans
         sptr<IAnsManager> proxy = GetAnsManagerProxy();
-    if (!proxy) {
+        if (!proxy) {
             // Sleep 1000 milliseconds before reconnect.
             std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
             ANS_LOGE("get ans proxy fail, try again.");
             continue;
         }
-
         ANS_LOGD("get ans proxy success.");
         return;
     }
@@ -2273,38 +2274,6 @@ ErrCode AnsNotification::GetAllNotificationEnabledBundles(
     return proxy->GetAllNotificationEnabledBundles(bundleOption, userId);
 }
 
-ErrCode AnsNotification::GetAllLiveViewEnabledBundles(std::vector<NotificationBundleOption> &bundleOption)
-{
-    sptr<IAnsManager> proxy = GetAnsManagerProxy();
-    if (!proxy) {
-        ANS_LOGE("Fail to GetAnsManagerProxy.");
-        return ERR_ANS_SERVICE_NOT_CONNECTED;
-    }
-    return proxy->GetAllLiveViewEnabledBundles(bundleOption);
-}
-
-ErrCode AnsNotification::GetAllLiveViewEnabledBundles(
-    std::vector<NotificationBundleOption> &bundleOption, const int32_t userId)
-{
-    sptr<IAnsManager> proxy = GetAnsManagerProxy();
-    if (!proxy) {
-        ANS_LOGE("Fail to GetAnsManagerProxy.");
-        return ERR_ANS_SERVICE_NOT_CONNECTED;
-    }
-    return proxy->GetAllLiveViewEnabledBundles(bundleOption, userId);
-}
-
-ErrCode AnsNotification::GetAllDistribuedEnabledBundles(const std::string& deviceType,
-    std::vector<NotificationBundleOption> &bundleOption)
-{
-    sptr<IAnsManager> proxy = GetAnsManagerProxy();
-    if (!proxy) {
-        ANS_LOGE("Fail to GetAnsManagerProxy.");
-        return ERR_ANS_SERVICE_NOT_CONNECTED;
-    }
-    return proxy->GetAllDistribuedEnabledBundles(deviceType, bundleOption);
-}
-
 ErrCode AnsNotification::RegisterPushCallback(
     const sptr<IRemoteObject>& pushCallback, const sptr<NotificationCheckRequest> &notificationCheckRequest)
 {
@@ -2626,6 +2595,10 @@ ErrCode AnsNotification::SetDistributedBundleOption(
     std::vector<sptr<DistributedBundleOption>> bundleOptions;
     for (auto bundle : bundles) {
         sptr<DistributedBundleOption> distributedBundleOption(new (std::nothrow) DistributedBundleOption(bundle));
+        if (!distributedBundleOption) {
+            ANS_LOGE("Memory allocation failed for DistributedBundleOption.");
+            return ERR_ANS_NO_MEMORY;
+        }
         bundleOptions.emplace_back(distributedBundleOption);
     }
     return proxy->SetDistributedBundleOption(bundleOptions, deviceType);
@@ -3164,6 +3137,38 @@ ErrCode AnsNotification::DisableNotificationFeature(const NotificationDisable &n
     return proxy->DisableNotificationFeature(reqPtr);
 }
 
+ErrCode AnsNotification::GetAllLiveViewEnabledBundles(std::vector<NotificationBundleOption> &bundleOption)
+{
+    sptr<IAnsManager> proxy = GetAnsManagerProxy();
+    if (!proxy) {
+        ANS_LOGE("Fail to GetAnsManagerProxy.");
+        return ERR_ANS_SERVICE_NOT_CONNECTED;
+    }
+    return proxy->GetAllLiveViewEnabledBundles(bundleOption);
+}
+
+ErrCode AnsNotification::GetAllLiveViewEnabledBundles(
+    std::vector<NotificationBundleOption> &bundleOption, const int32_t userId)
+{
+    sptr<IAnsManager> proxy = GetAnsManagerProxy();
+    if (!proxy) {
+        ANS_LOGE("Fail to GetAnsManagerProxy.");
+        return ERR_ANS_SERVICE_NOT_CONNECTED;
+    }
+    return proxy->GetAllLiveViewEnabledBundles(bundleOption, userId);
+}
+
+ErrCode AnsNotification::GetAllDistribuedEnabledBundles(const std::string& deviceType,
+    std::vector<NotificationBundleOption> &bundleOption)
+{
+    sptr<IAnsManager> proxy = GetAnsManagerProxy();
+    if (!proxy) {
+        ANS_LOGE("Fail to GetAnsManagerProxy.");
+        return ERR_ANS_SERVICE_NOT_CONNECTED;
+    }
+    return proxy->GetAllDistribuedEnabledBundles(deviceType, bundleOption);
+}
+
 ErrCode AnsNotification::DistributeOperation(sptr<NotificationOperationInfo>& operationInfo,
     const sptr<IAnsOperationCallback> &callback)
 {
@@ -3328,6 +3333,120 @@ ErrCode AnsNotification::GetDistributedDevicelist(std::vector<std::string> &devi
         return ERR_ANS_SERVICE_NOT_CONNECTED;
     }
     return proxy->GetDistributedDevicelist(deviceTypes);
+}
+
+ErrCode AnsNotification::ProxyForUnaware(const std::vector<int32_t>& uidList, bool isProxy)
+{
+    sptr<IAnsManager> proxy = GetAnsManagerProxy();
+    if (!proxy) {
+        ANS_LOGE("GetAnsManagerProxy fail.");
+        return ERR_ANS_SERVICE_NOT_CONNECTED;
+    }
+    return proxy->ProxyForUnaware(uidList, isProxy);
+}
+
+ErrCode AnsNotification::GetReminderInfoByBundles(
+    const std::vector<NotificationBundleOption> &bundles, std::vector<NotificationReminderInfo> &reminderInfo)
+{
+    if (bundles.empty()) {
+        ANS_LOGE("Bundles is null.");
+        return ERR_ANS_INVALID_PARAM;
+    }
+
+    sptr<IAnsManager> proxy = GetAnsManagerProxy();
+    if (!proxy) {
+        ANS_LOGE("Fail to GetAnsManagerProxy.");
+        return ERR_ANS_SERVICE_NOT_CONNECTED;
+    }
+
+    std::vector<sptr<NotificationBundleOption>> bundlesSptr;
+    bundlesSptr.reserve(bundles.size());
+    for (const auto &it : bundles) {
+        sptr<NotificationBundleOption> bundle = new (std::nothrow) NotificationBundleOption(it);
+        if (bundle == nullptr) {
+            ANS_LOGE("null bundleOption");
+            return ERR_ANS_NO_MEMORY;
+        }
+        bundlesSptr.emplace_back(std::move(bundle));
+    }
+    return proxy->GetReminderInfoByBundles(bundlesSptr, reminderInfo);
+}
+
+ErrCode AnsNotification::SetReminderInfoByBundles(const std::vector<NotificationReminderInfo> &reminderInfo)
+{
+    if (reminderInfo.empty()) {
+        ANS_LOGE("ReminderInfo is null.");
+        return ERR_ANS_INVALID_PARAM;
+    }
+
+    sptr<IAnsManager> proxy = GetAnsManagerProxy();
+    if (!proxy) {
+        ANS_LOGE("Fail to GetAnsManagerProxy.");
+        return ERR_ANS_SERVICE_NOT_CONNECTED;
+    }
+
+    std::vector<sptr<NotificationReminderInfo>> reminderInfoSptr;
+    reminderInfoSptr.reserve(reminderInfo.size());
+    for (const auto &it : reminderInfo) {
+        sptr<NotificationReminderInfo> reminder = new (std::nothrow) NotificationReminderInfo(it);
+        if (reminder == nullptr) {
+            ANS_LOGE("null reminderInfo");
+            return ERR_ANS_NO_MEMORY;
+        }
+        reminderInfoSptr.emplace_back(std::move(reminder));
+    }
+    return proxy->SetReminderInfoByBundles(reminderInfoSptr);
+}
+
+ErrCode AnsNotification::SetGeofenceEnabled(bool enabled)
+{
+    sptr<IAnsManager> proxy = GetAnsManagerProxy();
+    if (!proxy) {
+        ANS_LOGE("GetAnsManagerProxy fail.");
+        return ERR_ANS_SERVICE_NOT_CONNECTED;
+    }
+    return proxy->SetGeofenceEnabled(enabled);
+}
+
+ErrCode AnsNotification::IsGeofenceEnabled(bool &enabled)
+{
+    sptr<IAnsManager> proxy = GetAnsManagerProxy();
+    if (!proxy) {
+        ANS_LOGE("GetAnsManagerProxy fail.");
+        return ERR_ANS_SERVICE_NOT_CONNECTED;
+    }
+    return proxy->IsGeofenceEnabled(enabled);
+}
+
+ErrCode AnsNotification::ClearDelayNotification(const std::vector<std::string> &triggerKeys,
+    const std::vector<int32_t> &userIds)
+{
+    if (triggerKeys.empty() || userIds.empty()) {
+        ANS_LOGE("Input parameters triggerKeys or userIds are empty.");
+        return ERR_ANS_INVALID_PARAM;
+    }
+
+    if (triggerKeys.size() != userIds.size()) {
+        ANS_LOGE("TriggerKeys size not equal userIds size.");
+        return ERR_ANS_INVALID_PARAM;
+    }
+
+    sptr<IAnsManager> proxy = GetAnsManagerProxy();
+    if (!proxy) {
+        ANS_LOGE("GetAnsManagerProxy fail.");
+        return ERR_ANS_SERVICE_NOT_CONNECTED;
+    }
+    return proxy->ClearDelayNotification(triggerKeys, userIds);
+}
+
+ErrCode AnsNotification::PublishDelayedNotification(const std::string &triggerKey, int32_t userId)
+{
+    sptr<IAnsManager> proxy = GetAnsManagerProxy();
+    if (!proxy) {
+        ANS_LOGE("GetAnsManagerProxy fail.");
+        return ERR_ANS_SERVICE_NOT_CONNECTED;
+    }
+    return proxy->PublishDelayedNotification(triggerKey, userId);
 }
 
 ErrCode AnsNotification::NotificationExtensionSubscribe(
@@ -3515,120 +3634,6 @@ ErrCode AnsNotification::CanOpenSubscribeSettings()
     }
 
     return proxy->CanOpenSubscribeSettings();
-}
-
-ErrCode AnsNotification::GetReminderInfoByBundles(
-    const std::vector<NotificationBundleOption> &bundles, std::vector<NotificationReminderInfo> &reminderInfo)
-{
-    if (bundles.empty()) {
-        ANS_LOGE("Bundles is null.");
-        return ERR_ANS_INVALID_PARAM;
-    }
-
-    sptr<IAnsManager> proxy = GetAnsManagerProxy();
-    if (!proxy) {
-        ANS_LOGE("Fail to GetAnsManagerProxy.");
-        return ERR_ANS_SERVICE_NOT_CONNECTED;
-    }
-
-    std::vector<sptr<NotificationBundleOption>> bundlesSptr;
-    bundlesSptr.reserve(bundles.size());
-    for (const auto &it : bundles) {
-        sptr<NotificationBundleOption> bundle = new (std::nothrow) NotificationBundleOption(it);
-        if (bundle == nullptr) {
-            ANS_LOGE("null bundleOption");
-            return ERR_ANS_NO_MEMORY;
-        }
-        bundlesSptr.emplace_back(std::move(bundle));
-    }
-    return proxy->GetReminderInfoByBundles(bundlesSptr, reminderInfo);
-}
-
-ErrCode AnsNotification::SetReminderInfoByBundles(const std::vector<NotificationReminderInfo> &reminderInfo)
-{
-    if (reminderInfo.empty()) {
-        ANS_LOGE("ReminderInfo is null.");
-        return ERR_ANS_INVALID_PARAM;
-    }
-
-    sptr<IAnsManager> proxy = GetAnsManagerProxy();
-    if (!proxy) {
-        ANS_LOGE("Fail to GetAnsManagerProxy.");
-        return ERR_ANS_SERVICE_NOT_CONNECTED;
-    }
-
-    std::vector<sptr<NotificationReminderInfo>> reminderInfoSptr;
-    reminderInfoSptr.reserve(reminderInfo.size());
-    for (const auto &it : reminderInfo) {
-        sptr<NotificationReminderInfo> reminder = new (std::nothrow) NotificationReminderInfo(it);
-        if (reminder == nullptr) {
-            ANS_LOGE("null reminderInfo");
-            return ERR_ANS_NO_MEMORY;
-        }
-        reminderInfoSptr.emplace_back(std::move(reminder));
-    }
-    return proxy->SetReminderInfoByBundles(reminderInfoSptr);
-}
-
-ErrCode AnsNotification::SetGeofenceEnabled(bool enabled)
-{
-    sptr<IAnsManager> proxy = GetAnsManagerProxy();
-    if (!proxy) {
-        ANS_LOGE("GetAnsManagerProxy fail.");
-        return ERR_ANS_SERVICE_NOT_CONNECTED;
-    }
-    return proxy->SetGeofenceEnabled(enabled);
-}
-
-ErrCode AnsNotification::IsGeofenceEnabled(bool &enabled)
-{
-    sptr<IAnsManager> proxy = GetAnsManagerProxy();
-    if (!proxy) {
-        ANS_LOGE("GetAnsManagerProxy fail.");
-        return ERR_ANS_SERVICE_NOT_CONNECTED;
-    }
-    return proxy->IsGeofenceEnabled(enabled);
-}
-
-ErrCode AnsNotification::ClearDelayNotification(const std::vector<std::string> &triggerKeys,
-    const std::vector<int32_t> &userIds)
-{
-    if (triggerKeys.empty() || userIds.empty()) {
-        ANS_LOGE("Input parameters triggerKeys or userIds are empty.");
-        return ERR_ANS_INVALID_PARAM;
-    }
-
-    if (triggerKeys.size() != userIds.size()) {
-        ANS_LOGE("TriggerKeys size not equal userIds size.");
-        return ERR_ANS_INVALID_PARAM;
-    }
-
-    sptr<IAnsManager> proxy = GetAnsManagerProxy();
-    if (!proxy) {
-        ANS_LOGE("GetAnsManagerProxy fail.");
-        return ERR_ANS_SERVICE_NOT_CONNECTED;
-    }
-    return proxy->ClearDelayNotification(triggerKeys, userIds);
-}
-
-ErrCode AnsNotification::PublishDelayedNotification(const std::string &triggerKey, int32_t userId)
-{
-    sptr<IAnsManager> proxy = GetAnsManagerProxy();
-    if (!proxy) {
-        ANS_LOGE("GetAnsManagerProxy fail.");
-        return ERR_ANS_SERVICE_NOT_CONNECTED;
-    }
-    return proxy->PublishDelayedNotification(triggerKey, userId);
-}
-
-ErrCode AnsNotification::ProxyForUnaware(const std::vector<int32_t>& uidList, bool isProxy)
-{
-    sptr<IAnsManager> proxy = GetAnsManagerProxy();
-    if (!proxy) {
-        ANS_LOGE("GetAnsManagerProxy fail.");
-        return ERR_ANS_SERVICE_NOT_CONNECTED;
-    }
-    return proxy->ProxyForUnaware(uidList, isProxy);
 }
 
 ErrCode AnsNotification::GetBadgeNumber(int32_t &badgeNumber)
