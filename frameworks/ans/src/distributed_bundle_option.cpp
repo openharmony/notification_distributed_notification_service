@@ -20,7 +20,7 @@
 
 namespace OHOS {
 namespace Notification {
-DistributedBundleOption::DistributedBundleOption(std::shared_ptr<NotificationBundleOption> &bundle, const bool enable)
+DistributedBundleOption::DistributedBundleOption(std::shared_ptr<NotificationBundleOption> bundle, const bool enable)
     : bundle_(bundle), enable_(enable)
 {}
 
