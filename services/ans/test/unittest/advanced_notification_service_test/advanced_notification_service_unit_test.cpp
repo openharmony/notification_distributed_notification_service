@@ -2060,35 +2060,11 @@ HWTEST_F(AdvancedNotificationServiceUnitTest, GetNotificationsByBundle_200, Func
 }
 
 /**
- * @tc.name: IsDoNotDisturbEnabled_100
- * @tc.desc: Test IsDoNotDisturbEnabled_100 when caller has no permission.
+ * @tc.name: IsDoNotDisturbEnabled_NoPermission
+ * @tc.desc: Test IsDoNotDisturbEnabled_NoPermission when caller has no permission.
  * @tc.type: FUNC
  */
-HWTEST_F(AdvancedNotificationServiceUnitTest, IsDoNotDisturbEnabled_100, Function | SmallTest | Level1)
-{
-    int32_t userId = 100;
-    bool isEnabled = false;
-    auto ret = advancedNotificationService_->IsDoNotDisturbEnabled(userId, isEnabled);
-    sptr<AdvancedNotdisturbEnabledObserver> enabledObserver = new (std::nothrow) AdvancedNotdisturbEnabledObserver();
-    if (enabledObserver != nullptr) {
-        enabledObserver->OnChange();
-    }
-    delete enabledObserver;
-
-    sptr<AdvancedNotdisturbWhiteListObserver> observer = new (std::nothrow) AdvancedNotdisturbWhiteListObserver();
-    if (observer != nullptr) {
-        observer->OnChange();
-    }
-    delete observer;
-    ASSERT_EQ(ret, (int)ERROR_PERMISSION_DENIED);
-}
-
-/**
- * @tc.name: IsDoNotDisturbEnabled_100
- * @tc.desc: Test IsDoNotDisturbEnabled_100 when caller has no permission.
- * @tc.type: FUNC
- */
-HWTEST_F(AdvancedNotificationServiceUnitTest, IsDoNotDisturbEnabled_100, Function | SmallTest | Level1)
+HWTEST_F(AdvancedNotificationServiceUnitTest, IsDoNotDisturbEnabled_NoPermission, Function | SmallTest | Level1)
 {
     int32_t userId = 100;
     bool isEnabled = false;
@@ -2169,11 +2145,13 @@ HWTEST_F(AdvancedNotificationServiceUnitTest, IsDoNotDisturbEnabled_300, Functio
     if (enabledObserver != nullptr) {
         enabledObserver->OnChange();
     }
- 
+    enabledObserver = nullptr;
+    
     sptr<AdvancedNotdisturbWhiteListObserver> observer = new (std::nothrow) AdvancedNotdisturbWhiteListObserver();
     if (observer != nullptr) {
         observer->OnChange();
     }
+     observer = nullptr;
     ASSERT_EQ(ret, ERR_OK);
 }
 }
