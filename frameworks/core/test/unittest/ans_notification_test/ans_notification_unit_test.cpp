@@ -2207,6 +2207,9 @@ HWTEST_F(AnsNotificationUnitTest, SetPriorityStrategyByBundles_0100, Function | 
     std::map<sptr<NotificationBundleOption>, int64_t> strategies;
     ErrCode ret = ans_->SetPriorityStrategyByBundles(strategies);
     EXPECT_EQ(ret, ERR_ANS_INVALID_PARAM);
+    std::vector<NotificationBundleOption> bundleOptions;
+    ret = ans_->GetPriorityStrategyByBundles(bundleOptions, strategies);
+    EXPECT_EQ(ret, ERR_ANS_INVALID_PARAM);
 }
 
 /*
@@ -2221,6 +2224,10 @@ HWTEST_F(AnsNotificationUnitTest, SetPriorityStrategyByBundles_0200, Function | 
     sptr<NotificationBundleOption> bo = new (std::nothrow) NotificationBundleOption("bundle", 1000);
     strategies[bo] = 24;
     ErrCode ret = ans_->SetPriorityStrategyByBundles(strategies);
+    EXPECT_EQ(ret, ERR_OK);
+    std::vector<NotificationBundleOption> bundleOptions;
+    bundleOptions.emplace_back(*bo);
+    ret = ans_->GetPriorityStrategyByBundles(bundleOptions, strategies);
     EXPECT_EQ(ret, ERR_OK);
 }
 
