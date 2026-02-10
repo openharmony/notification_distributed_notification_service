@@ -32,7 +32,7 @@ public:
      * @param bundles Indicates the bundles.
      * @param enable Indicates the status.
      */
-    DistributedBundleOption(std::shared_ptr<NotificationBundleOption> &bundle, const bool enable);
+    DistributedBundleOption(std::shared_ptr<NotificationBundleOption> bundle, const bool enable);
 
     virtual ~DistributedBundleOption();
 
