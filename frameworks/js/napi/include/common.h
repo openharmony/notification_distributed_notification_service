@@ -1385,7 +1385,8 @@ public:
      * @param content Indicates a capsule object from specified js object
      * @return Returns the null object if success, returns the null value otherwise
      */
-    static napi_value GetNotificationLocalLiveViewCapsule(const napi_env &env, const napi_value &contentResult,
+    static napi_value GetNotificationLocalLiveViewCapsule(
+        const napi_env &env, const napi_value &contentResult,
         std::shared_ptr<OHOS::Notification::NotificationLocalLiveViewContent> content);
 
     /**
@@ -1706,6 +1707,16 @@ public:
         const napi_env &env, const napi_value &value, std::shared_ptr<NotificationBundleOption> &option);
 
     /**
+     * @brief Gets a NotificationReminderInfo object from specified js object
+     *
+     * @param env Indicates the environment that the API is invoked under
+     * @param value Indicates a js object to be converted
+     * @param info Indicates a NotificationReminderInfo object from specified js object
+     * @return Returns the null object if success, returns the null value otherwise
+     */
+    static napi_value GetReminderInfo(const napi_env &env, const napi_value &value, NotificationReminderInfo &info);
+
+    /**
      * @brief Gets a DistributedBundleOption object from specified js object
      *
      * @param env Indicates the environment that the API is invoked under
@@ -1945,16 +1956,6 @@ public:
      */
     static napi_value SetDoNotDisturbProfile(
         const napi_env &env, const NotificationDoNotDisturbProfile &data, napi_value &result);
-
-    /**
-     * @brief Gets a NotificationReminderInfo object from specified js object
-     *
-     * @param env Indicates the environment that the API is invoked under
-     * @param value Indicates a js object to be converted
-     * @param info Indicates a NotificationReminderInfo object from specified js object
-     * @return Returns the null object if success, returns the null value otherwise
-     */
-    static napi_value GetReminderInfo(const napi_env &env, const napi_value &value, NotificationReminderInfo &info);
 
     static napi_value SetBundleOption(
         const napi_env &env, const NotificationBundleOption &bundleInfo, napi_value &result);
