@@ -2082,5 +2082,99 @@ HWTEST_F(AdvancedNotificationServiceUnitTest, IsDoNotDisturbEnabled_100, Functio
     delete observer;
     ASSERT_EQ(ret, (int)ERROR_PERMISSION_DENIED);
 }
+
+/**
+ * @tc.name: IsDoNotDisturbEnabled_100
+ * @tc.desc: Test IsDoNotDisturbEnabled_100 when caller has no permission.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceUnitTest, IsDoNotDisturbEnabled_100, Function | SmallTest | Level1)
+{
+    int32_t userId = 100;
+    bool isEnabled = false;
+    MockIsVerfyPermisson(false);
+    auto ret = advancedNotificationService_->IsDoNotDisturbEnabled(userId, isEnabled);
+    ASSERT_EQ(ret, ERROR_PERMISSION_DENIED);
+}
+ 
+/**
+ * @tc.name: IsDoNotDisturbEnabled_200
+ * @tc.desc: Test IsDoNotDisturbEnabled_200 when dataShareHelper succeeded to query.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceUnitTest, IsDoNotDisturbEnabled_200, Function | SmallTest | Level1)
+{
+    int32_t userId = 100;
+    bool isEnabled = false;
+    DelayedSingleton<AdvancedDatashareHelper>::GetInstance()->SetIsDataShareReady(true);
+    MockIsFailedToCreateDataShareHelper(false);
+    MockIsFailedToQueryDataShareResultSet(false);
+    MockIsFailedGoToFirstRow(0);
+    MockGetStringValue("1");
+    MockIsVerfyPermisson(true);
+    advancedNotificationService_->RefreshNotDisturbEnableState();
+    auto ret = advancedNotificationService_->IsDoNotDisturbEnabled(userId, isEnabled);
+ 
+    ASSERT_EQ(ret, ERR_OK);
+    DelayedSingleton<AdvancedDatashareHelper>::GetInstance()->SetIsDataShareReady(false);
+}
+ 
+/**
+ * @tc.name: IsNotifyAllowedInDoNotDisturb_100
+ * @tc.desc: Test IsNotifyAllowedInDoNotDisturb_100 when caller has no permission.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceUnitTest, IsNotifyAllowedInDoNotDisturb_100, Function | SmallTest | Level1)
+{
+    bool isEnabled = false;
+    int32_t userId = 100;
+    MockIsVerfyPermisson(false);
+    auto ret = advancedNotificationService_->IsNotifyAllowedInDoNotDisturb(userId, isEnabled);
+    ASSERT_EQ(ret, ERROR_PERMISSION_DENIED);
+}
+ 
+/**
+ * @tc.name: IsNotifyAllowedInDoNotDisturb_200
+ * @tc.desc: Test IsNotifyAllowedInDoNotDisturb_200 when dataShareHelper succeeded to query.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceUnitTest, IsNotifyAllowedInDoNotDisturb_200, Function | SmallTest | Level1)
+{
+    int32_t userId = 100;
+    bool isEnabled = false;
+    DelayedSingleton<AdvancedDatashareHelper>::GetInstance()->SetIsDataShareReady(true);
+    MockIsFailedToCreateDataShareHelper(false);
+    MockIsFailedToQueryDataShareResultSet(false);
+    MockIsFailedGoToFirstRow(0);
+    MockGetStringValue("1");
+    MockIsVerfyPermisson(true);
+    advancedNotificationService_->RefreshNotDisturbWhiteList();
+    auto ret = advancedNotificationService_->IsNotifyAllowedInDoNotDisturb(userId, isEnabled);
+ 
+    ASSERT_EQ(ret, ERR_OK);
+}
+ 
+/**
+ * @tc.name: IsDoNotDisturbEnabled_300
+ * @tc.desc: Test IsDoNotDisturbEnabled_300 when caller has permission.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceUnitTest, IsDoNotDisturbEnabled_300, Function | SmallTest | Level1)
+{
+    int32_t userId = 100;
+    bool isEnabled = false;
+    MockIsVerfyPermisson(true);
+    auto ret = advancedNotificationService_->IsDoNotDisturbEnabled(userId, isEnabled);
+    sptr<AdvancedNotdisturbEnabledObserver> enabledObserver = new (std::nothrow) AdvancedNotdisturbEnabledObserver();
+    if (enabledObserver != nullptr) {
+        enabledObserver->OnChange();
+    }
+ 
+    sptr<AdvancedNotdisturbWhiteListObserver> observer = new (std::nothrow) AdvancedNotdisturbWhiteListObserver();
+    if (observer != nullptr) {
+        observer->OnChange();
+    }
+    ASSERT_EQ(ret, ERR_OK);
+}
 }
 }
