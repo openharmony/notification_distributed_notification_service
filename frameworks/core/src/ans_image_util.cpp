@@ -134,7 +134,7 @@ bool AnsImageUtil::PackImage2File(
 std::shared_ptr<Media::PixelMap> AnsImageUtil::CreatePixelMap(const std::string &inFilePath, const std::string &format)
 {
     if (inFilePath.empty() || format.empty()) {
-        ANS_LOGE("invalid parameters");
+        ANS_LOGW("invalid parameters");
         return {};
     }
 
@@ -161,50 +161,6 @@ std::shared_ptr<Media::PixelMap> AnsImageUtil::CreatePixelMap(const std::string 
         return {};
     }
 
-    return pixelMap;
-}
-
-bool AnsImageUtil::ImageScale(const std::shared_ptr<Media::PixelMap> &pixelMap, int32_t width, int32_t height)
-{
-    if (!pixelMap || width == 0 || height == 0) {
-        ANS_LOGE("invalid parameters");
-        return false;
-    }
-
-    Media::ImageInfo imgaeInfo;
-    pixelMap->GetImageInfo(imgaeInfo);
-    if (imgaeInfo.size.width == 0|| imgaeInfo.size.height == 0) {
-        ANS_LOGW("invalid image info.");
-        return false;
-    }
-    float xAxis = (float)width / (float)imgaeInfo.size.width;
-    float yAxis = (float)height / (float)imgaeInfo.size.height;
-    pixelMap->scale(xAxis, yAxis, Media::AntiAliasingOption::HIGH);
-    return true;
-}
-
-std::shared_ptr<Media::PixelMap> AnsImageUtil::CreatePixelMapByString(const std::string &imagedata)
-{
-    if (imagedata.empty()) {
-        ANS_LOGE("invalid parameters");
-        return {};
-    }
-
-    uint32_t errorCode {0};
-    Media::SourceOptions opts;
-    auto imageSource = Media::ImageSource::CreateImageSource(reinterpret_cast<const uint8_t*>(imagedata.data()),
-        static_cast<uint32_t>(imagedata.length()), opts, errorCode);
-    if (errorCode || !imageSource) {
-        ANS_LOGE("create imageSource failed");
-        return {};
-    }
-
-    Media::DecodeOptions decodeOpts;
-    auto pixelMap = imageSource->CreatePixelMap(decodeOpts, errorCode);
-    if (errorCode || !pixelMap) {
-        ANS_LOGE("create pixelMap failed");
-        return {};
-    }
     return pixelMap;
 }
 
@@ -262,5 +218,50 @@ std::string AnsImageUtil::HexToBin(const std::string &strHex)
 
     return strBin;
 }
+
+bool AnsImageUtil::ImageScale(const std::shared_ptr<Media::PixelMap> &pixelMap, int32_t width, int32_t height)
+{
+    if (!pixelMap || width == 0 || height == 0) {
+        ANS_LOGE("invalid parameters");
+        return false;
+    }
+
+    Media::ImageInfo imgaeInfo;
+    pixelMap->GetImageInfo(imgaeInfo);
+    if (imgaeInfo.size.width == 0|| imgaeInfo.size.height == 0) {
+        ANS_LOGE("invalid image info.");
+        return false;
+    }
+    float xAxis = (float)width / (float)imgaeInfo.size.width;
+    float yAxis = (float)height / (float)imgaeInfo.size.height;
+    pixelMap->scale(xAxis, yAxis, Media::AntiAliasingOption::HIGH);
+    return true;
+}
+
+std::shared_ptr<Media::PixelMap> AnsImageUtil::CreatePixelMapByString(const std::string &imagedata)
+{
+    if (imagedata.empty()) {
+        ANS_LOGW("invalid parameters");
+        return {};
+    }
+
+    uint32_t errorCode {0};
+    Media::SourceOptions opts;
+    auto imageSource = Media::ImageSource::CreateImageSource(reinterpret_cast<const uint8_t*>(imagedata.data()),
+        static_cast<uint32_t>(imagedata.length()), opts, errorCode);
+    if (errorCode || !imageSource) {
+        ANS_LOGE("create imageSource failed");
+        return {};
+    }
+
+    Media::DecodeOptions decodeOpts;
+    auto pixelMap = imageSource->CreatePixelMap(decodeOpts, errorCode);
+    if (errorCode || !pixelMap) {
+        ANS_LOGE("create pixelMap failed");
+        return {};
+    }
+    return pixelMap;
+}
+
 }  // namespace Notification
 }  // namespace OHOS
