@@ -3239,5 +3239,129 @@ HWTEST_F(NotificationPreferencesTest, IsGeofenceEnabled_002, Function | SmallTes
     auto ret = notificationPreferences.IsGeofenceEnabled(enabled);
     EXPECT_EQ(ret, ERR_ANS_PREFERENCES_NOTIFICATION_DB_OPERATION_FAILED);
 }
+
+/**
+ * @tc.name: IsPriorityEnabledByBundle_001
+ * @tc.desc: Test IsPriorityEnabledByBundle_001 with null rdb
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesTest, IsPriorityEnabledByBundle_001, Function | SmallTest | Level1)
+{
+    NotificationPreferences notificationPreferences;
+    notificationPreferences.preferncesDB_ = std::make_shared<NotificationPreferencesDatabase>();
+    notificationPreferences.preferncesDB_->rdbDataManager_ = nullptr;
+    sptr<NotificationBundleOption> bundleOption = new (std::nothrow) NotificationBundleOption();
+    bundleOption->SetUid(1000);
+    NotificationConstant::PriorityEnableStatus enableStatus;
+    auto ret = notificationPreferences.IsPriorityEnabledByBundle(bundleOption, enableStatus);
+    EXPECT_EQ(ret, ERR_ANS_PREFERENCES_NOTIFICATION_DB_OPERATION_FAILED);
+}
+
+/**
+ * @tc.name: IsPriorityEnabledByBundle_002
+ * @tc.desc: Test IsPriorityEnabledByBundle_002 with invalid param
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesTest, IsPriorityEnabledByBundle_002, Function | SmallTest | Level1)
+{
+    NotificationPreferences notificationPreferences;
+    notificationPreferences.preferncesDB_ = std::make_shared<NotificationPreferencesDatabase>();
+    notificationPreferences.preferncesDB_->rdbDataManager_ = nullptr;
+    NotificationConstant::PriorityEnableStatus enableStatus;
+    auto ret = notificationPreferences.IsPriorityEnabledByBundle(nullptr, enableStatus);
+    EXPECT_EQ(ret, ERR_ANS_INVALID_PARAM);
+}
+
+/**
+ * @tc.name: GetBundlePriorityConfig_001
+ * @tc.desc: Test GetBundlePriorityConfig_001 with null rdb
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesTest, GetBundlePriorityConfig_001, Function | SmallTest | Level1)
+{
+    NotificationPreferences notificationPreferences;
+    notificationPreferences.preferncesDB_ = std::make_shared<NotificationPreferencesDatabase>();
+    notificationPreferences.preferncesDB_->rdbDataManager_ = nullptr;
+    sptr<NotificationBundleOption> bundleOption = new (std::nothrow) NotificationBundleOption();
+    bundleOption->SetUid(1000);
+    std::string configValue;
+    auto ret = notificationPreferences.GetBundlePriorityConfig(bundleOption, configValue);
+    EXPECT_EQ(ret, ERR_ANS_PREFERENCES_NOTIFICATION_DB_OPERATION_FAILED);
+}
+
+/**
+ * @tc.name: GetBundlePriorityConfig_002
+ * @tc.desc: Test GetBundlePriorityConfig_002 with invalid param
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesTest, GetBundlePriorityConfig_002, Function | SmallTest | Level1)
+{
+    NotificationPreferences notificationPreferences;
+    notificationPreferences.preferncesDB_ = std::make_shared<NotificationPreferencesDatabase>();
+    notificationPreferences.preferncesDB_->rdbDataManager_ = nullptr;
+    std::string configValue;
+    auto ret = notificationPreferences.GetBundlePriorityConfig(nullptr, configValue);
+    EXPECT_EQ(ret, ERR_ANS_INVALID_PARAM);
+}
+
+/**
+ * @tc.name: PutPriorityEnabledByBundleV2_001
+ * @tc.desc: Test PutPriorityEnabledByBundleV2_001 with invalid param
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesTest, PutPriorityEnabledByBundleV2_001, Function | SmallTest | Level1)
+{
+    NotificationPreferences notificationPreferences;
+    notificationPreferences.preferncesDB_ = std::make_shared<NotificationPreferencesDatabase>();
+    notificationPreferences.preferncesDB_->rdbDataManager_ = nullptr;
+    NotificationConstant::SWITCH_STATE priorityStatus = NotificationConstant::SWITCH_STATE::USER_MODIFIED_OFF;
+    auto ret = notificationPreferences.PutPriorityEnabledByBundleV2(nullptr, priorityStatus);
+    EXPECT_EQ(ret, ERR_ANS_INVALID_PARAM);
+}
+
+/**
+ * @tc.name: GetPriorityEnabledByBundleV2_001
+ * @tc.desc: Test GetPriorityEnabledByBundleV2_001 with invalid param
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesTest, GetPriorityEnabledByBundleV2_001, Function | SmallTest | Level1)
+{
+    NotificationPreferences notificationPreferences;
+    notificationPreferences.preferncesDB_ = std::make_shared<NotificationPreferencesDatabase>();
+    notificationPreferences.preferncesDB_->rdbDataManager_ = nullptr;
+    NotificationConstant::SWITCH_STATE priorityStatus;
+    auto ret = notificationPreferences.GetPriorityEnabledByBundleV2(nullptr, priorityStatus);
+    EXPECT_EQ(ret, ERR_ANS_INVALID_PARAM);
+}
+
+/**
+ * @tc.name: PutPriorityStrategyByBundle_001
+ * @tc.desc: Test PutPriorityStrategyByBundle_001 with invalid param
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesTest, PutPriorityStrategyByBundle_001, Function | SmallTest | Level1)
+{
+    NotificationPreferences notificationPreferences;
+    notificationPreferences.preferncesDB_ = std::make_shared<NotificationPreferencesDatabase>();
+    notificationPreferences.preferncesDB_->rdbDataManager_ = nullptr;
+    int64_t strategy = 32;
+    auto ret = notificationPreferences.PutPriorityStrategyByBundle(nullptr, strategy);
+    EXPECT_EQ(ret, ERR_ANS_INVALID_PARAM);
+}
+
+/**
+ * @tc.name: GetPriorityStrategyByBundle_001
+ * @tc.desc: Test GetPriorityStrategyByBundle_001 with invalid param
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesTest, GetPriorityStrategyByBundle_001, Function | SmallTest | Level1)
+{
+    NotificationPreferences notificationPreferences;
+    notificationPreferences.preferncesDB_ = std::make_shared<NotificationPreferencesDatabase>();
+    notificationPreferences.preferncesDB_->rdbDataManager_ = nullptr;
+    int64_t strategy = 32;
+    auto ret = notificationPreferences.GetPriorityStrategyByBundle(nullptr, strategy);
+    EXPECT_EQ(ret, ERR_ANS_INVALID_PARAM);
+}
 }  // namespace Notification
 }  // namespace OHOS
