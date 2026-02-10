@@ -2151,7 +2151,7 @@ HWTEST_F(AdvancedNotificationServiceUnitTest, IsDoNotDisturbEnabled_300, Functio
     if (observer != nullptr) {
         observer->OnChange();
     }
-     observer = nullptr;
+    observer = nullptr;
     ASSERT_EQ(ret, ERR_OK);
 }
 }
