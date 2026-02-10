@@ -139,12 +139,10 @@ ohos_shared_library("notification_manager_ani") {
     "ability_runtime:ani_common",
     "ability_runtime:ani_wantagent_common",
     "ability_runtime:app_context",
-    "ability_runtime:napi_common",
     "ability_runtime:runtime",
     "ability_runtime:wantagent_innerkits",
     "access_token:libtokenid_sdk",
     "ace_engine:ace_uicontent",
-    "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "ffrt:libffrt",
     "hilog:libhilog",
@@ -265,14 +263,14 @@ ohos_shared_library("notificationextensionsubscription_ani") {
   configs = []
 
   sources = [
-    "./src/extension_subscription/ani_extension_subscription.cpp",
-    "./src/extension_subscription/ani_notification_extension_subscription_info.cpp",
-    "./src/extension_subscription/ani_notification_subscriber_extension.cpp",
-    "./src/extension_subscription/ani_open_subscribe_settings.cpp",
-    "./src/sts_bundle_option.cpp",
     "./src/sts_common.cpp",
     "./src/sts_notification_manager.cpp",
     "./src/sts_throw_erro.cpp",
+    "./src/sts_bundle_option.cpp",
+    "./src/extension_subscription/ani_notification_subscriber_extension.cpp",
+    "./src/extension_subscription/ani_extension_subscription.cpp",
+    "./src/extension_subscription/ani_notification_extension_subscription_info.cpp",
+    "./src/extension_subscription/ani_open_subscribe_settings.cpp",
   ]
 
   cflags = []
@@ -280,7 +278,9 @@ ohos_shared_library("notificationextensionsubscription_ani") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
 
-  deps = [ "${frameworks_module_ans_path}:ans_innerkits" ]
+  deps = [
+    "${frameworks_module_ans_path}:ans_innerkits"
+  ]
 
   external_deps = [
     "ability_base:want",

@@ -111,6 +111,7 @@ bool ParsePraramForAdditionalConfig(ani_env *env,
         return false;
     }
     std::string keyStr = NotificationSts::GetResizeStr(tempKey, NotificationSts::STR_MAX_SIZE);
+
     std::string tempValue;
     if (NotificationSts::GetStringByAniString(env, value, tempValue) != ANI_OK) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "Parse value failed");
