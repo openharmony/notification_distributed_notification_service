@@ -155,7 +155,7 @@ void Common::SetCallback(
     napi_value resultout = nullptr;
     napi_get_reference_value(env, callbackIn, &callback);
     if (callback == nullptr) {
-        ANS_LOGE("callback is nullptr");
+        ANS_LOGE("callback is nullptr.");
         return;
     }
     napi_value results[ARGS_TWO] = {nullptr};
@@ -180,7 +180,7 @@ void Common::SetCallback(
     napi_value resultout = nullptr;
     napi_get_reference_value(env, callbackIn, &callback);
     if (callback == nullptr) {
-        ANS_LOGE("callback is nullptr");
+        ANS_LOGE("callback is nullptr.");
         return;
     }
     napi_status napi_result = napi_call_function(env, undefined, callback, ARGS_ONE, &result, &resultout);
@@ -203,7 +203,7 @@ void Common::SetCallbackArg2(
     napi_value resultout = nullptr;
     napi_get_reference_value(env, callbackIn, &callback);
     if (callback == nullptr) {
-        ANS_LOGE("callback is nullptr");
+        ANS_LOGE("callback is nullptr.");
         return;
     }
     napi_status napi_result = napi_call_function(env, undefined, callback, ARGS_TWO, result, &resultout);
@@ -332,7 +332,7 @@ napi_value Common::NapiReturnFalseCbInner(napi_env env, napi_callback_info info,
         NAPI_CALL(env, napi_typeof(env, argv[PARAM0], &valuetype));
         if (valuetype == napi_function) {
             napi_create_reference(env, argv[PARAM0], 1, &callback);
-            SetCallback(env, callback, 0, result, true);
+            SetCallback(env, callback, 0, result, newType);
             napi_delete_reference(env, callback);
             return NapiGetNull(env);
         }
