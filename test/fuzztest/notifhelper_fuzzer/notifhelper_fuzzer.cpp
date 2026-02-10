@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -132,12 +132,44 @@ constexpr int32_t MAX_USER_ID = 100;
         return true;
     }
 
+    bool TestPriorityOperations(FuzzedDataProvider* fdp, NotificationHelper& notificationHelper)
+    {
+        std::string name = fdp->ConsumeRandomLengthString();
+        int32_t uid = fdp->ConsumeIntegral<int32_t>();
+        bool enable = fdp->ConsumeBool();
+        sptr<NotificationBundleOption> bundleOption = new (std::nothrow) NotificationBundleOption(name, uid);
+        std::map<sptr<NotificationBundleOption>, bool> priorityEnable;
+        priorityEnable.emplace(bundleOption, enable);
+        notificationHelper.SetPriorityEnabledByBundles(priorityEnable);
+
+        std::map<sptr<NotificationBundleOption>, bool> priorityEnableMap;
+        std::vector<NotificationBundleOption> bundles;
+        NotificationBundleOption bundle1;
+        bundle1.SetBundleName(name);
+        bundle1.SetUid(uid);
+        bundles.emplace_back(bundle1);
+        notificationHelper.GetPriorityEnabledByBundles(bundles, priorityEnableMap);
+
+        notificationHelper.SetPriorityIntelligentEnabled(enable);
+        notificationHelper.IsPriorityIntelligentEnabled(enable);
+
+        std::map<sptr<NotificationBundleOption>, int64_t> strategyMap;
+        int64_t strategy = fdp->ConsumeIntegral<int64_t>();
+        strategyMap.emplace(bundleOption, strategy);
+        notificationHelper.SetPriorityStrategyByBundles(strategyMap);
+
+        std::map<sptr<NotificationBundleOption>, int64_t> strategyMap2;
+        notificationHelper.GetPriorityStrategyByBundles(bundles, strategyMap2);
+        return true;
+    }
+
     bool DoSomethingInterestingWithMyAPI(FuzzedDataProvider *fdp)
     {
         NotificationHelper notificationHelper;
         TestAdvancedOperations(fdp, notificationHelper);
         TestExtensionOperations(fdp, notificationHelper);
         TestGeofenceOperations(fdp, notificationHelper);
+        TestPriorityOperations(fdp, notificationHelper);
         return true;
     }
 }
