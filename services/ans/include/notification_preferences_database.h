@@ -86,7 +86,7 @@ public:
      * @brief Put enable notification in the of  bundle into disturbe DB.
      *
      * @param bundleInfo Indicates bundle info.
-     * @param state Indicates to whether to enabled
+     * @param state Indicates to whether to set switch state.
      * @return Return true on success, false on failure.
      */
     bool PutNotificationsEnabledForBundle(
@@ -437,13 +437,13 @@ public:
         const std::vector<NotificationCloneBundleInfo>& cloneBundleInfo);
     bool SetDisableNotificationInfo(const sptr<NotificationDisable> &notificationDisable);
     bool GetDisableNotificationInfo(NotificationDisable &notificationDisable);
+    bool GetAllDistribuedEnabledBundles(int32_t userId,
+        const std::string &deviceType, std::vector<NotificationBundleOption> &bundleOption);
     bool GetUserDisableNotificationInfo(int32_t userId, NotificationDisable &notificationDisable);
     bool SetSubscriberExistFlag(const std::string& deviceType, bool existFlag);
     bool GetSubscriberExistFlag(const std::string& deviceType, bool& existFlag);
     bool IsDistributedEnabledEmptyForBundle(
         const std::string& deviceType, const NotificationPreferencesInfo::BundleInfo& bundleInfo);
-    bool GetAllDistribuedEnabledBundles(int32_t userId,
-        const std::string &deviceType, std::vector<NotificationBundleOption> &bundleOption);
     /**
      * @brief set rule of generate hashCode.
      *

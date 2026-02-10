@@ -35,7 +35,7 @@ export default class DisplayUtils {
       }
       return undefined;
     } catch (err) {
-      console.info(Constants.TAG, `getCurWindowDisplay failed, code=${err?.code}, msg=${err?.message}.`);
+      console.error(Constants.TAG, `getCurWindowDisplay failed, code=${err?.code}, msg=${err?.message}.`);
       return undefined;
     }
   }

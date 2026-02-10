@@ -185,7 +185,7 @@ struct PermissionDialog {
                     Span(permission.reason)
                   }
                   .contentText()
-
+ 
                   if(this.dialog.banAffectContent) {
                     Text() {
                       Span($r('app.string.ban_affect'))
@@ -265,7 +265,6 @@ struct PermissionDialog {
     this.registerFoldStatusChange();
     try {
       await this.updateStatus();
-      await this.dialog?.dialogOpenEvent();
     } catch (err) {
       console.error(TAG, `aboutToAppear error : ${err?.code}`);
       await this.dialog?.destroyException();
@@ -381,7 +380,7 @@ struct PermissionDialog {
         this.followParentMode = false;
       }
       let windowRect = this.dialog?.extensionWindow.properties?.uiExtensionHostWindowProxyRect;
-      if (windowRect.width <= 0 || windowRect.height <= 0) {
+      if (!windowRect || windowRect.width <= 0 || windowRect.height <= 0) {
         console.error(TAG, `unavaliable windowRect info`);
         return;
       }
@@ -430,7 +429,7 @@ struct PermissionDialog {
         let dis = DisplayUtils.getCurWindowDisplay(this.dialog?.subWindow);
         let windowRect = this.dialog?.extensionWindow.properties?.uiExtensionHostWindowProxyRect;
         if (this.waterFallMode || data === display.FoldStatus.FOLD_STATUS_EXPANDED ||
-          windowRect.height > dis.height) {
+          (windowRect && windowRect.height > dis.height)) {
           this.updateContentCompoment();
         }
       } catch (err) {

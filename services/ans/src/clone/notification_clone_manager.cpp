@@ -283,17 +283,17 @@ ErrCode NotificationCloneManager::LoadConfig(UniqueFd &fd, std::string& config)
     ANS_LOGD("called");
     struct stat statBuf;
     if (fstat(fd.Get(), &statBuf) < 0) {
-        ANS_LOGE("LoadConfig fstat fd fail %{public}d.", fd.Get());
+        ANS_LOGW("LoadConfig fstat fd fail %{public}d.", fd.Get());
         return ANS_CLONE_ERROR;
     }
     int destFd = open(BACKUP_CONFIG_FILE_PATH, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
     if (destFd < 0) {
-        ANS_LOGE("LoadConfig open file fail.");
+        ANS_LOGW("LoadConfig open file fail.");
         return ANS_CLONE_ERROR;
     }
     fdsan_exchange_owner_tag(destFd, COMMON_FDSAN_TAG, NOTIFICATION_FDSAN_TAG);
     if (sendfile(destFd, fd.Get(), nullptr, statBuf.st_size) < 0) {
-        ANS_LOGE("LoadConfig fd sendfile(size: %{public}d) to destFd fail.", static_cast<int>(statBuf.st_size));
+        ANS_LOGW("LoadConfig fd sendfile(size: %{public}d) to destFd fail.", static_cast<int>(statBuf.st_size));
         fdsan_close_with_tag(destFd, NOTIFICATION_FDSAN_TAG);
         return ANS_CLONE_ERROR;
     }
