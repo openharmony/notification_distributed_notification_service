@@ -68,6 +68,7 @@ int32_t AdvancedNotificationService::LoadExtensionService()
         ANS_LOGW("GetProxyFunc Startup init failed.");
         return -1;
     }
+
     startup(nullptr, [](uint32_t sceneId, uint32_t branchId, int32_t errorCode, std::string message) {
         HaMetaMessage msg = HaMetaMessage(sceneId, branchId);
         NotificationAnalyticsUtil::ReportModifyEvent(msg.Message(message));
@@ -142,17 +143,23 @@ void AdvancedNotificationService::CheckExtensionServiceCondition(
     FilterPermissionBundles(bundles, unsubscribedBundles);
     if (bundles.empty()) {
         ANS_LOGW("User has no permission, skip loading ExtensionService");
+        NotificationAnalyticsUtil::ReportModifyEvent(
+            message.Message("cannot subscribe, due to User has no permission"));
         return;
     }
 
     FilterGrantedBundles(bundles, unsubscribedBundles);
     if (bundles.empty()) {
         ANS_LOGW("No bundle is granted, skip loading ExtensionService");
+        NotificationAnalyticsUtil::ReportModifyEvent(
+            message.Message("cannot subscribe, due to No bundle is granted"));
         return;
     }
     FilterBundlesByBluetoothConnection(bundles, unsubscribedBundles);
     if (bundles.empty()) {
         ANS_LOGW("No valid bluetooth connections found, skip loading ExtensionService");
+        NotificationAnalyticsUtil::ReportModifyEvent(message.Message(
+            "cannot subscribe, due to No valid bluetooth connections found"));
         return;
     }
 
@@ -450,6 +457,7 @@ void AdvancedNotificationService::HandleBundleUpdate(const sptr<NotificationBund
 
 void AdvancedNotificationService::HandleBundleUninstall(const sptr<NotificationBundleOption> &bundleOption)
 {
+    ANS_LOGE("HandleBundleUninstall");
     if (bundleOption == nullptr) {
         ANS_LOGE("HandleBundleUninstall bundleOption is nullptr");
         return;
@@ -808,8 +816,12 @@ ErrCode AdvancedNotificationService::GetAllSubscriptionBundles(std::vector<sptr<
     auto submitResult = notificationSvrQueue_.SyncSubmit(std::bind([&]() {
         ANS_LOGD("ffrt enter!");
         result = GetNotificationExtensionEnabledBundles(bundles);
+        if (result != ERR_OK) {
+            ANS_LOGE("Failed to get AllSubscriptionBundles, ret: %{public}d", result);
+            return;
+        }
     }));
-    ANS_COND_DO_ERR(submitResult != ERR_OK, return submitResult, "Get AllSubscriptionBundles.");
+    ANS_COND_DO_ERR(submitResult != ERR_OK, return submitResult, "Get all subscription bundles.");
     return result;
 }
 

@@ -113,9 +113,9 @@ struct PermissionDialog {
   session?: UIExtensionContentSession;
   controller?: CustomDialogController;
   @State titleContainerWidth: string | number = 'auto';
-  @State maxHeight: string|number = '85%';
-  @State buttonVisibility: Visibility  = Visibility.Visible;
-  @State singleRowButtonVisibility: Visibility  = Visibility.None;
+  @State maxHeight: string | number = '85%';
+  @State buttonVisibility: Visibility = Visibility.Visible;
+  @State singleRowButtonVisibility: Visibility = Visibility.None;
 
   build() {
     Row(){
@@ -467,7 +467,6 @@ struct PermissionDialog {
     this.updatemaxHeight();
     try {
       await this.updateStatus();
-      await this.dialog?.dialogOpenEvent();
     } catch (err) {
       console.error(TAG, `aboutToAppear error : ${err?.code}`);
       await this.dialog?.destroyException();

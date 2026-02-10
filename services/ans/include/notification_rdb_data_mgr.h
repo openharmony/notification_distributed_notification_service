@@ -23,7 +23,6 @@
 #include <map>
 #include <unordered_map>
 #include "notification_constant.h"
-#include "notification_request.h"
 #include "rdb_errno.h"
 #include "rdb_helper.h"
 #include "rdb_open_callback.h"

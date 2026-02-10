@@ -50,7 +50,7 @@ struct NotificationDialogPage {
     autoCancel: false,
     alignment: DialogAlignment.Center,
     customStyle: true,
-    cornerRadius: 24,
+    cornerRadius: 0,
     maskColor: '#CC000000',
     onWillDismiss: (dismissDialogAction: DismissDialogAction) => {
       console.info(TAG, `dialog onWillDismiss reason= : ${JSON.stringify(dismissDialogAction.reason)}`);

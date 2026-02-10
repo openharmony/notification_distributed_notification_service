@@ -92,7 +92,7 @@ ErrCode AdvancedNotificationService::CancelAll(const std::string &instanceKey,
     }
     bundleOption->SetAppInstanceKey(instanceKey);
     if (isProxyForUnaware(bundleOption->GetUid())) {
-        ANS_LOGE("CacelAll proxy uid: %{public}d", bundleOption->GetUid());
+        ANS_LOGE("CancelAll proxy uid: %{public}d", bundleOption->GetUid());
         return ERR_OK;
     }
     ErrCode result = ExcuteCancelAll(bundleOption, reason, synchronizer);
@@ -562,7 +562,9 @@ ErrCode AdvancedNotificationService::RemoveNotification(const sptr<NotificationB
         return ERR_ANS_NON_SYSTEM_APP;
     }
 
-    if (!AccessTokenHelper::CheckPermission(OHOS_PERMISSION_NOTIFICATION_CONTROLLER)) {
+    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    if (callingUid != NotificationConstant::BROKER_UID &&
+        !AccessTokenHelper::CheckPermission(OHOS_PERMISSION_NOTIFICATION_CONTROLLER)) {
         std::string message = "no acl controller permission.";
         OHOS::Notification::HaMetaMessage haMetaMessage = HaMetaMessage(4, 5)
             .ErrorCode(ERR_ANS_PERMISSION_DENIED).NotificationId(notificationId);
@@ -758,11 +760,11 @@ void AdvancedNotificationService::GetRemoveListForRemoveAll(const sptr<Notificat
             ANSR_LOGW("The application does not request enable notification.");
         }
         if (!record->notification->IsRemoveAllowed() && isAllowedNotification) {
-            ANS_LOGI("RemoveNotAllowed-%{public}s", record->notification->GetKey().c_str());
+            ANS_LOGI("BatchRemove-FILTER-RemoveNotAllowed-%{public}s", record->notification->GetKey().c_str());
             continue;
         }
         if (record->slot != nullptr && record->slot->GetForceControl() && record->slot->GetEnable()) {
-            ANS_LOGI("ForceControl-%{public}s", record->notification->GetKey().c_str());
+            ANS_LOGI("BatchRemove-FILTER-ForceControl-%{public}s", record->notification->GetKey().c_str());
             continue;
         }
         if (record->bundleOption->GetBundleName() != bundle->GetBundleName() ||
@@ -1135,7 +1137,7 @@ void AdvancedNotificationService::ExcuteDeleteAll(ErrCode &result, const int32_t
 #endif
         }
         if (notifications.size() >= MAX_CANCELED_PARCELABLE_VECTOR_NUM) {
-            ANS_LOGD("Notifs size oversize.");
+            ANS_LOGD("Notifications size greater than or equal to MAX_CANCELED_PARCELABLE_VECTOR_NUM.");
             SendNotificationsOnCanceled(notifications, nullptr, reason);
         }
     }
@@ -1153,7 +1155,7 @@ ErrCode AdvancedNotificationService::RemoveDistributedNotifications(
 {
     bool isSubsystem = AccessTokenHelper::VerifyNativeToken(IPCSkeleton::GetCallingTokenID());
     if (!isSubsystem && !AccessTokenHelper::IsSystemApp()) {
-        ANS_LOGE("IsSysApp is false.");
+        ANS_LOGE("IsSystemApp is false.");
         return ERR_ANS_NON_SYSTEM_APP;
     }
 
@@ -1161,7 +1163,6 @@ ErrCode AdvancedNotificationService::RemoveDistributedNotifications(
         ANS_LOGE("app no controller");
         return ERR_ANS_PERMISSION_DENIED;
     }
-
     NotificationConstant::SlotType slotType = static_cast<NotificationConstant::SlotType>(slotTypeInt);
     NotificationConstant::DistributedDeleteType deleteType =
         static_cast<NotificationConstant::DistributedDeleteType>(deleteTypeInt);
