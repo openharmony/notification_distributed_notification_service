@@ -100,7 +100,6 @@ private:
     ani_ref ref_ = nullptr;
     ani_object obj_ = nullptr;
     ani_vm *vm_ = nullptr;
-    std::mutex lock_;
 };
 
 class SubscriberInstanceManager {
