@@ -484,7 +484,6 @@ napi_value Common::SetNotificationActionButton(
     if (agent == nullptr) {
         ANS_LOGE("null agent");
         napi_set_named_property(env, result, "wantAgent", NapiGetNull(env));
-        return NapiGetBoolean(env, false);
     } else {
         napi_value wantAgent = nullptr;
         wantAgent = CreateWantAgentByJS(env, agent);
@@ -742,10 +741,12 @@ napi_value Common::GetNotificationRequestByBool(
     if (GetNotificationShowDeliveryTime(env, value, request) == nullptr) {
         return nullptr;
     }
+
     // UpdateOnly?: boolean
     if (GetNotificationIsUpdateOnly(env, value, request) == nullptr) {
         return nullptr;
     }
+
     // isRemoveAllowed?: boolean
     if (GetNotificationIsRemoveAllowed(env, value, request) == nullptr) {
         return nullptr;
@@ -846,14 +847,15 @@ napi_value Common::GetNotificationRequestByCustomInnerFirst(
 napi_value Common::GetNotificationRequestByCustomInnerSecond(
     const napi_env &env, const napi_value &value, NotificationRequest &request)
 {
+    if (GetNotificationFlags(env, value, request) == nullptr) {
+        return nullptr;
+    }
+
     // trigger?: Trigger
     if (GetNotificationTrigger(env, value, request) == nullptr) {
         return nullptr;
     }
 
-    if (GetNotificationFlags(env, value, request) == nullptr) {
-        return nullptr;
-    }
     return NapiGetNull(env);
 }
 
@@ -1399,6 +1401,10 @@ napi_value Common::GetNotificationRemovalWantAgent(
         }
         std::shared_ptr<AbilityRuntime::WantAgent::WantAgent> removeWantAgent =
             std::make_shared<AbilityRuntime::WantAgent::WantAgent>(*wantAgent);
+        if (removeWantAgent == nullptr || removeWantAgent->GetPendingWant() == nullptr) {
+            ANS_LOGE("pending want is null");
+            return nullptr;
+        }
         if ((uint32_t)removeWantAgent->GetPendingWant()->GetType(
             removeWantAgent->GetPendingWant()->GetTarget()) >= OPERATION_MAX_TYPE) {
             request.SetRemovalWantAgent(removeWantAgent);

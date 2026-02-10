@@ -1086,25 +1086,6 @@ public:
     ErrCode GetAllNotificationEnabledBundles(std::vector<NotificationBundleOption> &bundleOption, const int32_t userId);
 
     /**
-     * @brief Obtains allow liveview application list.
-     *
-     * @param bundleOption Indicates the bundle bundleOption.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    ErrCode GetAllLiveViewEnabledBundles(std::vector<NotificationBundleOption> &bundleOption);
-    ErrCode GetAllLiveViewEnabledBundles(std::vector<NotificationBundleOption> &bundleOption, const int32_t userId);
-
-    /**
-     * @brief Obtains allow distributed application list.
-     *
-     * @param deviceType Indicates device type.
-     * @param bundleOption Indicates the bundle bundleOption.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    ErrCode GetAllDistribuedEnabledBundles(const std::string& deviceType,
-        std::vector<NotificationBundleOption> &bundleOption);
-
-    /**
      * @brief Register Push Callback.
      *
      * @param pushCallback PushCallBack.
@@ -1183,24 +1164,6 @@ public:
      */
     ErrCode IsPriorityEnabledByBundle(
         const NotificationBundleOption &bundleOption, NotificationConstant::PriorityEnableStatus &enableStatus);
-
-    /**
-     * @brief Configuring whether to allow sending priority notification by bundles.
-     *
-     * @param priorityEnable indicates the bundle name, uid and priority enable status of the application.
-     * @return Returns configuring Whether to allow sending priority notification by bundles.
-     */
-    ErrCode SetPriorityEnabledByBundles(const std::map<sptr<NotificationBundleOption>, bool> &priorityEnable);
-
-    /**
-     * @brief Query switch for sending priority notification by bundles.
-     *
-     * @param bundleOption Indicates the bundle name and uid of the application.
-     * @param priorityEnable indicates whether to allow sending priority notification by bundles.
-     * @return Returns configuring Whether to allow sending priority notification by bundles.
-     */
-    ErrCode GetPriorityEnabledByBundles(const std::vector<NotificationBundleOption> &bundleOptions,
-        std::map<sptr<NotificationBundleOption>, bool> &priorityEnable);
 
     /**
      * @brief Update priority type of notification and notify subscriber.
@@ -1441,15 +1404,6 @@ public:
     ErrCode GetDoNotDisturbProfile(int64_t id, sptr<NotificationDoNotDisturbProfile> &profile, const int32_t userId);
 
     /**
-     * @brief Get the status of the target device.
-     *
-     * @param deviceType Type of the device whose status you want to set.
-     * @param status The status.
-     * @return Returns set result.
-     */
-    ErrCode GetTargetDeviceStatus(const std::string &deviceType, int32_t& status);
-
-    /**
      * @brief Whether reminders are allowed.
      *
      * @param bundleName app bundleName
@@ -1458,6 +1412,15 @@ public:
      */
     ErrCode AllowUseReminder(const std::string& bundleName, bool& isAllowUseReminder);
     ErrCode AllowUseReminder(const std::string& bundleName, const int32_t userId, bool& isAllowUseReminder);
+
+    /**
+     * @brief Get the status of the target device.
+     *
+     * @param deviceType Type of the device whose status you want to set.
+     * @param status The status.
+     * @return Returns set result.
+     */
+    ErrCode GetTargetDeviceStatus(const std::string &deviceType, int32_t& status);
 
     /**
      * @brief Ans service died, OnRemoteDied called.
@@ -1479,6 +1442,25 @@ public:
      * @return Returns set result.
      */
     ErrCode DisableNotificationFeature(const NotificationDisable &notificationDisable);
+
+    /**
+     * @brief Obtains allow liveview application list.
+     *
+     * @param bundleOption Indicates the bundle bundleOption.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode GetAllLiveViewEnabledBundles(std::vector<NotificationBundleOption> &bundleOption);
+    ErrCode GetAllLiveViewEnabledBundles(std::vector<NotificationBundleOption> &bundleOption, const int32_t userId);
+
+    /**
+     * @brief Obtains allow distributed application list.
+     *
+     * @param deviceType Indicates device type.
+     * @param bundleOption Indicates the bundle bundleOption.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode GetAllDistribuedEnabledBundles(const std::string& deviceType,
+        std::vector<NotificationBundleOption> &bundleOption);
 
     /**
      * @brief Distribution operation based on hashCode.
@@ -1575,6 +1557,67 @@ public:
     ErrCode GetRingtoneInfoByBundle(const NotificationBundleOption &bundle, NotificationRingtoneInfo &ringtoneInfo);
 
     /**
+     * @brief Background unaware proxy.
+     *
+     * @param uidList List of uid applications.
+     * @param isPorxy Proxy or Cancel proxy
+     * @return Returns request result.
+     */
+    ErrCode ProxyForUnaware(const std::vector<int32_t>& uidList, bool isProxy);
+
+    /**
+     * @brief Obtains reminder info of application list.
+     *
+     * @param bundles Indicates the bundles bundleOption.
+     * @param reminderInfo Indicates the bundles reminderInfo.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode GetReminderInfoByBundles(
+        const std::vector<NotificationBundleOption> &bundles, std::vector<NotificationReminderInfo> &reminderInfo);
+
+    /**
+     * @brief Set reminder info for application list.
+     *
+     * @param reminderInfo Indicates the bundles reminderInfo.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode SetReminderInfoByBundles(const std::vector<NotificationReminderInfo> &reminderInfo);
+
+    /**
+     * @brief Set geofence switch.
+     *
+     * @param enabled Set enable or not.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode SetGeofenceEnabled(bool enabled);
+
+    /**
+     * @brief Checks if the geofence is enabled.
+     *
+     * @param enabled whether the geofence is enabled.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode IsGeofenceEnabled(bool &enabled);
+
+    /**
+     * @brief Clear delayed release notification.
+     *
+     * @param triggerKeys Unique ID of the notifications.
+     * @param userIds Indicates the specific users.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode ClearDelayNotification(const std::vector<std::string> &triggerKeys, const std::vector<int32_t> &userIds);
+
+    /**
+     * @brief Publish delayed release notification.
+     *
+     * @param triggerKey Unique ID of the notification.
+     * @param userId Indicates the specific user.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode PublishDelayedNotification(const std::string &triggerKey, int32_t userId);
+
+    /**
      * @brief Subscribe the notification when the bluetooth addr is connected.
      *
      * @param infos The info to be subscribe.
@@ -1659,67 +1702,6 @@ public:
      * @return Returns ERR_OK if allowed; otherwise returns the specific error code.
      */
     ErrCode CanOpenSubscribeSettings();
-
-    /**
-     * @brief Obtains reminder info of application list.
-     *
-     * @param bundles Indicates the bundles bundleOption.
-     * @param reminderInfo Indicates the bundles reminderInfo.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    ErrCode GetReminderInfoByBundles(
-        const std::vector<NotificationBundleOption> &bundles, std::vector<NotificationReminderInfo> &reminderInfo);
-
-    /**
-     * @brief Set reminder info for application list.
-     *
-     * @param reminderInfo Indicates the bundles reminderInfo.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    ErrCode SetReminderInfoByBundles(const std::vector<NotificationReminderInfo> &reminderInfo);
-
-    /**
-     * @brief Set geofence switch.
-     *
-     * @param enabled Set enable or not.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    ErrCode SetGeofenceEnabled(bool enabled);
-
-    /**
-     * @brief Checks if the geofence is enabled.
-     *
-     * @param enabled whether the geofence is enabled.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    ErrCode IsGeofenceEnabled(bool &enabled);
-
-    /**
-     * @brief Clear delayed release notification.
-     *
-     * @param triggerKeys Unique ID of the notifications.
-     * @param userIds Indicates the specific users.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    ErrCode ClearDelayNotification(const std::vector<std::string> &triggerKeys, const std::vector<int32_t> &userIds);
-
-    /**
-     * @brief Publish delayed release notification.
-     *
-     * @param triggerKey Unique ID of the notification.
-     * @param userId Indicates the specific user.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    ErrCode PublishDelayedNotification(const std::string &triggerKey, int32_t userId);
-
-    /**
-     * @brief Background unaware proxy.
-     *
-     * @param uidList List of uid applications.
-     * @param isPorxy Proxy or Cancel proxy
-     * @return Returns request result.
-     */
-    ErrCode ProxyForUnaware(const std::vector<int32_t>& uidList, bool isProxy);
 
     /**
      * @brief Obtains the badge number of the current application in the system.
