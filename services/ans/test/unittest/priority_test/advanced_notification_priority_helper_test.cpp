@@ -26,6 +26,9 @@
 #include "notification_constant.h"
 #include "notification_preferences.h"
 
+extern void MockGetOsAccountLocalIdFromUid(bool mockRet, uint8_t mockCase);
+extern void MockQueryForgroundOsAccountId(bool mockRet, uint8_t mockCase);
+
 using namespace testing::ext;
 using namespace testing;
 
@@ -72,8 +75,114 @@ HWTEST_F(AdvancedNotificationPriorityHelperTest, RefreshPriorityType_0100, Funct
         NotificationAiExtensionWrapper::REFRESH_KEYWORD_PRIORITY_TYPE, requests, results);
     requests.clear();
     EXPECT_EQ(AdvancedNotificationPriorityHelper::GetInstance()->RefreshPriorityType(
+        NotificationAiExtensionWrapper::REFRESH_SWITCH_PRIORITY_TYPE, requests, results), ERR_OK);
+}
+
+/**
+ * @tc.name: RefreshPriorityType_0200
+ * @tc.desc: Test RefreshPriorityType success when USER_MODIFIED_OFF.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationPriorityHelperTest, RefreshPriorityType_0200, Function | SmallTest | Level1)
+{
+    std::string bundleName = "bundleName";
+    int32_t uid = 1000;
+    NotificationConstant::SWITCH_STATE priorityStatus = NotificationConstant::SWITCH_STATE::USER_MODIFIED_OFF;
+    sptr<NotificationBundleOption> notification = new (std::nothrow) NotificationBundleOption(bundleName, uid);
+    NotificationPreferences::GetInstance()->PutPriorityEnabledByBundleV2(notification, priorityStatus);
+    NotificationPreferences::GetInstance()->PutPriorityStrategyByBundle(notification, 31);
+    std::vector<sptr<NotificationRequest>> requests;
+    sptr<NotificationRequest> request = new (std::nothrow) NotificationRequest();
+    request->SetCreatorBundleName(bundleName);
+    request->SetCreatorUid(uid);
+    request->SetOwnerBundleName("");
+    request->SetOwnerUid(uid);
+    request->SetPriorityNotificationType(NotificationConstant::PriorityNotificationType::PRIMARY_CONTACT);
+    requests.push_back(request);
+    std::vector<int32_t> results;
+    EXPECT_EQ(AdvancedNotificationPriorityHelper::GetInstance()->RefreshPriorityType(
+        NotificationAiExtensionWrapper::REFRESH_SWITCH_PRIORITY_TYPE, requests, results), ERR_OK);
+}
+
+/**
+ * @tc.name: RefreshPriorityType_0300
+ * @tc.desc: Test RefreshPriorityType success when STATUS_ALL_PRIORITY.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationPriorityHelperTest, RefreshPriorityType_0300, Function | SmallTest | Level1)
+{
+    std::string bundleName = "bundleName";
+    int32_t uid = 1000;
+    NotificationConstant::SWITCH_STATE priorityStatus = NotificationConstant::SWITCH_STATE::USER_MODIFIED_ON;
+    sptr<NotificationBundleOption> notification = new (std::nothrow) NotificationBundleOption(bundleName, uid);
+    NotificationPreferences::GetInstance()->PutPriorityEnabledByBundleV2(notification, priorityStatus);
+    NotificationPreferences::GetInstance()->PutPriorityStrategyByBundle(notification, 32);
+    std::vector<sptr<NotificationRequest>> requests;
+    sptr<NotificationRequest> request = new (std::nothrow) NotificationRequest();
+    request->SetCreatorBundleName("");
+    request->SetCreatorUid(uid);
+    request->SetOwnerBundleName(bundleName);
+    request->SetOwnerUid(uid);
+    request->SetPriorityNotificationType(NotificationConstant::PriorityNotificationType::PRIMARY_CONTACT);
+    requests.push_back(request);
+    std::vector<int32_t> results;
+    EXPECT_EQ(AdvancedNotificationPriorityHelper::GetInstance()->RefreshPriorityType(
+        NotificationAiExtensionWrapper::REFRESH_SWITCH_PRIORITY_TYPE, requests, results), ERR_OK);
+}
+
+/**
+ * @tc.name: RefreshPriorityType_0400
+ * @tc.desc: Test RefreshPriorityType success.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationPriorityHelperTest, RefreshPriorityType_0400, Function | SmallTest | Level1)
+{
+    std::string bundleName = "bundleName";
+    int32_t uid = 1000;
+    NotificationConstant::SWITCH_STATE priorityStatus = NotificationConstant::SWITCH_STATE::USER_MODIFIED_ON;
+    sptr<NotificationBundleOption> notification = new (std::nothrow) NotificationBundleOption(bundleName, uid);
+    NotificationPreferences::GetInstance()->PutPriorityEnabledByBundleV2(notification, priorityStatus);
+    NotificationPreferences::GetInstance()->PutPriorityStrategyByBundle(notification, 31);
+    std::vector<sptr<NotificationRequest>> requests;
+    sptr<NotificationRequest> request = new (std::nothrow) NotificationRequest();
+    request->SetCreatorBundleName("");
+    request->SetCreatorUid(uid);
+    request->SetOwnerBundleName(bundleName);
+    request->SetOwnerUid(uid);
+    request->SetPriorityNotificationType(NotificationConstant::PriorityNotificationType::PRIMARY_CONTACT);
+    requests.push_back(request);
+    std::vector<int32_t> results;
+    EXPECT_EQ(AdvancedNotificationPriorityHelper::GetInstance()->RefreshPriorityType(
+        NotificationAiExtensionWrapper::REFRESH_SWITCH_PRIORITY_TYPE, requests, results), ERR_OK);
+}
+
+/**
+ * @tc.name: RefreshPriorityType_0500
+ * @tc.desc: Test RefreshPriorityType fail.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationPriorityHelperTest, RefreshPriorityType_0500, Function | SmallTest | Level1)
+{
+    MockQueryForgroundOsAccountId(false, 3);
+    std::string bundleName = "bundleName";
+    int32_t uid = 1000;
+    NotificationConstant::SWITCH_STATE priorityStatus = NotificationConstant::SWITCH_STATE::USER_MODIFIED_ON;
+    sptr<NotificationBundleOption> notification = new (std::nothrow) NotificationBundleOption(bundleName, uid);
+    NotificationPreferences::GetInstance()->PutPriorityEnabledByBundleV2(notification, priorityStatus);
+    NotificationPreferences::GetInstance()->PutPriorityStrategyByBundle(notification, 31);
+    std::vector<sptr<NotificationRequest>> requests;
+    sptr<NotificationRequest> request = new (std::nothrow) NotificationRequest();
+    request->SetCreatorBundleName("");
+    request->SetCreatorUid(uid);
+    request->SetOwnerBundleName(bundleName);
+    request->SetOwnerUid(uid);
+    request->SetPriorityNotificationType(NotificationConstant::PriorityNotificationType::PRIMARY_CONTACT);
+    requests.push_back(request);
+    std::vector<int32_t> results;
+    EXPECT_EQ(AdvancedNotificationPriorityHelper::GetInstance()->RefreshPriorityType(
         NotificationAiExtensionWrapper::REFRESH_SWITCH_PRIORITY_TYPE, requests, results),
-        NotificationAiExtensionWrapper::ErrorCode::ERR_OK);
+       ERR_ANS_PREFERENCES_NOTIFICATION_DB_OPERATION_FAILED);
+    MockQueryForgroundOsAccountId(true, 0);
 }
 #endif
 }
