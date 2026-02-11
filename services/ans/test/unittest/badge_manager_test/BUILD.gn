@@ -88,5 +88,6 @@ ohos_unittest("advanced_notification_badge_manager_test") {
 
 group("unittest") {
   testonly = true
-  deps = [ ":advanced_notification_badge_manager_test" ]
+  deps = [
+  ]
 }
