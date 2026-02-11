@@ -34,6 +34,7 @@ ohos_fuzztest("NotificationServiceFuzzTest") {
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
+  defines = []
   sources = [ "notificationservice_fuzzer.cpp" ]
 
   deps = [
@@ -59,6 +60,80 @@ ohos_fuzztest("NotificationServiceFuzzTest") {
     "data_share:datashare_permission",
     "time_service:time_client",
   ]
+  if (distributed_notification_supported) {
+    external_deps += [ "device_manager:devicemanagersdk" ]
+  }
+  external_deps += component_external_deps
+
+  if (is_double_framework) {
+    cflags += [ "-DCONFIG_DUAL_FRAMEWORK" ]
+  }
+  
+  if (build_variant == "root") {
+    defines += [ "ANM_SUPPORT_DUMP" ]
+  }
+
+  if (distributed_notification_service_feature_distributed_db) {
+    defines += [ "DISTRIBUTED_NOTIFICATION_SUPPORTED" ]
+    deps += [ "${services_path}/distributed:libans_distributed" ]
+    include_dirs += [ "${services_path}/distributed/include" ]
+  }
+
+  if (notification_smart_reminder_supported) {
+    defines += [ "NOTIFICATION_SMART_REMINDER_SUPPORTED" ]
+  }
+
+  if (device_usage) {
+    external_deps += [ "device_usage_statistics:usagestatsinner" ]
+    defines += [ "DEVICE_USAGE_STATISTICS_ENABLE" ]
+  }
+
+  if (hisysevent_usage) {
+    cflags += [ "-DHAS_HISYSEVENT_PART" ]
+    external_deps += [ "hisysevent:libhisysevent" ]
+  }
+
+  if (standby_enable) {
+    external_deps += [ "device_standby:standby_innerkits" ]
+    defines += [ "DEVICE_STANDBY_ENABLE" ]
+  }
+
+  if (player_framework) {
+    external_deps += [ "player_framework:media_client" ]
+    defines += [ "PLAYER_FRAMEWORK_ENABLE" ]
+  }
+
+  if (ans_hitrace_usage) {
+    external_deps += [ "hitrace:hitrace_meter" ]
+    defines += [ "HITRACE_METER_ENABLE" ]
+  }
+
+  if (ans_config_policy_enable) {
+    external_deps += [ "config_policy:configpolicy_util" ]
+    defines += [ "CONFIG_POLICY_ENABLE" ]
+  }
+
+  if (screenlock_mgr_enable) {
+    external_deps += [ "screenlock_mgr:screenlock_client" ]
+    defines += [ "SCREENLOCK_MGR_ENABLE" ]
+  }
+
+  if (distributed_notification_service_feature_additional_control ||
+      distributed_notification_service_feature_privileged_message) {
+    defines += [ "ENABLE_ANS_EXT_WRAPPER" ]
+  }
+
+  if (distributed_notification_service_feature_additional_control) {
+    defines += [ "ENABLE_ANS_ADDITIONAL_CONTROL" ]
+  }
+
+  if (telephony_cust) {
+    defines += [ "ENABLE_ANS_TELEPHONY_CUST_WRAPPER" ]
+  }
+
+  if (distributed_notification_service_feature_disable_fa_model) {
+    defines += [ "ANS_DISABLE_FA_MODEL" ]
+  }
 }
 
 ###############################################################################
