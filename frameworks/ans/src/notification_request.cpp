@@ -3595,7 +3595,8 @@ void NotificationRequest::SetDistributedFlagBit(
     for (auto it = notificationFlagsOfDevices_->begin(); it != notificationFlagsOfDevices_->end(); ++it) {
         std::string deviceType = it->first;
         std::shared_ptr<NotificationFlags> flag = it->second;
-        if (deviceType == NotificationConstant::HEADSET_DEVICE_TYPE) {
+        if (deviceType == NotificationConstant::HEADSET_DEVICE_TYPE ||
+            deviceType == NotificationConstant::GLASSES_DEVICE_TYPE) {
             continue;
         }
         

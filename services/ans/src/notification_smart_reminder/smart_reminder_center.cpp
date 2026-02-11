@@ -393,6 +393,7 @@ void SmartReminderCenter::InitValidDevices(
                 (deviceType == NotificationConstant::CURRENT_DEVICE_TYPE ||
                     deviceType == NotificationConstant::LITEWEARABLE_DEVICE_TYPE ||
                     deviceType == NotificationConstant::HEADSET_DEVICE_TYPE ||
+                    deviceType == NotificationConstant::GLASSES_DEVICE_TYPE ||
                     deviceType ==NotificationConstant::WEARABLE_DEVICE_TYPE)) {
                 syncDevices.insert(deviceType);
                 continue;
