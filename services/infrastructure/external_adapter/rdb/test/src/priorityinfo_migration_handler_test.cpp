@@ -15,7 +15,9 @@
 
 #include "gtest/gtest.h"
 
+#define private public
 #include "priorityinfo_migration_handler.h"
+#undef private
 #include "mock_abs_shared_result_set.h"
 #include "mock_rdb_store.h"
 #include "notification_rdb_hook.h"
@@ -206,7 +208,7 @@ HWTEST_F(PriorityInfoMigrationHandlerTest, OnUpgrade_900, Function | SmallTest |
     SetMockQuerySqlResults({mockResultSet});
     SetMockGoToFirstRowErrCodes({NativeRdb::E_OK, NativeRdb::E_OK});
     SetMockGetStringValuesAndErrCodes(
-        {"priorityNotificationSwitch_100", "1"},
+        {"notification_testtable", "1"},
         {NativeRdb::E_OK, NativeRdb::E_OK}
     );
     SetMockGoToNextRowErrCodes({NativeRdb::E_ERROR});
@@ -218,7 +220,7 @@ HWTEST_F(PriorityInfoMigrationHandlerTest, OnUpgrade_900, Function | SmallTest |
 
 /**
  * @tc.name: OnUpgrade_1000
- * @tc.desc: Verify OnUpgrade returns E_OK when live data migration callback transforms data but
+ * @tc.desc: Verify OnUpgrade returns E_OK when priority data migration callback transforms data but
  *           InsertWithConflictResolution fails gracefully.
  * @tc.type: FUNC
  */
@@ -230,20 +232,19 @@ HWTEST_F(PriorityInfoMigrationHandlerTest, OnUpgrade_1000, Function | SmallTest 
     SetMockQuerySqlResults({mockResultSet});
     SetMockGoToFirstRowErrCodes({NativeRdb::E_OK, NativeRdb::E_OK});
     SetMockGetStringValuesAndErrCodes(
-        {"priorityNotificationSwitch_100", "1"},
+        {"notification_testtable", "1"},
         {NativeRdb::E_OK, NativeRdb::E_OK}
     );
     SetMockGoToNextRowErrCodes({NativeRdb::E_ERROR});
     SetMockQueryResults({mockResultSet});
 
-    SetMockInsertWithConflictResolutionErrCodes({NativeRdb::E_ERROR});
     int32_t ret = handler.OnUpgrade(rdbStore, 2, 3);
     EXPECT_EQ(ret, NativeRdb::E_OK);
 }
 
 /**
  * @tc.name: OnUpgrade_1100
- * @tc.desc: Verify OnUpgrade returns E_OK when live data migration callback transforms all data and
+ * @tc.desc: Verify OnUpgrade returns E_OK when priority data migration callback transforms all data and
  *           InsertWithConflictResolution succeeds in persisting migrated data.
  * @tc.type: FUNC
  */
@@ -255,14 +256,37 @@ HWTEST_F(PriorityInfoMigrationHandlerTest, OnUpgrade_1100, Function | SmallTest 
     SetMockQuerySqlResults({mockResultSet});
     SetMockGoToFirstRowErrCodes({NativeRdb::E_OK, NativeRdb::E_OK});
     SetMockGetStringValuesAndErrCodes(
-        {"priorityNotificationSwitch_100", "1", "ans_priorityNotificationSwitchForBundle", "1"},
-        {NativeRdb::E_OK, NativeRdb::E_OK, NativeRdb::E_OK, NativeRdb::E_OK}
+        {"notification_testtable", "1"},
+        {NativeRdb::E_OK, NativeRdb::E_OK}
     );
     SetMockGoToNextRowErrCodes({NativeRdb::E_ERROR});
     SetMockQueryResults({mockResultSet});
-    SetMockInsertWithConflictResolutionErrCodes({NativeRdb::E_OK});
     int32_t ret = handler.OnUpgrade(rdbStore, 2, 3);
     EXPECT_EQ(ret, NativeRdb::E_OK);
+}
+
+/**
+ * @tc.name: onRdbUpgradePriorityMigrate_0100
+ * @tc.desc: test onRdbUpgradePriorityMigrate and InsertToDatabase func.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PriorityInfoMigrationHandlerTest, onRdbUpgradePriorityMigrate_0100, Function | SmallTest | Level1)
+{
+    PriorityInfoMigrationHandler handler;
+    MockRdbStore rdbStore;
+    std::string tableName = "notification_table_100";
+    std::string key1 = "priorityNotificationSwitch_100";
+    std::string val1 = "0";
+    SetMockInsertWithConflictResolutionErrCodes({NativeRdb::E_OK, NativeRdb::E_OK,
+        NativeRdb::E_OK, NativeRdb::E_ERROR});
+    bool ret = handler.onRdbUpgradePriorityMigrate(rdbStore, key1, val1, tableName);
+    EXPECT_EQ(ret, true);
+    std::string key2 = "ans_priorityNotificationSwitchForBundle";
+    std::string val2 = "1";
+    ret = handler.onRdbUpgradePriorityMigrate(rdbStore, key2, val2, tableName);
+    EXPECT_EQ(ret, true);
+    ret = handler.onRdbUpgradePriorityMigrate(rdbStore, key2, val2, tableName);
+    EXPECT_EQ(ret, false);
 }
 
 /**
