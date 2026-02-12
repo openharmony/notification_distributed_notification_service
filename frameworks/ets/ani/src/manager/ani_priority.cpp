@@ -388,5 +388,140 @@ ani_object AniIsPriorityEnabled(ani_env* env, ani_object callback)
     }
     return nullptr;
 }
+
+void AniSetPriorityEnabledByBundles(ani_env *env, ani_object obj)
+{
+    std::vector<std::pair<Notification::NotificationBundleOption, bool>> options;
+    if (NotificationSts::UnwrapBundleOptionMap(env, obj, options) != ANI_OK) {
+        NotificationSts::ThrowInternerErrorWithLogE(env, "UnwrapBundleOptionMap faild");
+        return;
+    }
+    std::map<sptr<Notification::NotificationBundleOption>, bool> priorityEnable;
+    for (auto& [bundleOpt, enabled] : options) {
+        sptr<Notification::NotificationBundleOption> bo =
+            new (std::nothrow) Notification::NotificationBundleOption(std::move(bundleOpt));
+        if (bo == nullptr) {
+            NotificationSts::ThrowInternerErrorWithLogE(env, "null bundleOption");
+            return;
+        }
+        priorityEnable.emplace(bo, enabled);
+    }
+    int returnCode = Notification::NotificationHelper::SetPriorityEnabledByBundles(priorityEnable);
+    if (returnCode != ERR_OK) {
+        int externalCode = NotificationSts::GetExternalCode(returnCode);
+        ANS_LOGE("sts setPriorityEnabledByBundles error, errorCode: %{public}d", externalCode);
+        OHOS::NotificationSts::ThrowError(env, externalCode, NotificationSts::FindAnsErrMsg(externalCode));
+    }
+    ANS_LOGD("AniSetPriorityEnabledByBundles end");
+    return;
+}
+
+ani_object AniGetPriorityEnabledByBundles(ani_env *env, ani_object obj)
+{
+    std::vector<Notification::NotificationBundleOption> bundles;
+    if (!NotificationSts::UnwrapArrayBundleOption(env, obj, bundles)) {
+        NotificationSts::ThrowInternerErrorWithLogE(env, "AniGetPriorityEnabledByBundles failed:ERROR_INTERNAL_ERROR");
+        return nullptr;
+    }
+
+    std::map<sptr<Notification::NotificationBundleOption>, bool> bundleEnable;
+    int returnCode = Notification::NotificationHelper::GetPriorityEnabledByBundles(
+        bundles, bundleEnable);
+    if (returnCode != ERR_OK) {
+        int externalCode = NotificationSts::GetExternalCode(returnCode);
+        ANS_LOGE("sts getPriorityEnabledByBundles error, errorCode: %{public}d", externalCode);
+        OHOS::NotificationSts::ThrowError(env, externalCode, NotificationSts::FindAnsErrMsg(externalCode));
+        return nullptr;
+    }
+    ani_object outAniObj;
+    if (!NotificationSts::WrapBundleOptionMap(env, outAniObj, bundleEnable)) {
+        ANS_LOGE("WrapBundleOptionMap faild");
+        NotificationSts::ThrowInternerErrorWithLogE(
+            env, "AniGetPriorityEnabledByBundles:failed to WrapBundleOptionMap");
+        return nullptr;
+    }
+    return outAniObj;
+}
+
+void AniSetPriorityIntelligentEnabled(ani_env* env, ani_boolean enable)
+{
+    int returnCode =
+        Notification::NotificationHelper::SetPriorityIntelligentEnabled(NotificationSts::AniBooleanToBool(enable));
+    if (returnCode != ERR_OK) {
+        int externalCode = NotificationSts::GetExternalCode(returnCode);
+        ANS_LOGE("sts setPriorityIntelligentEnabled failed, errorCode: %{public}d", externalCode);
+        OHOS::NotificationSts::ThrowError(env, externalCode, NotificationSts::FindAnsErrMsg(externalCode));
+    }
+}
+
+ani_boolean AniIsPriorityIntelligentEnabled(ani_env *env, ani_object obj)
+{
+    bool enable = true;
+    int returnCode = Notification::NotificationHelper::IsPriorityIntelligentEnabled(enable);
+    if (returnCode != ERR_OK) {
+        int externalCode = NotificationSts::GetExternalCode(returnCode);
+        ANS_LOGE("sts isPriorityIntelligentEnabled failed, errorCode: %{public}d", externalCode);
+        OHOS::NotificationSts::ThrowError(env, externalCode, NotificationSts::FindAnsErrMsg(externalCode));
+    }
+    return NotificationSts::BoolToAniBoolean(enable);
+}
+
+void AniSetPriorityStrategyByBundles(ani_env *env, ani_object obj)
+{
+    std::vector<std::pair<Notification::NotificationBundleOption, int64_t>> options;
+    if (NotificationSts::UnwrapBundleOptionMap(env, obj, options) != ANI_OK) {
+        ANS_LOGE("UnwrapBundleOptionMap faild");
+        OHOS::NotificationSts::ThrowError(env, OHOS::Notification::ERROR_INTERNAL_ERROR,
+            NotificationSts::FindAnsErrMsg(OHOS::Notification::ERROR_INTERNAL_ERROR));
+        return;
+    }
+    std::map<sptr<Notification::NotificationBundleOption>, int64_t> priorityStrategies;
+    for (auto& [bundleOpt, strategy] : options) {
+        sptr<Notification::NotificationBundleOption> bo =
+            new (std::nothrow) Notification::NotificationBundleOption(std::move(bundleOpt));
+        if (bo == nullptr) {
+            ANS_LOGE("null bundleOption");
+            OHOS::NotificationSts::ThrowError(env, OHOS::Notification::ERROR_INTERNAL_ERROR,
+                NotificationSts::FindAnsErrMsg(OHOS::Notification::ERROR_INTERNAL_ERROR));
+            return;
+        }
+        priorityStrategies.emplace(bo, strategy);
+    }
+    int returnCode = Notification::NotificationHelper::SetPriorityStrategyByBundles(priorityStrategies);
+    if (returnCode != ERR_OK) {
+        int externalCode = NotificationSts::GetExternalCode(returnCode);
+        ANS_LOGE("sts SetPriorityStrategyByBundles error, errorCode: %{public}d", externalCode);
+        OHOS::NotificationSts::ThrowError(env, externalCode, NotificationSts::FindAnsErrMsg(externalCode));
+    }
+}
+
+ani_object AniGetPriorityStrategyByBundles(ani_env *env, ani_object obj)
+{
+    std::vector<Notification::NotificationBundleOption> bundles;
+    if (!NotificationSts::UnwrapArrayBundleOption(env, obj, bundles)) {
+        OHOS::NotificationSts::ThrowError(env, OHOS::Notification::ERROR_INTERNAL_ERROR,
+            NotificationSts::FindAnsErrMsg(OHOS::Notification::ERROR_INTERNAL_ERROR));
+        ANS_LOGE("AniGetPriorityStrategyByBundles failed : ERROR_INTERNAL_ERROR");
+        return nullptr;
+    }
+ 
+    std::map<sptr<Notification::NotificationBundleOption>, int64_t> priorityStrategies;
+    int returnCode = Notification::NotificationHelper::GetPriorityStrategyByBundles(
+        bundles, priorityStrategies);
+    if (returnCode != ERR_OK) {
+        int externalCode = NotificationSts::GetExternalCode(returnCode);
+        ANS_LOGE("sts getPriorityEnabledByBundles error, errorCode: %{public}d", externalCode);
+        OHOS::NotificationSts::ThrowError(env, externalCode, NotificationSts::FindAnsErrMsg(externalCode));
+        return nullptr;
+    }
+    ani_object outAniObj;
+    if (!NotificationSts::WrapBundleOptionMap(env, outAniObj, priorityStrategies)) {
+        ANS_LOGE("WrapBundleOptionMap faild");
+        NotificationSts::ThrowInternerErrorWithLogE(
+            env, "AniGetPriorityStrategyByBundles:failed to WrapBundleOptionMap");
+        return nullptr;
+    }
+    return outAniObj;
+}
 } // namespace NotificationManagerSts
 } // namespace OHOS

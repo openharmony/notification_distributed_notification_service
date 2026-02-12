@@ -1325,6 +1325,61 @@ HWTEST_F(NotificationHelperTest, TriggerUpdatePriorityType_0100, TestSize.Level1
 }
 
 /**
+ * @tc.name: SetPriorityEnabledByBundles_0100
+ * @tc.desc: test SetPriorityEnabledByBundles fail cause no permission
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationHelperTest, SetPriorityEnabledByBundles_0100, TestSize.Level1)
+{
+    sptr<NotificationBundleOption> notification = new (std::nothrow) NotificationBundleOption("bundleName", 1000);
+    std::vector<NotificationBundleOption> bundleOptions;
+    bundleOptions.emplace_back(*notification);
+    std::map<sptr<NotificationBundleOption>, bool> priorityEnable;
+    priorityEnable[notification] = false;
+    NotificationHelper notificationHelper;
+    ErrCode ret = notificationHelper.SetPriorityEnabledByBundles(priorityEnable);
+    EXPECT_EQ(ret, ERR_ANS_PERMISSION_DENIED);
+    ret = notificationHelper.GetPriorityEnabledByBundles(bundleOptions, priorityEnable);
+    EXPECT_EQ(ret, ERR_ANS_PERMISSION_DENIED);
+}
+
+
+/**
+ * @tc.name: SetPriorityIntelligentEnabled_0100
+ * @tc.desc: test SetPriorityIntelligentEnabled fail cause no permission
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationHelperTest, SetPriorityIntelligentEnabled_0100, TestSize.Level1)
+{
+    NotificationHelper notificationHelper;
+    ErrCode ret = notificationHelper.SetPriorityIntelligentEnabled(false);
+    EXPECT_EQ(ret, ERR_ANS_PERMISSION_DENIED);
+    bool enable = true;
+    ret = notificationHelper.IsPriorityIntelligentEnabled(enable);
+    EXPECT_EQ(ret, ERR_ANS_PERMISSION_DENIED);
+}
+
+/**
+ * @tc.name: SetPriorityStrategyByBundles_0100
+ * @tc.desc: test SetPriorityStrategyByBundles fail cause no permission
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationHelperTest, SetPriorityStrategyByBundles_0100, TestSize.Level1)
+{
+    sptr<NotificationBundleOption> notification = new (std::nothrow) NotificationBundleOption("bundleName", 1000);
+    std::vector<NotificationBundleOption> bundleOptions;
+    bundleOptions.emplace_back(*notification);
+    std::map<sptr<NotificationBundleOption>, int64_t> strategies;
+    strategies[notification] = 32;
+    NotificationHelper notificationHelper;
+    ErrCode ret = notificationHelper.SetPriorityStrategyByBundles(strategies);
+    EXPECT_EQ(ret, ERR_ANS_PERMISSION_DENIED);
+    bool enable = true;
+    ret = notificationHelper.GetPriorityStrategyByBundles(bundleOptions, strategies);
+    EXPECT_EQ(ret, ERR_ANS_PERMISSION_DENIED);
+}
+
+/**
  * @tc.name: IsNeedSilentInDoNotDisturbMode_00001
  * @tc.desc: Test IsNeedSilentInDoNotDisturbMode parameters.
  * @tc.type: FUNC
