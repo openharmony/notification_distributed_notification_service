@@ -27,13 +27,14 @@ const char* NotificationConstant::SLOTTYPECCMNAMES[] = {"Social_communication", 
     "Content_information", "Other", "Custom", "Live_view", "Custom_service", "Emergency_information"};
 const char* NotificationConstant::CURRENT_DEVICE_TYPE = "current";
 const char* NotificationConstant::HEADSET_DEVICE_TYPE = "headset";
+const char* NotificationConstant::GLASSES_DEVICE_TYPE = "glasses";
 const char* NotificationConstant::LITEWEARABLE_DEVICE_TYPE = "liteWearable";
 const char* NotificationConstant::WEARABLE_DEVICE_TYPE = "wearable";
 const char* NotificationConstant::PAD_DEVICE_TYPE = "tablet";
 const char* NotificationConstant::PC_DEVICE_TYPE = "2in1";
 const char* NotificationConstant::SLAVE_DEVICE_TYPE = "slave";
 const char* NotificationConstant::THIRD_PARTY_WEARABLE_DEVICE_TYPE = "thirdPartyWearable";
-const char* NotificationConstant::DEVICESTYPES[] = { "headset", "liteWearable", "wearable", "2in1", "tablet",
+const char* NotificationConstant::DEVICESTYPES[] = { "headset", "glasses", "liteWearable", "wearable", "2in1", "tablet",
     "thirdPartyWearable" };
 const char* NotificationConstant::ANS_VOIP = "ANS_VOIP";
 const char* NotificationConstant::PC_PAD_VOIP_FLAG = "110101";

@@ -565,13 +565,14 @@ public:
     static const char* SLOTTYPECCMNAMES[8];
     static const char* CURRENT_DEVICE_TYPE;
     static const char* HEADSET_DEVICE_TYPE;
+    static const char* GLASSES_DEVICE_TYPE;
     static const char* LITEWEARABLE_DEVICE_TYPE;
     static const char* WEARABLE_DEVICE_TYPE;
     static const char* PAD_DEVICE_TYPE;
     static const char* PC_DEVICE_TYPE;
     static const char* SLAVE_DEVICE_TYPE;
     static const char* THIRD_PARTY_WEARABLE_DEVICE_TYPE;
-    static const char* DEVICESTYPES[6];
+    static const char* DEVICESTYPES[7];
     static const char* ANS_VOIP;
     static const char* PC_PAD_VOIP_FLAG;
 
