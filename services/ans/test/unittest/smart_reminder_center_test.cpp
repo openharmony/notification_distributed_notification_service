@@ -253,10 +253,11 @@ HWTEST_F(SmartReminderCenterTest, InitValidDevices_00004, Function | SmallTest |
 
     smartReminderCenter_->InitValidDevices(validDevices, smartDevices, statusMap, request);
 
-    EXPECT_EQ(validDevices.size(), 4);
+    EXPECT_EQ(validDevices.size(), 5);
     EXPECT_NE(validDevices.find(NotificationConstant::WEARABLE_DEVICE_TYPE), validDevices.end());
     EXPECT_NE(validDevices.find(NotificationConstant::LITEWEARABLE_DEVICE_TYPE), validDevices.end());
     EXPECT_NE(validDevices.find(NotificationConstant::HEADSET_DEVICE_TYPE), validDevices.end());
+    EXPECT_NE(validDevices.find(NotificationConstant::GLASSES_DEVICE_TYPE), validDevices.end());
     EXPECT_NE(validDevices.find(NotificationConstant::WEARABLE_DEVICE_TYPE), validDevices.end());
 }
 
