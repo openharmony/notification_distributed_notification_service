@@ -2122,6 +2122,116 @@ HWTEST_F(AnsNotificationUnitTest, SetPriorityEnabledByBundle_0300, Function | Me
 }
 
 /*
+ * @tc.name: GetPriorityEnabledByBundles_0100
+ * @tc.desc: test GetPriorityEnabledByBundles with empty bundleName.
+ * @tc.type: FUNC
+ * @tc.require: #I62SME
+ */
+HWTEST_F(AnsNotificationUnitTest, GetPriorityEnabledByBundles_0100, Function | MediumTest | Level1)
+{
+    std::vector<NotificationBundleOption> bundleOptions;
+    std::map<sptr<NotificationBundleOption>, bool> switches;
+    ErrCode ret = ans_->GetPriorityEnabledByBundles(bundleOptions, switches);
+    EXPECT_EQ(ret, ERR_ANS_INVALID_PARAM);
+}
+
+/*
+ * @tc.name: GetPriorityEnabledByBundles_0200
+ * @tc.desc: test GetPriorityEnabledByBundles with null proxy.
+ * @tc.type: FUNC
+ * @tc.require: #I62SME
+ */
+HWTEST_F(AnsNotificationUnitTest, GetPriorityEnabledByBundles_0200, Function | MediumTest | Level1)
+{
+    std::vector<NotificationBundleOption> bundleOptions;
+    std::map<sptr<NotificationBundleOption>, bool> switches;
+    NotificationBundleOption bo;
+    bo.SetBundleName("bundleName");
+    bo.SetUid(1);
+    bundleOptions.emplace_back(bo);
+    ErrCode ret = ans_->GetPriorityEnabledByBundles(bundleOptions, switches);
+    EXPECT_EQ(ret, ERR_OK);
+}
+/*
+ * @tc.name: SetPriorityEnabledByBundles_0100
+ * @tc.desc: test GetPriorityEnabledByBundles with empty bundleName.
+ * @tc.type: FUNC
+ * @tc.require: #I62SME
+ */
+HWTEST_F(AnsNotificationUnitTest, SetPriorityEnabledByBundles_0100, Function | MediumTest | Level1)
+{
+    std::map<sptr<NotificationBundleOption>, bool> switches;
+    ErrCode ret = ans_->SetPriorityEnabledByBundles(switches);
+    EXPECT_EQ(ret, ERR_ANS_INVALID_PARAM);
+}
+
+/*
+ * @tc.name: SetPriorityEnabledByBundles_0200
+ * @tc.desc: test SetPriorityEnabledByBundles with null proxy.
+ * @tc.type: FUNC
+ * @tc.require: #I62SME
+ */
+HWTEST_F(AnsNotificationUnitTest, SetPriorityEnabledByBundles_0200, Function | MediumTest | Level1)
+{
+    std::map<sptr<NotificationBundleOption>, bool> switches;
+    sptr<NotificationBundleOption> bo = new (std::nothrow) NotificationBundleOption("bundle", 100);
+    switches[bo] = true;
+    ErrCode ret = ans_->SetPriorityEnabledByBundles(switches);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/*
+ * @tc.name: SetPriorityIntelligentEnabled_0100
+ * @tc.desc: test SetPriorityIntelligentEnabled success.
+ * @tc.type: FUNC
+ * @tc.require: #I62SME
+ */
+HWTEST_F(AnsNotificationUnitTest, SetPriorityIntelligentEnabled_0100, Function | MediumTest | Level1)
+{
+    bool enable = true;
+    ErrCode ret = ans_->SetPriorityIntelligentEnabled(enable);
+    EXPECT_EQ(ret, ERR_OK);
+    ret = ans_->IsPriorityIntelligentEnabled(enable);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_TRUE(enable);
+}
+
+/*
+ * @tc.name: SetPriorityStrategyByBundles_0100
+ * @tc.desc: test SetPriorityStrategyByBundles with empty bundleName.
+ * @tc.type: FUNC
+ * @tc.require: #I62SME
+ */
+HWTEST_F(AnsNotificationUnitTest, SetPriorityStrategyByBundles_0100, Function | MediumTest | Level1)
+{
+    std::map<sptr<NotificationBundleOption>, int64_t> strategies;
+    ErrCode ret = ans_->SetPriorityStrategyByBundles(strategies);
+    EXPECT_EQ(ret, ERR_ANS_INVALID_PARAM);
+    std::vector<NotificationBundleOption> bundleOptions;
+    ret = ans_->GetPriorityStrategyByBundles(bundleOptions, strategies);
+    EXPECT_EQ(ret, ERR_ANS_INVALID_PARAM);
+}
+
+/*
+ * @tc.name: SetPriorityStrategyByBundles_0200
+ * @tc.desc: test SetPriorityStrategyByBundles success.
+ * @tc.type: FUNC
+ * @tc.require: #I62SME
+ */
+HWTEST_F(AnsNotificationUnitTest, SetPriorityStrategyByBundles_0200, Function | MediumTest | Level1)
+{
+    std::map<sptr<NotificationBundleOption>, int64_t> strategies;
+    sptr<NotificationBundleOption> bo = new (std::nothrow) NotificationBundleOption("bundle", 1000);
+    strategies[bo] = 24;
+    ErrCode ret = ans_->SetPriorityStrategyByBundles(strategies);
+    EXPECT_EQ(ret, ERR_OK);
+    std::vector<NotificationBundleOption> bundleOptions;
+    bundleOptions.emplace_back(*bo);
+    ret = ans_->GetPriorityStrategyByBundles(bundleOptions, strategies);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/*
  * @tc.name: TriggerUpdatePriorityType_0200
  * @tc.desc: test TriggerUpdatePriorityType success.
  * @tc.type: FUNC

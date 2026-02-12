@@ -27,6 +27,12 @@ napi_value NapiIsPriorityEnabled(napi_env env, napi_callback_info info);
 napi_value NapiIsPriorityEnabledByBundle(napi_env env, napi_callback_info info);
 napi_value NapiSetBundlePriorityConfig(napi_env env, napi_callback_info info);
 napi_value NapiGetBundlePriorityConfig(napi_env env, napi_callback_info info);
+napi_value NapiSetPriorityEnabledByBundles(napi_env env, napi_callback_info info);
+napi_value NapiGetPriorityEnabledByBundles(napi_env env, napi_callback_info info);
+napi_value NapiIsPriorityIntelligentEnabled(napi_env env, napi_callback_info info);
+napi_value NapiSetPriorityIntelligentEnabled(napi_env env, napi_callback_info info);
+napi_value NapiGetPriorityStrategyByBundles(napi_env env, napi_callback_info info);
+napi_value NapiSetPriorityStrategyByBundles(napi_env env, napi_callback_info info);
 }  // namespace NotificationNapi
 }  // namespace OHOS
 
