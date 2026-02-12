@@ -27,6 +27,8 @@ enum class RdbEventHandlerType {
     ON_CREATE_INIT_DEFAULT_TABLE,
     /** Migrate live view records during schema upgrade. */
     ON_UPGRADE_LIVE_VIEW_MIGRATION,
+    /** Migrate priority records during database upgrade*/
+    ON_UPGRADE_PRIORITY_INFO_MIGRATION,
 };
 
 } // OHOS::Notification::Infra

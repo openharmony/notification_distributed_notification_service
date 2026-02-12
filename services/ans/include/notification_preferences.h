@@ -625,6 +625,8 @@ public:
     void GetAllCLoneBundlesInfo(int32_t dbUserId, int32_t userId,
         std::vector<NotificationCloneBundleInfo> &cloneBundles);
     void GetAllClonePriorityInfo(const int32_t userId, std::vector<NotificationClonePriorityInfo> &cloneInfos);
+    void GetCloneBundlePriorityInfo(std::vector<NotificationClonePriorityInfo> &cloneInfos,
+        const int32_t &userId, const std::string &key, const NotificationClonePriorityInfo::CLONE_PRIORITY_TYPE &type);
     bool DelClonePriorityInfo(const int32_t &userId, const NotificationClonePriorityInfo &cloneInfo);
     bool UpdateClonePriorityInfos(const int32_t &userId, const std::vector<NotificationClonePriorityInfo> &cloneInfos);
     void GetClonePriorityInfos(const int32_t &userId, std::vector<NotificationClonePriorityInfo> &cloneInfos);
