@@ -20,6 +20,7 @@
 
 #include "ffrt.h"
 #include "notification_clone_priority_info.h"
+#include "notification_bundle_option.h"
 
 namespace OHOS {
 namespace Notification {
@@ -33,20 +34,16 @@ public:
     void OnUserSwitch(int32_t userId) override;
 
 private:
-    void RestoreBundlePriorityInfo(const int32_t uid, const NotificationClonePriorityInfo &priorityInfo);
+    void RestoreBundlePriorityInfo(const int32_t uid,
+        const NotificationClonePriorityInfo &priorityInfo, const int32_t &restoreVer);
     void SetDefaultPriorityInfo(const int32_t uid, const std::string &bundleName);
-    void BatchSetDefaultPriorityInfo(const std::set<std::string> &bundleNames, const int32_t userId);
-    bool IsFromUnSupportPriority(const std::set<std::string> &systemApps);
-    void InsertCoverdInfo(const int32_t uid,
-        const std::string &bundleName, const std::string configValue,
-        const NotificationConstant::PriorityEnableStatus enableStatus,
-        const NotificationClonePriorityInfo::CLONE_PRIORITY_TYPE type);
+    void BatchRestoreSystemAppsPriorityInfo(const std::set<std::string> &systemApps, const int32_t userId);
 private:
-    bool fromUnSupportPriority_ = false;
-    std::vector<NotificationClonePriorityInfo> coverdPriorityInfo_;
     std::vector<NotificationClonePriorityInfo> priorityInfo_;
     std::set<std::string> clonedSystemApps_;
     ffrt::mutex lock_;
+    static bool fromUnSupportPriority_;
+    static int32_t restoreVer_;
 };
 } // namespace Notification
 } // namespace OHOS
