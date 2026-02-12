@@ -1116,13 +1116,19 @@ ani_object CreateMapObject(ani_env *env, const std::string name, const char *sig
         ANS_LOGE("Failed to found %{public}s", name.c_str());
         return nullptr;
     }
+
     ani_method ctor;
     if (env->Class_FindMethod(cls, "<ctor>", signature, &ctor) != ANI_OK) {
         ANS_LOGE("Failed to get ctor %{public}s", name.c_str());
         return nullptr;
     }
     ani_object obj = {};
-    if (env->Object_New(cls, ctor, &obj) != ANI_OK) {
+    ani_ref undefinedArgument;
+    if (ANI_OK != env->GetUndefined(&undefinedArgument)) {
+        ANS_LOGE("Failed to get undefined %{public}s", name.c_str());
+        return nullptr;
+    }
+    if (env->Object_New(cls, ctor, &obj, undefinedArgument) != ANI_OK) {
         ANS_LOGE("Failed to create object %{public}s", name.c_str());
         return nullptr;
     }
