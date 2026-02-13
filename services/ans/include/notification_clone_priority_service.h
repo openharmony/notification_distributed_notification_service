@@ -37,7 +37,7 @@ private:
     void RestoreBundlePriorityInfo(const int32_t uid,
         const NotificationClonePriorityInfo &priorityInfo, const int32_t &restoreVer);
     void SetDefaultPriorityInfo(const int32_t uid, const std::string &bundleName);
-    void BatchRestoreSystemAppsPriorityInfo(const std::set<std::string> &systemApps, const int32_t userId);
+    void BatchRestoreSystemAppsPriorityInfo(const std::set<std::string> &systemApps, const int32_t &userId);
 private:
     std::vector<NotificationClonePriorityInfo> priorityInfo_;
     std::set<std::string> clonedSystemApps_;
