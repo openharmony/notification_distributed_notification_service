@@ -34,7 +34,7 @@ const std::string PriorityInfoMigrationHandler::PRIORITY_STRATEGY_FOR_BUNDLE_KEY
 const std::string PriorityInfoMigrationHandler::PRIORITY_SWITCH_DISABLED = "0";
 const std::string PriorityInfoMigrationHandler::PRIORITY_SWITCH_ENABLED = "1";
 const std::string PriorityInfoMigrationHandler::PRIORITY_SWITCH_ENABLED_ALL = "2";
-const std::string PriorityInfoMigrationHandler::PRIORITY_SWITCH_STRATEGY_INTELLIGNET = "30";
+const std::string PriorityInfoMigrationHandler::PRIORITY_SWITCH_STRATEGY_INTELLIGENT = "30";
 const std::string PriorityInfoMigrationHandler::PRIORITY_SWITCH_STRATEGY_ALL = "32";
 const int32_t PriorityInfoMigrationHandler::PRIORITY_LEGACY_VERSION = 2;
 
@@ -183,7 +183,7 @@ bool PriorityInfoMigrationHandler::onRdbUpgradePriorityMigrate(NativeRdb::RdbSto
         std::string keyStrategy = keyPrefix + PRIORITY_STRATEGY_FOR_BUNDLE_KEY;
         std::string valV2 = (val == PRIORITY_SWITCH_DISABLED) ? PRIORITY_SWITCH_DISABLED : PRIORITY_SWITCH_ENABLED;
         std::string valStrategy = (val == PRIORITY_SWITCH_ENABLED_ALL) ?
-            PRIORITY_SWITCH_STRATEGY_ALL : PRIORITY_SWITCH_STRATEGY_INTELLIGNET;
+            PRIORITY_SWITCH_STRATEGY_ALL : PRIORITY_SWITCH_STRATEGY_INTELLIGENT;
         if (InsertToDatabase(rdbStore, keyV2, valV2, tableName) &&
             InsertToDatabase(rdbStore, keyStrategy, valStrategy, tableName)) {
             return true;
