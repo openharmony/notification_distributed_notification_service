@@ -133,7 +133,7 @@ private:
     static const std::string PRIORITY_SWITCH_ENABLED_ALL;
 
     /** Value representing intelligent strategy state (30). */
-    static const std::string PRIORITY_SWITCH_STRATEGY_INTELLIGNET;
+    static const std::string PRIORITY_SWITCH_STRATEGY_INTELLIGENT;
 
     /** Value representing all messages strategy state (32). */
     static const std::string PRIORITY_SWITCH_STRATEGY_ALL;
