@@ -1026,7 +1026,7 @@ HWTEST_F(SmartReminderCenterTest, SetSyncDevice_100, Function | SmallTest | Leve
     ASSERT_NE(extendInfo, nullptr);
 
     auto deviceList = extendInfo->GetIntParam("collaboration_device_list", -1);
-    ASSERT_EQ(deviceList, 5); // 5 = 1 << 0 | 1 << 2
+    ASSERT_EQ(deviceList, 9); // 5 = 1 << 0 | 1 << 3
 }
 }   //namespace Notification
 }   //namespace OHOS
