@@ -112,9 +112,9 @@ void NotificationClonePriority::OnRestore(const nlohmann::json &jsonObject, std:
 }
 
 void NotificationClonePriority::BatchRestoreSystemAppsPriorityInfo(
-    const std::set<std::string> &systemApps, const int32_t userId)
+    const std::set<std::string> &systemApps, const int32_t &userId)
 {
-    for (std::string bundleName : systemApps) {
+    for (const std::string &bundleName : systemApps) {
         int32_t uid = NotificationCloneUtil::GetBundleUid(bundleName, userId, INVALID_APP_INDEX);
         if (uid <= DEFAULT_UID) {
             continue;
