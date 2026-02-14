@@ -505,7 +505,14 @@ napi_value PreParseParametersForSetPriorityEnable(
     napi_value argv[SET_PRIORITY_ENABLE_MAX_PARA] = { nullptr };
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
+    bool isMap = false;
     if (argc != SET_PRIORITY_ENABLE_MAX_PARA) {
+        Common::NapiThrow(env, ERROR_PARAM_INVALID, MANDATORY_PARAMETER_ARE_LEFT_UNSPECIFIED);
+        return nullptr;
+    }
+    if (napi_is_map(env, argv[PARAM0], &isMap) != napi_ok || !isMap) {
+        ANS_LOGW("Wrong argument type. map expected.");
+        Common::NapiThrow(env, ERROR_PARAM_INVALID, INCORRECT_PARAMETER_TYPES);
         return nullptr;
     }
 
@@ -516,6 +523,38 @@ napi_value PreParseParametersForSetPriorityEnable(
     return Common::NapiGetNull(env);
 }
 
+napi_value ParseParametersMap(const napi_env& env, const napi_value &resultObj, sptr<NotificationBundleOption> &bo)
+{
+    napi_value pairArr;
+    NAPI_CALL(env, napi_get_named_property(env, resultObj, "value", &pairArr));
+    napi_value jsKey = nullptr;
+    napi_value jsVal = nullptr;
+    NAPI_CALL(env, napi_get_element(env, pairArr, 0, &jsKey));
+    NAPI_CALL(env, napi_get_element(env, pairArr, 1, &jsVal));
+    NotificationBundleOption bundle;
+    napi_valuetype valuetype = napi_undefined;
+    NAPI_CALL(env, napi_typeof(env, jsKey, &valuetype));
+    if (valuetype != napi_object || !Common::GetBundleOption(env, jsKey, bundle)) {
+        std::string msg = "Invalid bundleOption in map.";
+        ANS_LOGW("Invalid bundleOption in map.");
+        Common::NapiThrow(env, ERROR_PARAM_INVALID, msg);
+        return nullptr;
+    }
+    bo = new (std::nothrow) NotificationBundleOption(bundle);
+    if (bo == nullptr) {
+        Common::NapiThrow(env, ERROR_NO_MEMORY);
+        return nullptr;
+    }
+    valuetype = napi_undefined;
+    NAPI_CALL(env, napi_typeof(env, jsVal, &valuetype));
+    if (valuetype != napi_boolean && valuetype != napi_number) {
+        ANS_LOGW("Wrong argument type. boolean expected or number expected.");
+        Common::NapiThrow(env, ERROR_PARAM_INVALID, INCORRECT_PARAMETER_TYPES);
+        return nullptr;
+    }
+    return jsVal;
+}
+
 template <typename T>
 napi_value ParseParametersForSetPriorityEnable(const napi_env& env, const napi_callback_info& info,
     std::map<sptr<NotificationBundleOption>, T> &params, const NotificationConstant::TypePriorityParam type)
@@ -524,7 +563,6 @@ napi_value ParseParametersForSetPriorityEnable(const napi_env& env, const napi_c
     napi_value iter = nullptr;
     napi_value nextFn = nullptr;
     if (PreParseParametersForSetPriorityEnable(env, info, iter, nextFn) == nullptr) {
-        Common::NapiThrow(env, ERROR_PARAM_INVALID, MANDATORY_PARAMETER_ARE_LEFT_UNSPECIFIED);
         return nullptr;
     }
 
@@ -540,22 +578,9 @@ napi_value ParseParametersForSetPriorityEnable(const napi_env& env, const napi_c
         if (done) {
             break;
         }
-
-        napi_value pairArr;
-        NAPI_CALL(env, napi_get_named_property(env, resultObj, "value", &pairArr));
-        napi_value jsKey = nullptr;
-        napi_value jsVal = nullptr;
-        NAPI_CALL(env, napi_get_element(env, pairArr, 0, &jsKey));
-        NAPI_CALL(env, napi_get_element(env, pairArr, 1, &jsVal));
-        NotificationBundleOption bundle;
-        if (!Common::GetBundleOption(env, jsKey, bundle)) {
-            std::string msg = "Invalid bundleOption in map.";
-            Common::NapiThrow(env, ERROR_PARAM_INVALID, msg);
-            return nullptr;
-        }
-        sptr<NotificationBundleOption> bo = new (std::nothrow) NotificationBundleOption(bundle);
-        if (bo == nullptr) {
-            Common::NapiThrow(env, ERROR_NO_MEMORY);
+        sptr<NotificationBundleOption> bo;
+        napi_value jsVal = ParseParametersMap(env, resultObj, bo);
+        if (!jsVal) {
             return nullptr;
         }
         if (type == NotificationConstant::TypePriorityParam::TYPE_BOOL) {
@@ -575,11 +600,9 @@ napi_value ParseParametersForSetPriorityEnable(const napi_env& env, const napi_c
 
 napi_value NapiSetPriorityEnabledByBundles(napi_env env, napi_callback_info info)
 {
-    ANS_LOGD("NapiSetPriorityEnabledByBundles");
     std::map<sptr<NotificationBundleOption>, bool> params;
     if (ParseParametersForSetPriorityEnable(
         env, info, params, NotificationConstant::TypePriorityParam::TYPE_BOOL) == nullptr) {
-        Common::NapiThrow(env, ERROR_PARAM_INVALID);
         return Common::NapiGetUndefined(env);
     }
 
@@ -765,7 +788,6 @@ napi_value NapiSetPriorityStrategyByBundles(napi_env env, napi_callback_info inf
     std::map<sptr<NotificationBundleOption>, int64_t> params;
     if (ParseParametersForSetPriorityEnable(
         env, info, params, NotificationConstant::TypePriorityParam::TYPE_LONG) == nullptr) {
-        Common::NapiThrow(env, ERROR_PARAM_INVALID);
         return Common::NapiGetUndefined(env);
     }
     AsyncCallbackInfoPriorityEnabled *asynccallbackinfo =
