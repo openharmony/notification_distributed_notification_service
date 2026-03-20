@@ -1722,7 +1722,7 @@ ErrCode AdvancedNotificationService::UpdateNotificationSwitchState(
     NotificationConstant::SWITCH_STATE targetState = bundleInfo.applicationInfo.allowEnableNotification ?
         NotificationConstant::SWITCH_STATE::SYSTEM_DEFAULT_ON :
         NotificationConstant::SWITCH_STATE::SYSTEM_DEFAULT_OFF;
-
+    bool enable = false;
     NotificationConstant::SWITCH_STATE currentState = NotificationConstant::SWITCH_STATE::SYSTEM_DEFAULT_OFF;
     ErrCode result = NotificationPreferences::GetInstance()->GetNotificationsEnabledForBundle(
         bundleOption, currentState);
@@ -1734,8 +1734,9 @@ ErrCode AdvancedNotificationService::UpdateNotificationSwitchState(
         message.Message(bundleOption->GetBundleName() + "_" +std::to_string(bundleOption->GetUid())
             + "_st" + std::to_string(static_cast<int32_t>(targetState)));
         NotificationAnalyticsUtil::ReportModifyEvent(message);
-        return NotificationPreferences::GetInstance()->SetNotificationsEnabledForBundle(
-            bundleOption, targetState);
+        enable = (targetState == NotificationConstant::SWITCH_STATE::SYSTEM_DEFAULT_ON) ? true : false;
+        return AdvancedNotificationService::GetInstance()->SetDefaultNotificationEnabled(
+            bundleOption, enable);
     }
 
     bool isSystemDefaultState = (currentState == NotificationConstant::SWITCH_STATE::SYSTEM_DEFAULT_ON ||
@@ -1748,8 +1749,9 @@ ErrCode AdvancedNotificationService::UpdateNotificationSwitchState(
         message.Message(bundleOption->GetBundleName() + "_" +std::to_string(bundleOption->GetUid())
             + "_st" + std::to_string(static_cast<int32_t>(targetState))).BranchId(BRANCH_10);
         NotificationAnalyticsUtil::ReportModifyEvent(message);
-        return NotificationPreferences::GetInstance()->SetNotificationsEnabledForBundle(
-            bundleOption, targetState);
+        enable = (targetState == NotificationConstant::SWITCH_STATE::SYSTEM_DEFAULT_ON) ? true : false;
+        return AdvancedNotificationService::GetInstance()->SetDefaultNotificationEnabled(
+            bundleOption, enable);
     }
     return ERR_OK;
 }
