@@ -15,12 +15,17 @@
 
 import type notificationManager from '@ohos.notificationManager';
 
+export interface VoiceContentOptions {
+  enabled?: boolean;
+}
+
 export interface NotificationSubscribeInfo {
     bundleNames?: Array<string>;
     userId?: int;
     deviceType?: string;
     filterLimit?: long;
     slotTypes?: Array<notificationManager.SlotType>;
+    voiceContentOptions?: VoiceContentOptions;
 }
 
 class NotificationSubscribeInfoInner implements NotificationSubscribeInfo {
@@ -29,4 +34,5 @@ class NotificationSubscribeInfoInner implements NotificationSubscribeInfo {
     public deviceType?: string;
     public filterLimit?: long;
     public slotTypes?: Array<notificationManager.SlotType>;
+    public voiceContentOptions?: VoiceContentOptions;
 }

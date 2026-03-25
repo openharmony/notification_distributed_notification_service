@@ -18,6 +18,8 @@
 
 #include "parcel.h"
 #include "notification_constant.h"
+#include "refbase.h"
+#include "voice_content_option.h"
 
 namespace OHOS {
 namespace Notification {
@@ -204,8 +206,13 @@ public:
      **/
     bool GetIsSubscribeSelf() const;
 
+    void SetVoiceContentOption(const sptr<VoiceContentOption> &option);
+
+    sptr<VoiceContentOption> GetVoiceContentOption() const;
+
 private:
     bool ReadFromParcel(Parcel &parcel);
+    bool MarshallingVoiceContentOption(Parcel &parcel) const;
     void SetSubscriberBundleName(const std::string &bundleName);
     std::string GetSubscriberBundleName() const;
     /**
@@ -239,6 +246,7 @@ private:
     bool needNotifyApplicationChanged_ = false;
     bool needNotifyResponse_ = false;
     bool isSubscribeSelf_ = false;
+    sptr<VoiceContentOption> voiceContentOption_;
     friend class NotificationSubscriberManager;
 };
 }  // namespace Notification
