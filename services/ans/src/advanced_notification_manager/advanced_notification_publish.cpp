@@ -102,9 +102,11 @@ bool AdvancedNotificationService::GrantSoundPermission(const sptr<NotificationRe
     }
     std::string uriPath = "";
     const std::string prefix = "uri::", sceneboard = "com.ohos.sceneboard";
-    if (soundPath.compare(0, prefix.length(), prefix) == 0) {
+    if (soundPath.compare(0, prefix.length(), prefix) == 0 && soundPath.find("../") == std::string::npos &&
+        soundPath.find("/..") == std::string::npos) {
         uriPath = soundPath.substr(prefix.length());
     } else {
+        ANS_LOGE("Format check failed");
         return false;
     }
     auto uid = bundleOption->GetUid();
@@ -123,20 +125,21 @@ bool AdvancedNotificationService::GrantSoundPermission(const sptr<NotificationRe
         ANS_LOGI("check sound uri granted");
         return true;
     }
-    const std::string FILE_URI_PREFIX = "uri::file://", SANDBOX_BASE_PATH = "/data/storage/el1/base/files/";
-    std::string sandboxPath = "";
-    if (appIndex <= 0) {
-        sandboxPath = FILE_URI_PREFIX + bundleName + SANDBOX_BASE_PATH;
-    } else {
-        sandboxPath = FILE_URI_PREFIX + "+clone-" + std::to_string(appIndex) + "+" + bundleName + SANDBOX_BASE_PATH;
+    std::string sandboxDataDir = "";
+    if (!BundleManagerHelper::GetInstance()->GetSandboxDataDir(bundleName, appIndex, sandboxDataDir)) {
+        ANS_LOGE("GetSandboxDataDir failed");
+        return false;
     }
+    const std::string FILE_URI_PREFIX = "uri::file://";
+    const std::string SANDBOX_BASE_PATH = "/data/storage/el1/base/files/";
+    std::string sandboxPath = FILE_URI_PREFIX + sandboxDataDir + SANDBOX_BASE_PATH;
     auto normSoundPath = NormalizePath(soundPath), normSandboxPath = NormalizePath(sandboxPath);
     if (normSoundPath.find(normSandboxPath) != 0) {
-        ANS_LOGE("Path format failed.");
+        ANS_LOGE("Path format failed");
         return false;
     }
     auto result = AAFwk::UriPermissionManagerClient::GetInstance().GrantUriPermission(
-        uri, AAFwk::Want::FLAG_AUTH_READ_URI_PERMISSION, sceneboard, appIndex, appTokenId);
+        uri, AAFwk::Want::FLAG_AUTH_READ_URI_PERMISSION, sceneboard, 0, appTokenId);
     if (result != ERR_OK) {
         ANS_LOGE("GrantUriPermission failed. %{public}d", result);
     }
