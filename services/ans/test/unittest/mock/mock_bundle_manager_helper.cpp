@@ -220,5 +220,14 @@ bool BundleManagerHelper::IsAtomicServiceByBundle(const std::string& bundleName,
 {
     return false;
 }
+
+bool BundleManagerHelper::GetSandboxDataDir(
+    const std::string &bundleName, int32_t appIndex, std::string &sandboxDataDir)
+{
+    if (bundleName.empty()) {
+        return false;
+    }
+    return true;
+}
 }  // namespace Notification
 }  // namespace OHOS

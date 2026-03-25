@@ -204,6 +204,14 @@ public:
      */
     bool IsAtomicServiceByBundle(const std::string& bundleName, const int32_t userId);
 
+    /**
+     * @brief Obtains sandbox data directory by bundleName and appIndex.
+     * @param bundleName Indicates the bundle name of the sandbox application to be install.
+     * @param appIndex Indicates application index of the sandbox application.
+     * @return Returns true if the get sandbox data dir successfully; returns errcode otherwise.
+     */
+    bool GetSandboxDataDir(const std::string &bundleName, int32_t appIndex, std::string &sandboxDataDir);
+
     ErrCode GetAllBundleOption(std::vector<NotificationBundleOption>& bundleOptions, int32_t userId);
 private:
     void Connect();

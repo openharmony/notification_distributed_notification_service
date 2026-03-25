@@ -578,5 +578,32 @@ bool __attribute__((weak)) BundleManagerHelper::IsAtomicServiceByBundle(
     }
     return bundleInfo.applicationInfo.bundleType == AppExecFwk::BundleType::ATOMIC_SERVICE;
 }
+
+bool __attribute__((weak)) BundleManagerHelper::GetSandboxDataDir(
+    const std::string &bundleName, int32_t appIndex, std::string &sandboxDataDir)
+{
+    if (bundleName.empty()) {
+        return false;
+    }
+
+    std::lock_guard<ffrt::mutex> lock(connectionMutex_);
+    Connect();
+    if (bundleMgr_ == nullptr) {
+        ANS_LOGE("GetSandboxDataDir proxy failed.");
+        return false;
+    }
+
+    std::string identity = IPCSkeleton::ResetCallingIdentity();
+    ErrCode result = 0;
+    result = bundleMgr_->GetSandboxDataDir(bundleName, appIndex, sandboxDataDir);
+    IPCSkeleton::SetCallingIdentity(identity);
+
+    if (result != ERR_OK) {
+        ANS_LOGE("GetSandboxDataDir failed %{public}d.", result);
+        return false;
+    }
+
+    return true;
+}
 }  // namespace Notification
 }  // namespace OHOS
