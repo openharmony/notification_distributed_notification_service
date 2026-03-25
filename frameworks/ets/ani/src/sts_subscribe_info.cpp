@@ -50,6 +50,33 @@ bool GetSlotTypes(ani_env *env, ani_object value, NotificationSubscribeInfo &inf
     return true;
 }
 
+bool GetVoiceContentOption(ani_env *env, ani_object value, NotificationSubscribeInfo &info)
+{
+    ani_boolean isUndefined = ANI_TRUE;
+    ani_ref voiceContentOptionRef = nullptr;
+    ani_status status = GetPropertyRef(env, value, "voiceContentOptions", isUndefined, voiceContentOptionRef);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetPropertyRefRef voiceContentOption failed");
+        return false;
+    }
+    if (isUndefined == ANI_TRUE) {
+        return true;
+    }
+    ani_boolean enabledUndefined = ANI_TRUE;
+    bool enabled = false;
+    if (GetPropertyBool(env, static_cast<ani_object>(voiceContentOptionRef), "enabled", enabledUndefined,
+        enabled) != ANI_OK || enabledUndefined == ANI_TRUE) {
+        ANS_LOGE("GetPropertyBool enabled failed");
+        return false;
+    }
+    sptr<OHOS::Notification::VoiceContentOption> voiceContentOption =
+        new (std::nothrow) OHOS::Notification::VoiceContentOption(enabled);
+    if (voiceContentOption != nullptr) {
+        info.SetVoiceContentOption(voiceContentOption);
+    }
+    return true;
+}
+
 bool UnwarpNotificationSubscribeInfo(ani_env *env, ani_object value, NotificationSubscribeInfo &info)
 {
     ANS_LOGD("enter");
@@ -86,8 +113,13 @@ bool UnwarpNotificationSubscribeInfo(ani_env *env, ani_object value, Notificatio
     info.AddAppUserId(userId);
     info.SetFilterType(static_cast<uint32_t>(filterLimit));
     info.AddDeviceType(GetResizeStr(deviceType, STR_MAX_SIZE));
-    ANS_LOGD("userId %{public}d deviceType %{public}s filterLimit %{public}d",
-        info.GetAppUserId(), info.GetDeviceType().c_str(), info.GetFilterType());
+    if (!GetVoiceContentOption(env, value, info)) {
+        return false;
+    }
+
+    ANS_LOGD("userId %{public}d deviceType %{public}s filterLimit %{public}d voiceContentOption %{public}s",
+        info.GetAppUserId(), info.GetDeviceType().c_str(), info.GetFilterType(),
+        info.GetVoiceContentOption() != nullptr ? "enabled" : "null");
     return true;
 }
 
