@@ -1553,6 +1553,11 @@ public:
      * @brief Init The Default Installation Package Notification Enabled.
      */
     void InitNotificationEnableList();
+
+    /**
+     * @brief Init The Default Installation Package Notification Statistics.
+     */
+    void InitNotificationStatistics();
     /**
      * @brief Remove Local Live Notifications
      */

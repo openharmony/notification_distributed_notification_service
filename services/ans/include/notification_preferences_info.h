@@ -30,6 +30,7 @@
 #include "notification_disable.h"
 #include "notification_constant.h"
 #include "notification_ringtone_info.h"
+#include "notification_statistics.h"
 
 namespace OHOS {
 namespace Notification {
@@ -387,7 +388,8 @@ public:
         std::vector<std::string>> &restrictedModeTrustList);
     bool GetRestrictedModeTrustList(std::unordered_map<int32_t,
         std::vector<std::string>> &restrictedModeTrustList) const;
-
+    void UpdateNotificationStatisticsByBundle(int32_t bundleId, const NotificationStatistics &statistics);
+    bool GetNotificationStatisticsByBundle(int32_t bundleId, NotificationStatistics &statistics);
 private:
     std::map<int32_t, bool> isEnabledAllNotification_;
     std::map<int32_t, sptr<NotificationDoNotDisturbDate>> doNotDisturbDate_;
@@ -403,6 +405,7 @@ private:
     };
     DisableNotificationInfo disableNotificationInfo_;
     std::map<int32_t, DisableNotificationInfo> userDisableNotificationInfo_;
+    std::map<int32_t, NotificationStatistics> notificationStatistics_ = {};
 };
 }  // namespace Notification
 }  // namespace OHOS
