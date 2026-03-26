@@ -54,7 +54,8 @@ public:
      */
     bool PutBundlePropertyToDisturbeDB(const NotificationPreferencesInfo::BundleInfo &bundleInfo);
 
-    bool PutNotificationStatistics(const int32_t userId, const sptr<NotificationBundleOption> &bundleOption);
+    bool PutNotificationStatistics(const int32_t userId, const int64_t insertTime,
+        const sptr<NotificationBundleOption> &bundleOption);
     
     bool CleanExperDbData(const int32_t userId);
 

@@ -172,11 +172,24 @@ ErrCode NotificationPreferences::QueryStatisticsByBundle(const sptr<Notification
         return ERR_ANS_INVALID_PARAM;
     }
     ErrCode result = ERR_OK;
-
     std::lock_guard<ffrt::mutex> lock(preferenceMutex_);
-    if (!preferncesDB_->QueryStatisticsByBundle(bundle->GetUid(), recentCount, lastTime)) {
-        result = ERR_ANS_PREFERENCES_NOTIFICATION_DB_OPERATION_FAILED;
+    NotificationStatistics statistics;
+    if (preferencesInfo_.GetNotificationStatisticsByBundle(bundle->GetUid(), statistics)) {
+        recentCount = statistics.GetRecentCount();
+        lastTime = statistics.GetLastTime();
+        return result;
     }
+
+    if (!preferncesDB_->QueryStatisticsByBundle(bundle->GetUid(), recentCount, lastTime)) {
+        ANS_LOGE("NotificationPreferences::QueryStatisticsByBundle failed.");
+        result = ERR_ANS_PREFERENCES_NOTIFICATION_DB_OPERATION_FAILED;
+        return result;
+    }
+    statistics.SetBundleOption(*bundle);
+    statistics.SetLastTime(lastTime);
+    statistics.SetRecentCount(recentCount);
+    preferencesInfo_.UpdateNotificationStatisticsByBundle(bundle->GetUid(), statistics);
+
     ANS_LOGD("NotificationPreferences::QueryStatisticsByBundle.result: %{public}d", result);
     return result;
 }
@@ -218,11 +231,19 @@ ErrCode NotificationPreferences::PutNotificationStatistics(const int32_t userId,
     std::lock_guard<ffrt::mutex> lock(preferenceMutex_);
     ErrCode result = ERR_OK;
 
-    if (!preferncesDB_->PutNotificationStatistics(userId, bundleOption)) {
+    int64_t curTime = NotificationAnalyticsUtil::GetCurrentTime();
+    if (!preferncesDB_->PutNotificationStatistics(userId, curTime, bundleOption)) {
         result = ERR_ANS_PREFERENCES_NOTIFICATION_DB_OPERATION_FAILED;
+        return result;
     }
-
-    ANS_LOGI("NotificationPreferences::PutNotificationStatistics2.result: %{public}d", result);
+    NotificationStatistics statistics;
+    if (preferencesInfo_.GetNotificationStatisticsByBundle(bundleOption->GetUid(), statistics)) {
+        statistics.SetLastTime(curTime);
+        int32_t recentCount = statistics.GetRecentCount() + 1;
+        statistics.SetRecentCount(recentCount);
+        preferencesInfo_.UpdateNotificationStatisticsByBundle(bundleOption->GetUid(), statistics);
+    }
+    ANS_LOGD("NotificationPreferences::PutNotificationStatistics2.result: %{public}d", result);
     return result;
 }
 

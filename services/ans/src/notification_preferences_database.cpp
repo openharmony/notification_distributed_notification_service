@@ -481,7 +481,7 @@ bool NotificationPreferencesDatabase::DeleteStatisticsByBundle(const int32_t use
     return result == NativeRdb::E_OK ? true : false;
 }
 
-bool NotificationPreferencesDatabase::PutNotificationStatistics(const int32_t userId,
+bool NotificationPreferencesDatabase::PutNotificationStatistics(const int32_t userId, const int64_t insertTime,
     const sptr<NotificationBundleOption> &bundleOption)
 {
     if (!CheckRdbStore()) {
@@ -491,7 +491,7 @@ bool NotificationPreferencesDatabase::PutNotificationStatistics(const int32_t us
     std::string bundleName = bundleOption->GetBundleName();
     int32_t PackageId = bundleOption->GetUid();
 
-    Infra::StatisticsWrapperInfo info { GetCurrentTime(), bundleName,
+    Infra::StatisticsWrapperInfo info { insertTime, bundleName,
         PackageId, NITIFICATION_CREATE_TYPE };
 
     int32_t result = rdbDataManager_->InsertStatisticsData(userId, info);

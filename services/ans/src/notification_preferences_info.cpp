@@ -813,5 +813,24 @@ bool NotificationPreferencesInfo::GetUserDisableNotificationInfo(
     }
     return true;
 }
+
+void NotificationPreferencesInfo::UpdateNotificationStatisticsByBundle(int32_t bundleId,
+    const NotificationStatistics &statistics)
+{
+    notificationStatistics_.insert_or_assign(bundleId, statistics);
+}
+
+bool NotificationPreferencesInfo::GetNotificationStatisticsByBundle(int32_t bundleId,
+    NotificationStatistics &statistics)
+{
+    auto itr = notificationStatistics_.find(bundleId);
+    if (itr != notificationStatistics_.end()) {
+        statistics.SetBundleOption(itr->second.GetBundleOption());
+        statistics.SetLastTime(itr->second.GetLastTime());
+        statistics.SetRecentCount(itr->second.GetRecentCount());
+        return true;
+    }
+    return false;
+}
 }  // namespace Notification
 }  // namespace OHOS

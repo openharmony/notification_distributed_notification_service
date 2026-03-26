@@ -824,5 +824,62 @@ HWTEST_F(NotificationPreferencesInfoTest, SetExtensionSubscriptionInfosFromJson_
     EXPECT_EQ(info1->IsHfp(), info2->IsHfp());
     EXPECT_EQ(info1->GetType(), info2->GetType());
 }
+
+/**
+ * @tc.name: UpdateNotificationStatisticsByBundle_0100
+ * @tc.desc: test UpdateNotificationStatisticsByBundle.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesInfoTest, UpdateNotificationStatisticsByBundle_0100, TestSize.Level1)
+{
+    std::shared_ptr<NotificationPreferencesInfo> preferencesInfo = std::make_shared<NotificationPreferencesInfo>();
+    sptr<NotificationBundleOption> bundleInfo = new NotificationBundleOption("test", 101);;
+    NotificationStatistics statistics;
+    statistics.SetBundleOption(*bundleInfo);
+    statistics.SetLastTime(1767196800000);
+    statistics.SetRecentCount(1);
+    preferencesInfo->UpdateNotificationStatisticsByBundle(101, statistics);
+    NotificationStatistics statistics1;
+    bool ret = preferencesInfo->GetNotificationStatisticsByBundle(101, statistics1);
+    EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.name: GetNotificationStatisticsByBundle_0100
+ * @tc.desc: test GetNotificationStatisticsByBundle.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesInfoTest, GetNotificationStatisticsByBundle_0100, TestSize.Level1)
+{
+    std::shared_ptr<NotificationPreferencesInfo> preferencesInfo = std::make_shared<NotificationPreferencesInfo>();
+    sptr<NotificationBundleOption> bundleInfo = new NotificationBundleOption("test", 101);;
+    NotificationStatistics statistics;
+    statistics.SetBundleOption(*bundleInfo);
+    statistics.SetLastTime(1767196800000);
+    statistics.SetRecentCount(1);
+    preferencesInfo->notificationStatistics_.insert_or_assign(101, statistics);
+    NotificationStatistics statistics1;
+    bool ret = preferencesInfo->GetNotificationStatisticsByBundle(101, statistics1);
+    EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.name: GetNotificationStatisticsByBundle_0200
+ * @tc.desc: test GetNotificationStatisticsByBundle.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesInfoTest, GetNotificationStatisticsByBundle_0200, TestSize.Level1)
+{
+    std::shared_ptr<NotificationPreferencesInfo> preferencesInfo = std::make_shared<NotificationPreferencesInfo>();
+    sptr<NotificationBundleOption> bundleInfo = new NotificationBundleOption("test", 101);;
+    NotificationStatistics statistics;
+    statistics.SetBundleOption(*bundleInfo);
+    statistics.SetLastTime(1767196800000);
+    statistics.SetRecentCount(1);
+    preferencesInfo->notificationStatistics_.insert_or_assign(101, statistics);
+    NotificationStatistics statistics1;
+    bool ret = preferencesInfo->GetNotificationStatisticsByBundle(102, statistics1);
+    EXPECT_FALSE(ret);
+}
 }
 }

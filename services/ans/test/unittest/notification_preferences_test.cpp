@@ -1099,6 +1099,25 @@ HWTEST_F(NotificationPreferencesTest, QueryStatisticsByBundle_00100, Function | 
 }
 
 /**
+ * @tc.number    : QueryStatisticsByBundle_00200
+ * @tc.name      : QueryStatisticsByBundle
+ * @tc.desc      : query statistics table data by bundle
+ */
+HWTEST_F(NotificationPreferencesTest, QueryStatisticsByBundle_00200, Function | SmallTest | Level1)
+{
+    NotificationPreferences notificationPreferences;
+    sptr<NotificationBundleOption> bundle = new NotificationBundleOption("test", 1);
+    NotificationStatistics statistics;
+    statistics.SetBundleOption(*bundle);
+    notificationPreferences.preferencesInfo_ = NotificationPreferencesInfo();
+    notificationPreferences.preferencesInfo_.UpdateNotificationStatisticsByBundle(1, statistics);
+    int32_t recentCount = 0;
+    int64_t lastTime = 0;
+    EXPECT_EQ((int)notificationPreferences.QueryStatisticsByBundle(bundle,
+        recentCount, lastTime), ERR_OK);
+}
+
+/**
  * @tc.number    : UpdateCustomTimeData_00100
  * @tc.name      : UpdateCustomTimeData
  * @tc.desc      : update statistics table notificationTime
