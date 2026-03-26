@@ -390,6 +390,9 @@ public:
         std::vector<std::string>> &restrictedModeTrustList) const;
     void UpdateNotificationStatisticsByBundle(int32_t bundleId, const NotificationStatistics &statistics);
     bool GetNotificationStatisticsByBundle(int32_t bundleId, NotificationStatistics &statistics);
+    void RemoveNotificationStatisticsByBundle(int32_t bundleId);
+    void UpdateNotificationStatisticsTime(int64_t offsetTime);
+    std::vector<NotificationStatistics> GetNotificationStatisticsAll();
 private:
     std::map<int32_t, bool> isEnabledAllNotification_;
     std::map<int32_t, sptr<NotificationDoNotDisturbDate>> doNotDisturbDate_;

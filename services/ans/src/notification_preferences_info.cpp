@@ -832,5 +832,31 @@ bool NotificationPreferencesInfo::GetNotificationStatisticsByBundle(int32_t bund
     }
     return false;
 }
+
+void NotificationPreferencesInfo::RemoveNotificationStatisticsByBundle(int32_t bundleId)
+{
+    auto iter = notificationStatistics_.find(bundleId);
+    if (iter != notificationStatistics_.end()) {
+        notificationStatistics_.erase(iter);
+    }
+}
+
+void NotificationPreferencesInfo::UpdateNotificationStatisticsTime(int64_t offsetTime)
+{
+    for (auto iter = notificationStatistics_.begin(); iter != notificationStatistics_.end(); iter++) {
+        int64_t currentTime = iter->second.GetLastTime() + offsetTime;
+        iter->second.SetLastTime(currentTime);
+    }
+}
+
+std::vector<NotificationStatistics> NotificationPreferencesInfo::GetNotificationStatisticsAll()
+{
+    std::vector<NotificationStatistics> statistics;
+    for (auto iter = notificationStatistics_.begin(); iter != notificationStatistics_.end(); iter++) {
+        statistics.push_back(iter->second);
+    }
+
+    return statistics;
+}
 }  // namespace Notification
 }  // namespace OHOS
