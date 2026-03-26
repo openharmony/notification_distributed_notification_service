@@ -71,6 +71,8 @@ public:
 
     ErrCode DropStatisticsTable(const int32_t userId);
 
+    void UpdateStatisticsAll();
+
     /**
      * @brief Remove notification a slot in the of bundle from DB.
      *

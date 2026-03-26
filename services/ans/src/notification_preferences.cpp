@@ -147,6 +147,7 @@ ErrCode NotificationPreferences::CleanExperData(const int32_t userId)
         result = ERR_ANS_PREFERENCES_NOTIFICATION_DB_OPERATION_FAILED;
     }
 
+    UpdateStatisticsAll();
     ANS_LOGD("NotificationPreferences::CleanExperData.result: %{public}d", result);
     return result;
 }
@@ -159,8 +160,10 @@ ErrCode NotificationPreferences::DeleteStatisticsByBundle(const int32_t userId,
 
     if (!preferncesDB_->DeleteStatisticsByBundle(userId, bundleName, packageId)) {
         result = ERR_ANS_PREFERENCES_NOTIFICATION_DB_OPERATION_FAILED;
+        return result;
     }
 
+    preferencesInfo_.RemoveNotificationStatisticsByBundle(packageId);
     ANS_LOGI("NotificationPreferences::DeleteStatisticsByBundle.result: %{public}d", result);
     return result;
 }
@@ -201,8 +204,9 @@ ErrCode NotificationPreferences::UpdateCustomTimeData(int64_t offsetMs)
 
     if (!preferncesDB_->UpdateCustomTimeDbData(offsetMs)) {
         result = ERR_ANS_PREFERENCES_NOTIFICATION_DB_OPERATION_FAILED;
+        return result;
     }
-
+    preferencesInfo_.UpdateNotificationStatisticsTime(offsetMs);
     ANS_LOGD("NotificationPreferences::UpdateCustomTimeData.result: %{public}d", result);
     return result;
 }
@@ -217,6 +221,23 @@ ErrCode NotificationPreferences::DropStatisticsTable(const int32_t userId)
     }
 
     return result;
+}
+
+void NotificationPreferences::UpdateStatisticsAll()
+{
+    std::vector<NotificationStatistics> statisticsVec;
+    statisticsVec = preferencesInfo_.GetNotificationStatisticsAll();
+    for (auto &statistics : statisticsVec) {
+        int32_t recentCount = 0;
+        int64_t lastTime = 0;
+        if (!preferncesDB_->QueryStatisticsByBundle(statistics.GetBundleOption().GetUid(), recentCount, lastTime)) {
+            ANS_LOGE("NotificationPreferences::QueryStatisticsByBundle failed.");
+            return;
+        }
+        statistics.SetLastTime(lastTime);
+        statistics.SetRecentCount(recentCount);
+        preferencesInfo_.UpdateNotificationStatisticsByBundle(statistics.GetBundleOption().GetUid(), statistics);
+    }
 }
 
 ErrCode NotificationPreferences::PutNotificationStatistics(const int32_t userId,
@@ -243,7 +264,7 @@ ErrCode NotificationPreferences::PutNotificationStatistics(const int32_t userId,
         statistics.SetRecentCount(recentCount);
         preferencesInfo_.UpdateNotificationStatisticsByBundle(bundleOption->GetUid(), statistics);
     }
-    ANS_LOGD("NotificationPreferences::PutNotificationStatistics2.result: %{public}d", result);
+    ANS_LOGD("NotificationPreferences::PutNotificationStatistics result: %{public}d", result);
     return result;
 }
 
