@@ -881,5 +881,62 @@ HWTEST_F(NotificationPreferencesInfoTest, GetNotificationStatisticsByBundle_0200
     bool ret = preferencesInfo->GetNotificationStatisticsByBundle(102, statistics1);
     EXPECT_FALSE(ret);
 }
+
+/**
+ * @tc.name: RemoveNotificationStatisticsByBundle_0100
+ * @tc.desc: test RemoveNotificationStatisticsByBundle.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesInfoTest, RemoveNotificationStatisticsByBundle_0100, TestSize.Level1)
+{
+    std::shared_ptr<NotificationPreferencesInfo> preferencesInfo = std::make_shared<NotificationPreferencesInfo>();
+    sptr<NotificationBundleOption> bundleInfo = new NotificationBundleOption("test", 101);;
+    NotificationStatistics statistics;
+    statistics.SetBundleOption(*bundleInfo);
+    statistics.SetLastTime(1767196800000);
+    statistics.SetRecentCount(1);
+    preferencesInfo->notificationStatistics_.insert_or_assign(101, statistics);
+    preferencesInfo->RemoveNotificationStatisticsByBundle(102);
+    EXPECT_EQ(preferencesInfo->notificationStatistics_.size(), 1);
+    preferencesInfo->RemoveNotificationStatisticsByBundle(101);
+    EXPECT_EQ(preferencesInfo->notificationStatistics_.size(), 0);
+}
+
+/**
+ * @tc.name: UpdateNotificationStatisticsTime_0100
+ * @tc.desc: test UpdateNotificationStatisticsTime.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesInfoTest, UpdateNotificationStatisticsTime_0100, TestSize.Level1)
+{
+    std::shared_ptr<NotificationPreferencesInfo> preferencesInfo = std::make_shared<NotificationPreferencesInfo>();
+    sptr<NotificationBundleOption> bundleInfo = new NotificationBundleOption("test", 101);;
+    NotificationStatistics statistics;
+    statistics.SetBundleOption(*bundleInfo);
+    statistics.SetLastTime(1767196800000);
+    statistics.SetRecentCount(1);
+    preferencesInfo->notificationStatistics_.insert_or_assign(101, statistics);
+    preferencesInfo->UpdateNotificationStatisticsTime(100);
+    int64_t ctime = preferencesInfo->notificationStatistics_[101].GetLastTime();
+    EXPECT_EQ(ctime, 1767196800100);
+}
+
+/**
+ * @tc.name: GetNotificationStatisticsAll_0100
+ * @tc.desc: test GetNotificationStatisticsAll.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesInfoTest, GetNotificationStatisticsAll_0100, TestSize.Level1)
+{
+    std::shared_ptr<NotificationPreferencesInfo> preferencesInfo = std::make_shared<NotificationPreferencesInfo>();
+    sptr<NotificationBundleOption> bundleInfo = new NotificationBundleOption("test", 101);;
+    NotificationStatistics statistics;
+    statistics.SetBundleOption(*bundleInfo);
+    statistics.SetLastTime(1767196800000);
+    statistics.SetRecentCount(1);
+    preferencesInfo->notificationStatistics_.insert_or_assign(101, statistics);
+    std::vector<NotificationStatistics> statisticsVec = preferencesInfo->GetNotificationStatisticsAll();
+    EXPECT_EQ(statisticsVec.size(), 1);
+}
 }
 }

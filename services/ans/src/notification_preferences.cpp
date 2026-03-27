@@ -129,11 +129,12 @@ ErrCode NotificationPreferences::TimerCleanExperData()
         ANS_LOGE("NotificationPreferences::TimerCleanExperData GetAllActiveOsAccount fail");
         return result;
     }
-
+    userIds.push_back(ZERO_USERID);
     if (!preferncesDB_->TimerCleanExperData(userIds)) {
         result = ERR_ANS_PREFERENCES_NOTIFICATION_DB_OPERATION_FAILED;
     }
 
+    UpdateStatisticsAll();
     ANS_LOGD("NotificationPreferences::TimerCleanExperData.result: %{public}d", result);
     return result;
 }
@@ -147,7 +148,6 @@ ErrCode NotificationPreferences::CleanExperData(const int32_t userId)
         result = ERR_ANS_PREFERENCES_NOTIFICATION_DB_OPERATION_FAILED;
     }
 
-    UpdateStatisticsAll();
     ANS_LOGD("NotificationPreferences::CleanExperData.result: %{public}d", result);
     return result;
 }
@@ -220,6 +220,7 @@ ErrCode NotificationPreferences::DropStatisticsTable(const int32_t userId)
         result = ERR_ANS_PREFERENCES_NOTIFICATION_DB_OPERATION_FAILED;
     }
 
+    UpdateStatisticsAll();
     return result;
 }
 
@@ -236,7 +237,11 @@ void NotificationPreferences::UpdateStatisticsAll()
         }
         statistics.SetLastTime(lastTime);
         statistics.SetRecentCount(recentCount);
-        preferencesInfo_.UpdateNotificationStatisticsByBundle(statistics.GetBundleOption().GetUid(), statistics);
+        if (recentCount == 0) {
+            preferencesInfo_.RemoveNotificationStatisticsByBundle(statistics.GetBundleOption().GetUid());
+        } else {
+            preferencesInfo_.UpdateNotificationStatisticsByBundle(statistics.GetBundleOption().GetUid(), statistics);
+        }
     }
 }
 

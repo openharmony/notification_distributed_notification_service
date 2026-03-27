@@ -407,6 +407,7 @@ bool NotificationPreferencesDatabase::UpdateCustomTimeDbData(int64_t offsetMs)
 {
     std::vector<int> activeUserId;
     OsAccountManagerHelper::GetInstance().GetAllActiveOsAccount(activeUserId);
+    activeUserId.push_back(ZERO_USER_ID);
     if (!CheckRdbStore()) {
         ANS_LOGE("null RdbStore");
         return false;
