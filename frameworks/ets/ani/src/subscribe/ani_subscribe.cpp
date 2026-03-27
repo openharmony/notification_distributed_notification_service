@@ -88,6 +88,12 @@ void AniSubscribe(ani_env *env, ani_object obj, ani_object info)
     OHOS::NotificationSts::SubscriberInstanceManager::GetInstance()->Subscribe(env, obj, info);
 }
 
+void AniSubscribeNotification(ani_env *env, ani_object obj, ani_object info)
+{
+    ANS_LOGD("StsSubscribeNotification enter");
+    OHOS::NotificationSts::SubscriberInstanceManager::GetInstance()->SubscribeNotification(env, obj, info);
+}
+
 void AniUnSubscribe(ani_env *env, ani_object obj)
 {
     ANS_LOGD("StsUnSubscribe enter");
@@ -120,6 +126,8 @@ void AniSubScribeRegistryInit(ani_env *env)
         ani_native_function {"nativeDistributeOperation",
             DISTRIBUTE_OPERATION_SIGNATURE, reinterpret_cast<void *>(AniDistributeOperation)},
         ani_native_function {"nativeSubscribe", SUBSCRIBE_SIGNATURE, reinterpret_cast<void *>(AniSubscribe)},
+        ani_native_function {"nativeSubscribeNotification", SUBSCRIBE_SIGNATURE, 
+            reinterpret_cast<void *>(AniSubscribeNotification)},
         ani_native_function {"nativeUnSubscribe", UNSUBSCRIBE_SIGNATURE, reinterpret_cast<void *>(AniUnSubscribe)},
         ani_native_function {"nativeSubscribeSelf", UNSUBSCRIBE_SIGNATURE, reinterpret_cast<void *>(AniSubscribeSelf)},
         ani_native_function {"nativeRemoveAllForBundle",
