@@ -1144,6 +1144,33 @@ HWTEST_F(NotificationPreferencesTest, DropStatisticsTable_00100, Function | Smal
 }
 
 /**
+ * @tc.number    : UpdateStatisticsAll_00100
+ * @tc.name      : UpdateStatisticsAll
+ * @tc.desc      : update statistics_userid table in ccache
+ */
+HWTEST_F(NotificationPreferencesTest, UpdateStatisticsAll_00100, Function | SmallTest | Level1)
+{
+    NotificationPreferences notificationPreferences;
+    notificationPreferences.preferencesInfo_ = NotificationPreferencesInfo();
+    sptr<NotificationBundleOption> bundle1 = new NotificationBundleOption("testBundle", 101);
+    NotificationStatistics statistics;
+    statistics.SetBundleOption(*bundle1);
+    statistics.SetLastTime(0);
+    statistics.SetRecentCount(0);
+    notificationPreferences.preferencesInfo_.UpdateNotificationStatisticsByBundle(101, statistics);
+    EXPECT_EQ(notificationPreferences.preferencesInfo_.notificationStatistics_.size(), 1);
+    sptr<NotificationBundleOption> bundle2 = new NotificationBundleOption("testBundle2", 102);
+    NotificationStatistics statistics1;
+    statistics1.SetBundleOption(*bundle2);
+    statistics1.SetLastTime(1767196800000);
+    statistics1.SetRecentCount(1);
+    notificationPreferences.preferencesInfo_.UpdateNotificationStatisticsByBundle(102, statistics);
+    EXPECT_EQ(notificationPreferences.preferencesInfo_.notificationStatistics_.size(), 2);
+    notificationPreferences.UpdateStatisticsAll();
+    EXPECT_EQ(notificationPreferences.preferencesInfo_.notificationStatistics_.size(), 1);
+}
+
+/**
  * @tc.number    : AddNotificationBundleProperty_00100
  * @tc.name      : AddNotificationBundleProperty
  * @tc.desc      : Add a notification BundleProperty into distrube DB when bundleOption is null,
