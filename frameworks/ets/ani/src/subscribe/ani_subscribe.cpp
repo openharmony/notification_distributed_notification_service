@@ -126,7 +126,7 @@ void AniSubScribeRegistryInit(ani_env *env)
         ani_native_function {"nativeDistributeOperation",
             DISTRIBUTE_OPERATION_SIGNATURE, reinterpret_cast<void *>(AniDistributeOperation)},
         ani_native_function {"nativeSubscribe", SUBSCRIBE_SIGNATURE, reinterpret_cast<void *>(AniSubscribe)},
-        ani_native_function {"nativeSubscribeNotification", SUBSCRIBE_SIGNATURE, 
+        ani_native_function {"nativeSubscribeNotification", SUBSCRIBE_SIGNATURE,
             reinterpret_cast<void *>(AniSubscribeNotification)},
         ani_native_function {"nativeUnSubscribe", UNSUBSCRIBE_SIGNATURE, reinterpret_cast<void *>(AniUnSubscribe)},
         ani_native_function {"nativeSubscribeSelf", UNSUBSCRIBE_SIGNATURE, reinterpret_cast<void *>(AniSubscribeSelf)},

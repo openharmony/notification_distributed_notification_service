@@ -774,8 +774,7 @@ bool SubscriberInstanceManager::SubscribeNotification(ani_env *env, ani_object s
     if (!isInfoUndefine) {
         if (!UnwarpNotificationSubscribeInfo(env, info, *SubscribeInfo)) {
             ANS_LOGD("SubscribeNotification UnwarpNotificationSubscribeInfo faild");
-            OHOS::NotificationSts::ThrowError(env, ERROR_PARAM_INVALID, 
-                "SubscribeNotification UnwarpNotificationSubscribeInfo faild");
+            OHOS::NotificationSts::ThrowError(env, ERROR_PARAM_INVALID, "UnwarpNotificationSubscribeInfo faild");
             return false;
         }
     }
@@ -783,14 +782,12 @@ bool SubscriberInstanceManager::SubscribeNotification(ani_env *env, ani_object s
     if (!HasNotificationSubscriber(env, subscriber, stsSubscriber)) {
         if (!GetNotificationSubscriber(env, subscriber, stsSubscriber)) {
             ANS_LOGD("SubscribeNotification GetNotificationSubscriber faild");
-            OHOS::NotificationSts::ThrowError(env, ERROR_INTERNAL_ERROR, 
-                "SubscribeNotification GetNotificationSubscriber faild");
+            OHOS::NotificationSts::ThrowError(env, ERROR_INTERNAL_ERROR, "GetNotificationSubscriber faild");
             return false;
         }
         if (!AddSubscriberInstancesInfo(env, stsSubscriber)) {
             ANS_LOGD("SubscribeNotification AddSubscriberInstancesInfo faild");
-            OHOS::NotificationSts::ThrowError(env, ERROR_INTERNAL_ERROR, 
-                "SubscribeNotification GetNotificationSubscriber faild");
+            OHOS::NotificationSts::ThrowError(env, ERROR_INTERNAL_ERROR, "AddSubscriberInstancesInfo faild");
             return false;
         }
     }
@@ -842,7 +839,7 @@ bool SubscriberInstanceManager::Subscribe(ani_env *env, ani_object subscriber, a
         }
         if (!AddSubscriberInstancesInfo(env, stsSubscriber)) {
             ANS_LOGD("AddSubscriberInstancesInfo faild");
-            OHOS::NotificationSts::ThrowError(env, ERROR_INTERNAL_ERROR, "GetNotificationSubscriber faild");
+            OHOS::NotificationSts::ThrowError(env, ERROR_INTERNAL_ERROR, "AddSubscriberInstancesInfo faild");
             return false;
         }
     }

@@ -115,7 +115,6 @@ napi_value NapiSubscribeNotification(napi_env env, napi_callback_info info)
 
     napi_value resourceName = nullptr;
     napi_create_string_latin1(env, "subscribeNotification", NAPI_AUTO_LENGTH, &resourceName);
-    // Asynchronous function call
     napi_create_async_work(env,
         nullptr,
         resourceName,
