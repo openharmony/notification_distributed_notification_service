@@ -713,6 +713,19 @@ public:
 
     ErrCode Subscribe(const sptr<IAnsSubscriber> &subscriber, uint32_t subscribedFlags) override;
 
+        /**
+     * @brief SubscribeNotification.
+     *
+     * @param subscriber Indicates the subscriber.
+     * @param info Indicates the NotificationSubscribeInfo object.
+     * @param subscribedFlags Indicated the subscriber implemented method by bitset
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode SubscribeNotification(const sptr<IAnsSubscriber> &subscriber,
+        const sptr<NotificationSubscribeInfo> &info, uint32_t subscribedFlags) override;
+
+    ErrCode SubscribeNotification(const sptr<IAnsSubscriber> &subscriber, uint32_t subscribedFlags) override;
+
     /**
      * @brief Subscribes notifications self.
      *

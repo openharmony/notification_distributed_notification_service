@@ -365,6 +365,29 @@ public:
      *             use 'SubscribeNotification(const std::shared_ptr<NotificationSubscriber> &subscriber)'.
      * @param subscriber Indicates the {NotificationSubscriber} to receive notifications.
      *                   This parameter must be specified.
+     * @version version{2} system permissions {ohos.permission.NOTIFICATION_DATA_SUBSCRIBE}.
+     * @return Returns subscribe notification result.
+     */
+    ErrCode SubscribeNotificationV2(const NotificationSubscriber &subscriber);
+    ErrCode SubscribeNotificationV2(const std::shared_ptr<NotificationSubscriber> &subscriber);
+    ErrCode SubscribeNotificationV2(
+        const NotificationSubscriber &subscriber, const NotificationSubscribeInfo &subscribeInfo);
+    ErrCode SubscribeNotificationV2(const std::shared_ptr<NotificationSubscriber> &subscriber,
+        const sptr<NotificationSubscribeInfo> &subscribeInfo);
+
+    /**
+     * @brief Subscribes to notifications from all applications. This method can be called only by applications
+     * with required system permissions.
+     * @note  To subscribe to a notification, inherit the {NotificationSubscriber} class, override its
+     *        callback methods and create a subscriber. The subscriber will be used as a parameter of this method.
+     *        After the notification is published, subscribers that meet the filter criteria can receive the
+     * notification. To subscribe to notifications published only by specified sources, for example, notifications from
+     *        certain applications, call the {SubscribeNotification(NotificationSubscriber, NotificationSubscribeInfo)}
+     * method.
+     * @deprecated This function is deprecated,
+     *             use 'SubscribeNotification(const std::shared_ptr<NotificationSubscriber> &subscriber)'.
+     * @param subscriber Indicates the {NotificationSubscriber} to receive notifications.
+     *                   This parameter must be specified.
      * @return Returns subscribe notification result.
      */
     ErrCode SubscribeNotification(const NotificationSubscriber &subscriber);
