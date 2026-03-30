@@ -92,6 +92,72 @@ static void ClearEnvCallback(void *data)
     subscriber->ClearEnv();
 }
 
+void SubscribeNotificationAsyncWork(napi_env env, void *data)
+{
+    ANS_LOGD("NapiSubscribeNotification work excute.");
+    if (!data) {
+        ANS_LOGE("Invalid asynccallbackinfo!");
+        return;
+    }
+    auto callbackinfo = reinterpret_cast<AsyncCallbackInfoSubscribe *>(data);
+    if (callbackinfo) {
+        if (callbackinfo->subscriberInfo.hasSubscribeInfo) {
+            ANS_LOGD("Subscribe with NotificationSubscribeInfo");
+            sptr<OHOS::Notification::NotificationSubscribeInfo> subscribeInfo =
+                new (std::nothrow) OHOS::Notification::NotificationSubscribeInfo();
+            if (subscribeInfo == nullptr) {
+                ANS_LOGE("Invalid subscribeInfo!");
+                callbackinfo->info.errorCode = OHOS::Notification::ErrorCode::ERR_ANS_NO_MEMORY;
+                return;
+            }
+            subscribeInfo->AddAppNames(callbackinfo->subscriberInfo.bundleNames);
+            subscribeInfo->AddAppUserId(callbackinfo->subscriberInfo.userId);
+            subscribeInfo->AddDeviceType(callbackinfo->subscriberInfo.deviceType);
+            subscribeInfo->SetSlotTypes(callbackinfo->subscriberInfo.slotTypes);
+            subscribeInfo->SetFilterType(callbackinfo->subscriberInfo.filterType);
+            callbackinfo->info.errorCode =
+                NotificationHelper::SubscribeNotificationV2(callbackinfo->objectInfo, subscribeInfo);
+        } else {
+            callbackinfo->info.errorCode =
+                NotificationHelper::SubscribeNotificationV2(callbackinfo->objectInfo);
+        }
+    }
+}
+
+void OnAsyncWork(napi_env env, napi_status status, void *data)
+{
+    ANS_LOGD("OnAsyncWork work complete.");
+    if (!data) {
+        ANS_LOGE("Invalid asynccallbackinfo!");
+        return;
+    }
+    auto callbackinfo = reinterpret_cast<AsyncCallbackInfoSubscribe *>(data);
+    if (callbackinfo) {
+        Common::CreateReturnValue(env, callbackinfo->info, Common::NapiGetNull(env));
+        if (callbackinfo->info.callback != nullptr) {
+            ANS_LOGD("Delete napiSubscribe callback reference.");
+            napi_delete_reference(env, callbackinfo->info.callback);
+        }
+        napi_delete_async_work(env, callbackinfo->asyncWork);
+        delete callbackinfo;
+        callbackinfo = nullptr;
+    }
+    ANS_LOGD("OnAsyncWork work complete end.");
+}
+
+void NapiSubscribeNotificationAsyncWork(napi_env env,
+    napi_value resourceName, AsyncCallbackInfoSubscribe *asynccallbackinfo)
+{
+    void *data = static_cast<void *>(asynccallbackinfo);
+    napi_create_async_work(env,
+        nullptr,
+        resourceName,
+        SubscribeNotificationAsyncWork,
+        OnAsyncWork,
+        data,
+        &asynccallbackinfo->asyncWork);
+}
+
 napi_value NapiSubscribeNotification(napi_env env, napi_callback_info info)
 {
     ANS_LOGD("called");
@@ -115,61 +181,8 @@ napi_value NapiSubscribeNotification(napi_env env, napi_callback_info info)
 
     napi_value resourceName = nullptr;
     napi_create_string_latin1(env, "subscribeNotification", NAPI_AUTO_LENGTH, &resourceName);
-    napi_create_async_work(env,
-        nullptr,
-        resourceName,
-        [](napi_env env, void *data) {
-            ANS_LOGD("NapiSubscribeNotification work excute.");
-            if (!data) {
-                ANS_LOGE("Invalid asynccallbackinfo!");
-                return;
-            }
-            auto asynccallbackinfo = reinterpret_cast<AsyncCallbackInfoSubscribe *>(data);
-            if (asynccallbackinfo) {
-                if (asynccallbackinfo->subscriberInfo.hasSubscribeInfo) {
-                    ANS_LOGD("Subscribe with NotificationSubscribeInfo");
-                    sptr<OHOS::Notification::NotificationSubscribeInfo> subscribeInfo =
-                        new (std::nothrow) OHOS::Notification::NotificationSubscribeInfo();
-                    if (subscribeInfo == nullptr) {
-                        ANS_LOGE("Invalid subscribeInfo!");
-                        asynccallbackinfo->info.errorCode = OHOS::Notification::ErrorCode::ERR_ANS_NO_MEMORY;
-                        return;
-                    }
-                    subscribeInfo->AddAppNames(asynccallbackinfo->subscriberInfo.bundleNames);
-                    subscribeInfo->AddAppUserId(asynccallbackinfo->subscriberInfo.userId);
-                    subscribeInfo->AddDeviceType(asynccallbackinfo->subscriberInfo.deviceType);
-                    subscribeInfo->SetSlotTypes(asynccallbackinfo->subscriberInfo.slotTypes);
-                    subscribeInfo->SetFilterType(asynccallbackinfo->subscriberInfo.filterType);
-                    asynccallbackinfo->info.errorCode =
-                        NotificationHelper::SubscribeNotificationV2(asynccallbackinfo->objectInfo, subscribeInfo);
-                } else {
-                    asynccallbackinfo->info.errorCode =
-                        NotificationHelper::SubscribeNotificationV2(asynccallbackinfo->objectInfo);
-                }
-            }
-        },
-        [](napi_env env, napi_status status, void *data) {
-            ANS_LOGD("NapiSubscribeNotification work complete.");
-            if (!data) {
-                ANS_LOGE("Invalid asynccallbackinfo!");
-                return;
-            }
-            auto asynccallbackinfo = reinterpret_cast<AsyncCallbackInfoSubscribe *>(data);
-            if (asynccallbackinfo) {
-                Common::CreateReturnValue(env, asynccallbackinfo->info, Common::NapiGetNull(env));
-                if (asynccallbackinfo->info.callback != nullptr) {
-                    ANS_LOGD("Delete napiSubscribe callback reference.");
-                    napi_delete_reference(env, asynccallbackinfo->info.callback);
-                }
-                napi_delete_async_work(env, asynccallbackinfo->asyncWork);
-                delete asynccallbackinfo;
-                asynccallbackinfo = nullptr;
-            }
-            ANS_LOGD("NapiSubscribeNotification work complete end.");
-        },
-        (void *)asynccallbackinfo,
-        &asynccallbackinfo->asyncWork);
-
+    // Asynchronous function call
+    NapiSubscribeNotificationAsyncWork(env, resourceName, asynccallbackinfo);
     bool isCallback = asynccallbackinfo->info.isCallback;
     napi_add_env_cleanup_hook(env, ClearEnvCallback, objectInfo.get());
     napi_queue_async_work_with_qos(env, asynccallbackinfo->asyncWork, napi_qos_user_initiated);
