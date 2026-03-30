@@ -793,9 +793,9 @@ bool SubscriberInstanceManager::SubscribeNotification(ani_env *env, ani_object s
     }
     ErrCode status = ERR_OK;
     if (!isInfoUndefine) {
-        status = NotificationHelper::SubscribeNotificationV2(stsSubscriber, SubscribeInfo);
+        status = NotificationHelper::SubscribeNotificationV26(stsSubscriber, SubscribeInfo);
     } else {
-        status = NotificationHelper::SubscribeNotificationV2(stsSubscriber);
+        status = NotificationHelper::SubscribeNotificationV26(stsSubscriber);
     }
     if (status != ERR_OK) {
         int32_t externalErrorCode = GetExternalCode(status);

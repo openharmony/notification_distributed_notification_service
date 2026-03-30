@@ -368,11 +368,8 @@ public:
      * @version version{2} system permissions {ohos.permission.NOTIFICATION_DATA_SUBSCRIBE}.
      * @return Returns subscribe notification result.
      */
-    ErrCode SubscribeNotificationV2(const NotificationSubscriber &subscriber);
-    ErrCode SubscribeNotificationV2(const std::shared_ptr<NotificationSubscriber> &subscriber);
-    ErrCode SubscribeNotificationV2(
-        const NotificationSubscriber &subscriber, const NotificationSubscribeInfo &subscribeInfo);
-    ErrCode SubscribeNotificationV2(const std::shared_ptr<NotificationSubscriber> &subscriber,
+    ErrCode SubscribeNotificationV26(const std::shared_ptr<NotificationSubscriber> &subscriber);
+    ErrCode SubscribeNotificationV26(const std::shared_ptr<NotificationSubscriber> &subscriber,
         const sptr<NotificationSubscribeInfo> &subscribeInfo);
 
     /**

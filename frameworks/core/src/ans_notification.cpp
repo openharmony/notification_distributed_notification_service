@@ -727,57 +727,13 @@ ErrCode AnsNotification::GetBundleImportance(NotificationSlot::NotificationLevel
     return ret;
 }
 
-ErrCode AnsNotification::SubscribeNotificationV2(const NotificationSubscriber &subscriber)
+ErrCode AnsNotification::SubscribeNotificationV26(const std::shared_ptr<NotificationSubscriber> &subscriber)
 {
     NOTIFICATION_HITRACE(HITRACE_TAG_NOTIFICATION);
-    sptr<IAnsManager> proxy = GetAnsManagerProxy();
-    if (!proxy) {
-        ANS_LOGE("GetAnsManagerProxy fail.");
-        return ERR_ANS_SERVICE_NOT_CONNECTED;
-    }
-
-    sptr<NotificationSubscriber::SubscriberImpl> subscriberSptr = subscriber.GetImpl();
-    if (subscriberSptr == nullptr) {
-        ANS_LOGE("null subscriberSptr");
-        return ERR_ANS_INVALID_PARAM;
-    }
-    return proxy->SubscribeNotification(subscriberSptr, subscriber.GetSubscribedFlags());
+    return SubscribeNotificationV26(subscriber, nullptr);
 }
 
-ErrCode AnsNotification::SubscribeNotificationV2(const std::shared_ptr<NotificationSubscriber> &subscriber)
-{
-    NOTIFICATION_HITRACE(HITRACE_TAG_NOTIFICATION);
-    return SubscribeNotificationV2(subscriber, nullptr);
-}
-
-ErrCode AnsNotification::SubscribeNotificationV2(
-    const NotificationSubscriber &subscriber, const NotificationSubscribeInfo &subscribeInfo)
-{
-    NOTIFICATION_HITRACE(HITRACE_TAG_NOTIFICATION);
-    sptr<IAnsManager> proxy = GetAnsManagerProxy();
-    if (!proxy) {
-        ANS_LOGE("Failed to GetAnsManagerProxy.");
-        return ERR_ANS_SERVICE_NOT_CONNECTED;
-    }
-
-    sptr<NotificationSubscribeInfo> sptrInfo = new (std::nothrow) NotificationSubscribeInfo(subscribeInfo);
-    if (sptrInfo == nullptr) {
-        ANS_LOGE("null sptrInfo");
-        return ERR_ANS_NO_MEMORY;
-    }
-
-    sptr<NotificationSubscriber::SubscriberImpl> subscriberSptr = subscriber.GetImpl();
-    if (subscriberSptr == nullptr) {
-        ANS_LOGE("null subscriberSptr");
-        return ERR_ANS_INVALID_PARAM;
-    }
-    if (!subscribeInfo.GetDeviceType().empty()) {
-        subscriberSptr->subscriber_.SetDeviceType(subscribeInfo.GetDeviceType());
-    }
-    return proxy->SubscribeNotification(subscriberSptr, sptrInfo, subscriber.GetSubscribedFlags());
-}
-
-ErrCode AnsNotification::SubscribeNotificationV2(const std::shared_ptr<NotificationSubscriber> &subscriber,
+ErrCode AnsNotification::SubscribeNotificationV26(const std::shared_ptr<NotificationSubscriber> &subscriber,
     const sptr<NotificationSubscribeInfo> &subscribeInfo)
 {
     NOTIFICATION_HITRACE(HITRACE_TAG_NOTIFICATION);
@@ -804,7 +760,7 @@ ErrCode AnsNotification::SubscribeNotificationV2(const std::shared_ptr<Notificat
     DelayedSingleton<AnsManagerDeathRecipient>::GetInstance()->SubscribeSAManager();
 
     if (subscribeInfo == nullptr) {
-        return proxy->Subscribe(listener, subscriber->GetSubscribedFlags());
+        return proxy->SubscribeNotification(listener, subscriber->GetSubscribedFlags());
     }
     return proxy->SubscribeNotification(listener, subscribeInfo, subscriber->GetSubscribedFlags());
 }
