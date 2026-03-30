@@ -116,10 +116,10 @@ void SubscribeNotificationAsyncWork(napi_env env, void *data)
             subscribeInfo->SetSlotTypes(callbackinfo->subscriberInfo.slotTypes);
             subscribeInfo->SetFilterType(callbackinfo->subscriberInfo.filterType);
             callbackinfo->info.errorCode =
-                NotificationHelper::SubscribeNotificationV2(callbackinfo->objectInfo, subscribeInfo);
+                NotificationHelper::SubscribeNotificationV26(callbackinfo->objectInfo, subscribeInfo);
         } else {
             callbackinfo->info.errorCode =
-                NotificationHelper::SubscribeNotificationV2(callbackinfo->objectInfo);
+                NotificationHelper::SubscribeNotificationV26(callbackinfo->objectInfo);
         }
     }
 }

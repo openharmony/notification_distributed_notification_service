@@ -438,11 +438,8 @@ public:
      * @version version{2} system permissions {ohos.permission.NOTIFICATION_DATA_SUBSCRIBE}.
      * @return Returns unsubscribe notification result.
      */
-    static ErrCode SubscribeNotificationV2(const NotificationSubscriber &subscriber);
-    static ErrCode SubscribeNotificationV2(const std::shared_ptr<NotificationSubscriber> &subscriber);
-    static ErrCode SubscribeNotificationV2(
-        const NotificationSubscriber &subscriber, const NotificationSubscribeInfo &subscribeInfo);
-    static ErrCode SubscribeNotificationV2(const std::shared_ptr<NotificationSubscriber> &subscriber,
+    static ErrCode SubscribeNotificationV26(const std::shared_ptr<NotificationSubscriber> &subscriber);
+    static ErrCode SubscribeNotificationV26(const std::shared_ptr<NotificationSubscriber> &subscriber,
         const sptr<NotificationSubscribeInfo> &subscribeInfo);
 
     /**
