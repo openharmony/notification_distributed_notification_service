@@ -449,6 +449,9 @@ HWTEST_F(NotificationPreferencesDatabaseTest, PutNotificationStatistics_00100, F
 HWTEST_F(NotificationPreferencesDatabaseTest, UpdateCustomTimeDbData_00100, Function | SmallTest | Level1)
 {
     EXPECT_TRUE(preferncesDB_->CheckRdbStore());
+    sptr<NotificationBundleOption> bundleOption = new (std::nothrow) NotificationBundleOption("", 1);
+    int64_t cTime = 1767196800000;
+    EXPECT_TRUE(preferncesDB_->PutNotificationStatistics(100, cTime, bundleOption));
     EXPECT_TRUE(preferncesDB_->UpdateCustomTimeDbData(1));
 }
 

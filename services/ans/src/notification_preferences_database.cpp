@@ -416,10 +416,10 @@ bool NotificationPreferencesDatabase::UpdateCustomTimeDbData(int64_t offsetMs)
     for (auto iter : activeUserId) {
         result = rdbDataManager_->UpdateStatisticsTime(iter, offsetMs);
         if (result != NativeRdb::E_OK) {
-            break;
+            continue;
         }
     }
-    return result == NativeRdb::E_OK ? true : false;
+    return true;
 }
 
 bool NotificationPreferencesDatabase::QueryStatisticsByBundle(

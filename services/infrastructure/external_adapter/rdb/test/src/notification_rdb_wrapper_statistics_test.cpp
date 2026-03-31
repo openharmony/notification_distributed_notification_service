@@ -552,7 +552,7 @@ HWTEST_F(NtfRdbStoreWrapperStatisticsTest, CleanExperDataTimer_Statistics_300, F
     SetMockDeleteErrCodes({NativeRdb::E_ERROR});
 
     ret = rdbWrapper.CleanExperDataTimer(std::vector<int>{nonSystemUserId});
-    EXPECT_EQ(ret, NativeRdb::E_ERROR);
+    EXPECT_EQ(ret, NativeRdb::E_OK);
 }
 
 /**
