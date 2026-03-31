@@ -1041,6 +1041,38 @@ HWTEST_F(NotificationPreferencesTest, PutNotificationStatistics_00100, Function 
 }
 
 /**
+ * @tc.number    : PutNotificationStatistics_00200
+ * @tc.name      : PutNotificationStatistics
+ * @tc.desc      : put notification data to table in DB
+ */
+HWTEST_F(NotificationPreferencesTest, PutNotificationStatistics_00200, Function | SmallTest | Level1)
+{
+    NotificationPreferences notificationPreferences;
+    notificationPreferences.preferncesDB_ = std::make_shared<NotificationPreferencesDatabase>();
+    notificationPreferences.preferncesDB_->rdbDataManager_ = nullptr;
+    sptr<NotificationBundleOption> bundle = new NotificationBundleOption("testBundle", 100);
+    auto ret = notificationPreferences.PutNotificationStatistics(100, bundle);
+    EXPECT_EQ(ret, ERR_ANS_PREFERENCES_NOTIFICATION_DB_OPERATION_FAILED);
+}
+
+/**
+ * @tc.number    : PutNotificationStatistics_00300
+ * @tc.name      : PutNotificationStatistics
+ * @tc.desc      : put notification data to table in DB
+ */
+HWTEST_F(NotificationPreferencesTest, PutNotificationStatistics_00300, Function | SmallTest | Level1)
+{
+    NotificationPreferences notificationPreferences;
+    notificationPreferences.preferencesInfo_ = NotificationPreferencesInfo();
+    sptr<NotificationBundleOption> bundle = new NotificationBundleOption("testBundle", 100);
+    NotificationStatistics statistics;
+    statistics.SetBundleOption(*bundle);
+    notificationPreferences.preferencesInfo_.UpdateNotificationStatisticsByBundle(101, statistics);
+    auto ret = notificationPreferences.PutNotificationStatistics(100, bundle);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
  * @tc.number    : TimerCleanExperData_00101
  * @tc.name      : TimerCleanExperData
  * @tc.desc      : clean exper data in statistics table
@@ -1066,6 +1098,20 @@ HWTEST_F(NotificationPreferencesTest, CleanExperData_00100, Function | SmallTest
     EXPECT_EQ((int)NotificationPreferences::GetInstance()->CleanExperData(100), ERR_OK);
 }
 
+/**
+ * @tc.number    : CleanExperData_00200
+ * @tc.name      : CleanExperData
+ * @tc.desc      : clean exper data in statistics table
+ */
+HWTEST_F(NotificationPreferencesTest, CleanExperData_00200, Function | SmallTest | Level1)
+{
+    NotificationPreferences notificationPreferences;
+    notificationPreferences.preferncesDB_ = std::make_shared<NotificationPreferencesDatabase>();
+    notificationPreferences.preferncesDB_->rdbDataManager_ = nullptr;
+    sptr<NotificationBundleOption> bundle = new NotificationBundleOption("testBundle", 100);
+    auto ret = notificationPreferences.CleanExperData(100);
+    EXPECT_EQ(ret, ERR_ANS_PREFERENCES_NOTIFICATION_DB_OPERATION_FAILED);
+}
 
 /**
  * @tc.number    : DeleteStatisticsByBundle_00100
@@ -1079,6 +1125,21 @@ HWTEST_F(NotificationPreferencesTest, DeleteStatisticsByBundle_00100, Function |
         100, bundle), ERR_OK);
     EXPECT_EQ((int)NotificationPreferences::GetInstance()->DeleteStatisticsByBundle(100,
         "testBundle", 100), ERR_OK);
+}
+
+/**
+ * @tc.number    : DeleteStatisticsByBundle_00200
+ * @tc.name      : DeleteStatisticsByBundle
+ * @tc.desc      : delete statistics table data by bundle
+ */
+HWTEST_F(NotificationPreferencesTest, DeleteStatisticsByBundle_00200, Function | SmallTest | Level1)
+{
+    NotificationPreferences notificationPreferences;
+    notificationPreferences.preferncesDB_ = std::make_shared<NotificationPreferencesDatabase>();
+    notificationPreferences.preferncesDB_->rdbDataManager_ = nullptr;
+    sptr<NotificationBundleOption> bundle = new NotificationBundleOption("testBundle", 100);
+    auto ret = notificationPreferences.DeleteStatisticsByBundle(100, "testBundle", 100);
+    EXPECT_EQ(ret, ERR_ANS_PREFERENCES_NOTIFICATION_DB_OPERATION_FAILED);
 }
 
 /**
@@ -1164,10 +1225,26 @@ HWTEST_F(NotificationPreferencesTest, UpdateStatisticsAll_00100, Function | Smal
     statistics1.SetBundleOption(*bundle2);
     statistics1.SetLastTime(1767196800000);
     statistics1.SetRecentCount(1);
-    notificationPreferences.preferencesInfo_.UpdateNotificationStatisticsByBundle(102, statistics);
+    notificationPreferences.preferencesInfo_.UpdateNotificationStatisticsByBundle(102, statistics1);
     EXPECT_EQ(notificationPreferences.preferencesInfo_.notificationStatistics_.size(), 2);
     notificationPreferences.UpdateStatisticsAll();
-    EXPECT_EQ(notificationPreferences.preferencesInfo_.notificationStatistics_.size(), 1);
+    EXPECT_EQ(notificationPreferences.preferencesInfo_.notificationStatistics_.size(), 0);
+}
+
+/**
+ * @tc.number    : UpdateStatisticsAll_00200
+ * @tc.name      : UpdateStatisticsAll
+ * @tc.desc      : update statistics_userid table in ccache
+ */
+HWTEST_F(NotificationPreferencesTest, UpdateStatisticsAll_00200, Function | SmallTest | Level1)
+{
+    NotificationPreferences notificationPreferences;
+    notificationPreferences.preferencesInfo_ = NotificationPreferencesInfo();
+    notificationPreferences.preferncesDB_ = std::make_shared<NotificationPreferencesDatabase>();
+    notificationPreferences.preferncesDB_->rdbDataManager_ = nullptr;
+    sptr<NotificationBundleOption> bundle1 = new NotificationBundleOption("testBundle", 101);
+    notificationPreferences.UpdateStatisticsAll();
+    EXPECT_EQ(notificationPreferences.preferencesInfo_.notificationStatistics_.size(), 0);
 }
 
 /**

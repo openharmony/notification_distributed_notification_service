@@ -1122,5 +1122,60 @@ HWTEST_F(NotificationPreferencesDatabaseBranchTest, IsGeofenceEnabled_00500, Fun
     preferncesDB_->IsGeofenceEnabled(enabled);
     EXPECT_TRUE(preferncesDB_->IsGeofenceEnabled(enabled));
 }
+
+/**
+ * @tc.name      : DropStatisticsTable_00100
+ * @tc.number    :
+ * @tc.desc      : drop statistics DB table
+ */
+HWTEST_F(NotificationPreferencesDatabaseBranchTest, DropStatisticsTable_00100, Function | SmallTest | Level1)
+{
+    MockInit(false);
+    EXPECT_FALSE(preferncesDB_->DropStatisticsTable(100));
+}
+
+/**
+ * @tc.name      : TimerCleanExperData_00100
+ * @tc.number    :
+ * @tc.desc      : clean exper data in DB table
+ */
+HWTEST_F(NotificationPreferencesDatabaseBranchTest, TimerCleanExperData_00100, Function | SmallTest | Level1)
+{
+    MockInit(false);
+    EXPECT_FALSE(preferncesDB_->TimerCleanExperData({100}));
+}
+
+/**
+ * @tc.name      : CleanExperDbData_00100
+ * @tc.number    :
+ * @tc.desc      : clean exper data in DB table
+ */
+HWTEST_F(NotificationPreferencesDatabaseBranchTest, CleanExperDbData_00100, Function | SmallTest | Level1)
+{
+    MockInit(false);
+    EXPECT_FALSE(preferncesDB_->CleanExperDbData(100));
+}
+
+/**
+ * @tc.name      : DeleteStatisticsByBundle_00100
+ * @tc.number    :
+ * @tc.desc      : delete statistics table data by bundle in DB table
+ */
+HWTEST_F(NotificationPreferencesDatabaseBranchTest, DeleteStatisticsByBundle_00100, Function | SmallTest | Level1)
+{
+    MockInit(false);
+    EXPECT_FALSE(preferncesDB_->DeleteStatisticsByBundle(100, "testbundle", 100));
+}
+
+/**
+ * @tc.name      : UpdateCustomTimeDbData_00100
+ * @tc.number    :
+ * @tc.desc      : update timestamp due to users in DB
+ */
+HWTEST_F(NotificationPreferencesDatabaseBranchTest, UpdateCustomTimeDbData_00100, Function | SmallTest | Level1)
+{
+    MockInit(false);
+    EXPECT_FALSE(preferncesDB_->UpdateCustomTimeDbData(1));
+}
 }  // namespace Notification
 }  // namespace OHOS
