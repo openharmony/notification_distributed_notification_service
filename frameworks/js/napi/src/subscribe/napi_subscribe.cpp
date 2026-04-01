@@ -124,6 +124,33 @@ void SubscribeNotificationAsyncWork(napi_env env, void *data)
     }
 }
 
+void CreateReturnValue(const napi_env &env, const CallbackPromiseInfo &info, const napi_value &result)
+{
+    ANS_LOGD("start, errorCode=%{public}d", info.errorCode);
+    int32_t errorCode = info.errorCode == ERR_OK ? ERR_OK : ErrorToExternal(info.errorCode);
+    if (info.errorCode == ERROR_USER_NOT_EXIST) {
+        errorCode = ERROR_USER_NOT_EXIST;
+    }
+    if (errorCode == ERR_OK) {
+        napi_resolve_deferred(env, info.deferred, result);
+    } else {
+        napi_value error = Common::NapiGetNull(env);
+        std::string errMsg = OHOS::Notification::GetAnsErrMessage(errorCode);
+        napi_value message = nullptr;
+        napi_create_string_utf8(env, errMsg.c_str(), NAPI_AUTO_LENGTH, &message);
+        if (errorCode == ERROR_USER_NOT_EXIST) {
+            errorCode = ERROR_INTERNAL_ERROR;
+        }
+        napi_value code = nullptr;
+        napi_create_int32(env, errorCode, &code);
+
+        napi_create_error(env, nullptr, message, &error);
+        napi_set_named_property(env, error, "code", code);
+        napi_reject_deferred(env, deferred, error);
+    }  
+    ANS_LOGD("end");
+}
+
 void OnAsyncWork(napi_env env, napi_status status, void *data)
 {
     ANS_LOGD("OnAsyncWork work complete.");
@@ -133,7 +160,7 @@ void OnAsyncWork(napi_env env, napi_status status, void *data)
     }
     auto callbackinfo = reinterpret_cast<AsyncCallbackInfoSubscribe *>(data);
     if (callbackinfo) {
-        Common::CreateReturnValue(env, callbackinfo->info, Common::NapiGetNull(env));
+        CreateReturnValue(env, callbackinfo->info, Common::NapiGetNull(env));
         if (callbackinfo->info.callback != nullptr) {
             ANS_LOGD("Delete napiSubscribe callback reference.");
             napi_delete_reference(env, callbackinfo->info.callback);

@@ -270,9 +270,6 @@ void Common::CreateReturnValue(const napi_env &env, const CallbackPromiseInfo &i
 {
     ANS_LOGD("start, errorCode=%{public}d", info.errorCode);
     int32_t errorCode = info.errorCode == ERR_OK ? ERR_OK : ErrorToExternal(info.errorCode);
-    if (errorCode == ERROR_USER_NOT_EXIST) {
-        errorCode = ERROR_INTERNAL_ERROR;
-    }
     if (info.isCallback) {
         SetCallback(env, info.callback, errorCode, result, true);
     } else {

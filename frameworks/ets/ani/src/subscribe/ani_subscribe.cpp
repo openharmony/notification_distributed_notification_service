@@ -38,7 +38,7 @@ static const char *SUBSCRIBE_SIGNATURE =
    "C{notification.notificationSubscriber.NotificationSubscriber}"
    "C{notification.notificationSubscribeInfo.NotificationSubscribeInfo}:";
 static const char *SUBSCRIBE_NOTIFICATION =
-   "C{notification.notificationSubscriber.NotificationSubscriber}:"; 
+   "C{notification.notificationSubscriber.NotificationSubscriber}:";
 static const char *UNSUBSCRIBE_SIGNATURE =
    "C{notification.notificationSubscriber.NotificationSubscriber}:";
 static const char *REMOVEALL_FOR_BUNDLEOPTION_SIGNATURE =
