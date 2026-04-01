@@ -86,7 +86,7 @@ export default namespace notificationSubscribe {
     export native function nativeDistributeOperation(hashcode: string, operationInfo?: OperationInfo): Promise<int>;
     export native function nativeSleep(seconds: int): void;
     export native function nativeSubscribe(subscriber: NotificationSubscriber, info?: NotificationSubscribeInfo): void;
-    export native function nativeSubscribeNotification(subscriber: NotificationSubscriber, info: NotificationSubscribeInfo): void;
+    export native function nativeSubscribeNotificationWithInfo(subscriber: NotificationSubscriber, info: NotificationSubscribeInfo): void;
     export native function nativeSubscribeNotification(subscriber: NotificationSubscriber): void;
     export native function nativeUnSubscribe(subscriber: NotificationSubscriber): void
     export native function nativeSubscribeSelf(subscriber: NotificationSubscriber): void
@@ -119,7 +119,7 @@ export default namespace notificationSubscribe {
             throw errorParamInvalid;
         }
         let pPromise = new Promise<void>((resolve: ResolveCallback<void>, reject: RejectCallback): void =>{
-            let p = taskpool.execute((): void => { notificationSubscribe.nativeSubscribeNotification(subscriber, info)});
+            let p = taskpool.execute((): void => { notificationSubscribe.nativeSubscribeNotificationWithInfo(subscriber, info)});
             p.then(
                 (e: Any): void => {
                     resolve(undefined);

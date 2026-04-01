@@ -126,9 +126,13 @@ public:
     bool SubscribeSelf(ani_env *env, ani_object subscriber);
     bool UnSubscribe(ani_env *env, ani_object subscriber);
 
-    bool SubscribeNotification(ani_env *env, ani_object subscriber, ani_object info);
+    bool SubscribeNotificationWithInfo(ani_env *env, ani_object subscriber, ani_object info);
+    bool SubscribeNotification(ani_env *env, ani_object subscriber);
 private:
     SubscriberInstanceManager() {}
+
+    bool ParseSubscriberInfo(ani_env *env, ani_object subscriber,
+    ani_object info, sptr<OHOS::Notification::NotificationSubscribeInfo> SubscribeInfo);
 
     bool GetNotificationSubscriber(
         ani_env *env, ani_object value, std::shared_ptr<StsSubscriberInstance> &subscriberInfo);
