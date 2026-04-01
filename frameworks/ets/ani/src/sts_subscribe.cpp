@@ -757,26 +757,43 @@ void SubscriberInstanceManager::DelDeletingSubscriber(std::shared_ptr<StsSubscri
     }
 }
 
-bool SubscriberInstanceManager::SubscribeNotification(ani_env *env, ani_object subscriber, ani_object info)
+bool SubscriberInstanceManager::SubscribeNotification(ani_env *env, ani_object subscriber)
 {
-    bool isSubscribeUndefine = IsUndefine(env, subscriber);
+    return SubscribeNotificationWithInfo(env, subscriber, nullptr);
+}
+
+bool SubscriberInstanceManager::ParseSubscriberInfo(ani_env *env, ani_object subscriber,
+    ani_object info, sptr<OHOS::Notification::NotificationSubscribeInfo> SubscribeInfo)
+{
     bool isInfoUndefine = IsUndefine(env, info);
+    bool isSubscribeUndefine = IsUndefine(env, subscriber);
+
     if (isSubscribeUndefine) {
         ANS_LOGD("subscriber notification is undefine");
         OHOS::NotificationSts::ThrowError(env, ERROR_PARAM_INVALID, "subscriber notification is undefine");
         return false;
     }
-    sptr<OHOS::Notification::NotificationSubscribeInfo> SubscribeInfo =
-        new (std::nothrow) OHOS::Notification::NotificationSubscribeInfo();
-    if (SubscribeInfo == nullptr) {
-        return false;
-    }
+
     if (!isInfoUndefine) {
         if (!UnwarpNotificationSubscribeInfo(env, info, *SubscribeInfo)) {
             ANS_LOGD("SubscribeNotification UnwarpNotificationSubscribeInfo faild");
             OHOS::NotificationSts::ThrowError(env, ERROR_PARAM_INVALID, "UnwarpNotificationSubscribeInfo faild");
             return false;
         }
+    }
+    return true;
+}
+
+bool SubscriberInstanceManager::SubscribeNotificationWithInfo(ani_env *env, ani_object subscriber, ani_object info)
+{
+    sptr<OHOS::Notification::NotificationSubscribeInfo> SubscribeInfo =
+        new (std::nothrow) OHOS::Notification::NotificationSubscribeInfo();
+    if (SubscribeInfo == nullptr) {
+        return false;
+    }
+    bool isUndefine = ParseSubscriberInfo(env, subscriber, info, SubscribeInfo);
+    if (!isUndefine) {
+        return false;
     }
     std::shared_ptr<StsSubscriberInstance> stsSubscriber = nullptr;
     if (!HasNotificationSubscriber(env, subscriber, stsSubscriber)) {
@@ -792,10 +809,10 @@ bool SubscriberInstanceManager::SubscribeNotification(ani_env *env, ani_object s
         }
     }
     ErrCode status = ERR_OK;
-    if (!isInfoUndefine) {
-        status = NotificationHelper::SubscribeNotificationV26(stsSubscriber, SubscribeInfo);
-    } else {
+    if (info == nullptr) {
         status = NotificationHelper::SubscribeNotificationV26(stsSubscriber);
+    } else {
+        status = NotificationHelper::SubscribeNotificationV26(stsSubscriber, SubscribeInfo);
     }
     if (status != ERR_OK) {
         int32_t externalErrorCode = GetExternalCode(status);
