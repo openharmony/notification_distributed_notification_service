@@ -809,7 +809,7 @@ HWTEST_F(ReminderDataManagerTest, ReminderDataManagerTest_020, Level1)
     manager->SnoozeReminderImpl(reminder);
     manager->OnLoadReminderEvent();
     manager->GetFullPath("1p");
-    manager->PlaySoundAndVibration(nullptr);
+    manager->PlaySoundAndVibrationLocked(nullptr);
     manager->RemoveReminderLocked(500, true);
     manager->RemoveReminderLocked(500, false);
     manager->ResetStates(ReminderDataManager::TimerType::ALERTING_TIMER);
@@ -1120,8 +1120,10 @@ HWTEST_F(ReminderDataManagerTest, ReminderDataManagerTest_037, Level1)
     calendar->InitBundleName("com.test.test");
     calendar->InitUid(999);
     calendar->SetShare(true);
-    manager->PlaySoundAndVibration(calendar);
-    auto ret = manager->CheckSoundConfig(calendar);
+    manager->PlaySoundAndVibrationLocked(calendar);
+    auto ret = manager->CheckSoundConfig(calendar, 0);
+    EXPECT_TRUE(ret == false);
+    ret = manager->CheckSoundConfig(calendar, 1);
     EXPECT_TRUE(ret == false);
 }
 
@@ -1222,16 +1224,15 @@ HWTEST_F(ReminderDataManagerTest, ReminderDataManagerTest_042, Level1)
     manager->SlienceNotification(false, false, notification);
     EXPECT_EQ(notification.GetNotificationControlFlags(), 0);
     manager->SlienceNotification(true, false, notification);
-    uint32_t expected = static_cast<uint32_t>(
-        NotificationNapi::NotificationControlFlagStatus::NOTIFICATION_STATUS_CLOSE_SOUND);
-    EXPECT_EQ(notification.GetNotificationControlFlags(), expected);
-    manager->SlienceNotification(true, true, notification);
     uint32_t closeSound = static_cast<uint32_t>(
         NotificationNapi::NotificationControlFlagStatus::NOTIFICATION_STATUS_CLOSE_SOUND);
-    uint32_t closeBanner = static_cast<uint32_t>(
-        NotificationNapi::NotificationControlFlagStatus::NOTIFICATION_STATUS_CLOSE_BANNER);
     uint32_t closeVibration = static_cast<uint32_t>(
         NotificationNapi::NotificationControlFlagStatus::NOTIFICATION_STATUS_CLOSE_VIBRATION);
+    uint32_t expected = closeSound | closeVibration;
+    EXPECT_EQ(notification.GetNotificationControlFlags(), expected);
+    manager->SlienceNotification(true, true, notification);
+    uint32_t closeBanner = static_cast<uint32_t>(
+        NotificationNapi::NotificationControlFlagStatus::NOTIFICATION_STATUS_CLOSE_BANNER);
     expected = closeSound | closeBanner | closeVibration;
     EXPECT_EQ(notification.GetNotificationControlFlags(), expected);
 }
@@ -1362,6 +1363,86 @@ HWTEST_F(ReminderDataManagerTest, ReminderDataManagerTest_045, Level1)
     EXPECT_EQ(limits.timeLimits["1_100"], 3);
     EXPECT_EQ(limits.bundleLimits[1], 31);
     EXPECT_EQ(limits.totalCount, 2);
+}
+
+/**
+ * @tc.name: CheckVibrationConfig_00001
+ * @tc.desc: test CheckVibrationConfig function with null systemSoundClient
+ * @tc.type: FUNC
+ * @tc.require: issueI5YTF3
+ */
+HWTEST_F(ReminderDataManagerTest, CheckVibrationConfig_00001, Level1)
+{
+    auto client = std::move(manager->systemSoundClient_);
+    manager->systemSoundClient_ = nullptr;
+    uint32_t slotFlag = 0xFFFFFFFF;
+    bool ret = manager->CheckVibrationConfig(slotFlag);
+    EXPECT_EQ(ret, false);
+    manager->systemSoundClient_ = std::move(client);
+}
+
+/**
+ * @tc.name: CheckVibrationConfig_00002
+ * @tc.desc: test CheckVibrationConfig function with vibration flag closed
+ * @tc.type: FUNC
+ * @tc.require: issueI5YTF3
+ */
+HWTEST_F(ReminderDataManagerTest, CheckVibrationConfig_00002, Level1)
+{
+#ifdef PLAYER_FRAMEWORK_ENABLE
+    uint32_t closeVibrationFlag = static_cast<uint32_t>(
+        NotificationNapi::NotificationControlFlagStatus::NOTIFICATION_STATUS_CLOSE_VIBRATION);
+    uint32_t slotFlag = ~closeVibrationFlag;
+    bool ret = manager->CheckVibrationConfig(slotFlag);
+    EXPECT_EQ(ret, false);
+#endif
+}
+
+/**
+ * @tc.name: CheckVibrationConfig_00003
+ * @tc.desc: test CheckVibrationConfig function with valid slotFlag
+ * @tc.type: FUNC
+ * @tc.require: issueI5YTF3
+ */
+HWTEST_F(ReminderDataManagerTest, CheckVibrationConfig_00003, Level1)
+{
+#ifdef PLAYER_FRAMEWORK_ENABLE
+    uint32_t slotFlag = 0xFFFFFFFF;
+    bool ret = manager->CheckVibrationConfig(slotFlag);
+    EXPECT_EQ(ret, false);
+#endif
+}
+
+/**
+ * @tc.name: StartVibration_00001
+ * @tc.desc: test StartVibration function
+ * @tc.type: FUNC
+ * @tc.require: issueI5YTF3
+ */
+HWTEST_F(ReminderDataManagerTest, StartVibration_00001, Level1)
+{
+#ifdef PLAYER_FRAMEWORK_ENABLE
+    manager->isVibration_ = false;
+    manager->StartVibration();
+    EXPECT_EQ(manager->isVibration_, false);
+#endif
+}
+
+/**
+ * @tc.name: StartVibration_00002
+ * @tc.desc: test StartVibration function
+ * @tc.type: FUNC
+ * @tc.require: issueI5YTF3
+ */
+HWTEST_F(ReminderDataManagerTest, StartVibration_00002, Level1)
+{
+#ifdef PLAYER_FRAMEWORK_ENABLE
+    manager->isVibration_ = true;
+    manager->StartVibration();
+    EXPECT_EQ(manager->isVibration_, true);
+    manager->isVibration_ = false;
+    sleep(2);
+#endif
 }
 }  // namespace Notification
 }  // namespace OHOS

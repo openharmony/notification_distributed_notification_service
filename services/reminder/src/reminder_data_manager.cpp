@@ -72,7 +72,6 @@ const std::string DEFAULT_REMINDER_SOUND_2 = "resource/media/audio/alarms/Aegean
 std::shared_ptr<ReminderDataManager> ReminderDataManager::REMINDER_DATA_MANAGER = nullptr;
 std::mutex ReminderDataManager::MUTEX;
 std::mutex ReminderDataManager::SHOW_MUTEX;
-std::mutex ReminderDataManager::ALERT_MUTEX;
 std::mutex ReminderDataManager::TIMER_MUTEX;
 std::mutex ReminderDataManager::ACTIVE_MUTEX;
 std::shared_ptr<ffrt::queue> ReminderDataManager::serviceQueue_ = nullptr;
@@ -1050,9 +1049,12 @@ void ReminderDataManager::SlienceNotification(const bool isCloseDefaultSound, co
     NotificationRequest& notification)
 {
     if (isCloseDefaultSound) {
-        // close notification default sound.
-        notification.SetNotificationControlFlags(static_cast<uint32_t>(
-            NotificationNapi::NotificationControlFlagStatus::NOTIFICATION_STATUS_CLOSE_SOUND));
+        // close notification default sound and vibration.
+        uint32_t closeSound = static_cast<uint32_t>(
+            NotificationNapi::NotificationControlFlagStatus::NOTIFICATION_STATUS_CLOSE_SOUND);
+        uint32_t closeVibration = static_cast<uint32_t>(
+            NotificationNapi::NotificationControlFlagStatus::NOTIFICATION_STATUS_CLOSE_VIBRATION);
+        notification.SetNotificationControlFlags(closeSound | closeVibration);
     }
     if (isSlienceNotification) {
         uint32_t closeSound = static_cast<uint32_t>(
@@ -1475,12 +1477,6 @@ void ReminderDataManager::LoadReminderFromDb()
     ReminderRequest::GLOBAL_ID = store_->GetMaxId() + 1;
 }
 
-void ReminderDataManager::PlaySoundAndVibrationLocked(const sptr<ReminderRequest> &reminder)
-{
-    std::lock_guard<std::mutex> lock(ReminderDataManager::ALERT_MUTEX);
-    PlaySoundAndVibration(reminder);
-}
-
 std::string ReminderDataManager::GetFullPath(const std::string& oriPath)
 {
     char buf[MAX_PATH_LEN] = {0};
@@ -1509,9 +1505,6 @@ void ReminderDataManager::SetPlayerParam(const sptr<ReminderRequest> reminder)
         soundPlayer_->SetSource(defaultSound.GetSchemeSpecificPart());
         ANSR_LOGI("Play default sound.");
     } else if (customRingUri.find("file://") == 0) {
-        if (systemSoundClient_ == nullptr) {
-            systemSoundClient_ = Media::SystemSoundManagerFactory::CreateSystemSoundManager();
-        }
         if (systemSoundClient_ != nullptr) {
             std::string url = customRingUri.substr(std::string("file:/").size());
             constexpr int32_t toneType = 2;
@@ -1537,16 +1530,17 @@ void ReminderDataManager::SetPlayerParam(const sptr<ReminderRequest> reminder)
 #endif
 }
 
-void ReminderDataManager::PlaySoundAndVibration(const sptr<ReminderRequest> &reminder)
+void ReminderDataManager::PlaySoundAndVibrationLocked(const sptr<ReminderRequest> &reminder)
 {
     if (reminder == nullptr) {
         return;
     }
+    std::lock_guard<std::mutex> lock(alertMutex_);
 #ifdef PLAYER_FRAMEWORK_ENABLE
     if (soundPlayer_ == nullptr) {
         soundPlayer_ = Media::PlayerFactory::CreatePlayer();
         if (soundPlayer_ == nullptr) {
-            ANSR_LOGE("null soundPlayer");
+            ANSR_LOGE("CreatePlayer failed.");
             return;
         }
     }
@@ -1556,10 +1550,20 @@ void ReminderDataManager::PlaySoundAndVibration(const sptr<ReminderRequest> &rem
         strategy.concurrencyMode = AudioStandard::AudioConcurrencyMode::PAUSE_OTHERS;
         audioManager->ActivateAudioSession(strategy);
     }
+    if (systemSoundClient_ == nullptr) {
+        systemSoundClient_ = Media::SystemSoundManagerFactory::CreateSystemSoundManager();
+    }
     SetPlayerParam(reminder);
-    if (CheckSoundConfig(reminder)) {
+    NotificationBundleOption option(reminder->GetBundleName(), reminder->GetUid());
+    uint32_t slotFlag = 0;
+    NotificationHelper::GetNotificationSlotFlagsAsBundle(option, slotFlag);
+    if (CheckSoundConfig(reminder, slotFlag)) {
         soundPlayer_->PrepareAsync();
         soundPlayer_->Play();
+    }
+    if (CheckVibrationConfig(slotFlag)) {
+        isVibration_ = true;
+        StartVibration();
     }
 #endif
     SetAlertingReminder(reminder);
@@ -1567,16 +1571,10 @@ void ReminderDataManager::PlaySoundAndVibration(const sptr<ReminderRequest> &rem
 
 void ReminderDataManager::StopSoundAndVibrationLocked(const sptr<ReminderRequest> &reminder)
 {
-    std::lock_guard<std::mutex> lock(ReminderDataManager::ALERT_MUTEX);
-    StopSoundAndVibration(reminder);
-}
-
-void ReminderDataManager::StopSoundAndVibration(const sptr<ReminderRequest> &reminder)
-{
     if (reminder == nullptr) {
-        ANSR_LOGE("null reminder");
         return;
     }
+    std::lock_guard<std::mutex> lock(alertMutex_);
     if ((alertingReminderId_ == -1) || (reminder->GetReminderId() != alertingReminderId_)) {
         ANSR_LOGE("Stop sound and vibration failed as alertingReminder is illegal, alertingReminderId_=" \
             "%{public}d, tarReminderId=%{public}d", alertingReminderId_.load(), reminder->GetReminderId());
@@ -1596,21 +1594,25 @@ void ReminderDataManager::StopSoundAndVibration(const sptr<ReminderRequest> &rem
                 soundFd_ = -1;
                 ANSR_LOGI("Stop system sound.");
             }
-            systemSoundClient_ = nullptr;
         } else {
             CloseCustomRingFileDesc(reminder->GetReminderId(), customRingUri);
         }
         soundPlayer_->Stop();
         soundPlayer_->Release();
         soundPlayer_ = nullptr;
+        systemSoundClient_ = nullptr;
     }
     auto audioManager = AudioStandard::AudioSessionManager::GetInstance();
     if (audioManager != nullptr && reminder->GetRingChannel() == ReminderRequest::RingChannel::MEDIA) {
         audioManager->DeactivateAudioSession();
     }
+    if (isVibration_) {
+        isVibration_ = false;
+        close(vibrationFd_);
+        vibrationFd_ = -1;
+    }
 #endif
-    sptr<ReminderRequest> nullReminder = nullptr;
-    SetAlertingReminder(nullReminder);
+    SetAlertingReminder(nullptr);
 }
 
 void ReminderDataManager::RemoveFromShowedReminders(const sptr<ReminderRequest> &reminder)

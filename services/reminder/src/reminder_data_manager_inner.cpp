@@ -16,6 +16,7 @@
 #include "reminder_data_manager.h"
 
 #include "ans_log_wrapper.h"
+#include "ans_convert_enum.h"
 #include "ans_trace_wrapper.h"
 
 #include "reminder_utils.h"
@@ -33,6 +34,12 @@
 #include "hisysevent.h"
 #include "directory_ex.h"
 #endif
+#ifdef PLAYER_FRAMEWORK_ENABLE
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include "vibrator_agent.h"
+#endif
 
 namespace OHOS {
 namespace Notification {
@@ -47,6 +54,7 @@ constexpr int32_t TOTAL_MAX_NUMBER_SHOW_AT_ONCE = 500;
 // The maximun number of system that can be start extension count
 constexpr int32_t TOTAL_MAX_NUMBER_START_EXTENSION = 100;
 constexpr int32_t CONNECT_EXTENSION_INTERVAL = 100;
+static constexpr uint64_t VIBRATION_PERIOD = (uint64_t)1000 * 1000;  // 1000us
 static constexpr const char* USER_SETINGS_DATA_SECURE_URI =
     "datashare:///com.ohos.settingsdata/entry/settingsdata/USER_SETTINGSDATA_SECURE_";
 static constexpr const char* FOCUS_MODE_ENABLE_URI = "?Proxy=true&key=focus_mode_enable";
@@ -145,7 +153,6 @@ bool ReminderDataManager::GetCustomRingFileDesc(const sptr<ReminderRequest>& rem
     Global::Resource::ResourceManager::RawFileDescriptor& desc)
 {
     // obtains the resource manager
-    std::lock_guard<std::mutex> locker(resourceMutex_);
     soundResource_ = GetResourceMgr(reminder->GetBundleName(), reminder->GetUid());
     if (soundResource_ == nullptr) {
         ANSR_LOGE("null soundResource");
@@ -161,7 +168,6 @@ bool ReminderDataManager::GetCustomRingFileDesc(const sptr<ReminderRequest>& rem
 
 void ReminderDataManager::CloseCustomRingFileDesc(const int32_t reminderId, const std::string& customRingUri)
 {
-    std::lock_guard<std::mutex> locker(resourceMutex_);
     if (soundResource_ == nullptr) {
         ANSR_LOGE("null soundResource");
         return;
@@ -464,7 +470,6 @@ void ReminderDataManager::SetAlertingReminder(const sptr<ReminderRequest> &remin
         alertingIdIsShared_ = reminder->IsShare();
         alertingReminder_ = reminder;
     }
-    ANSR_LOGD("Set alertingReminderId=%{public}d", alertingReminderId_.load());
 }
 
 ErrCode ReminderDataManager::CancelReminderToDb(const int32_t reminderId, const int32_t callingUid)
@@ -533,19 +538,13 @@ void ReminderDataManager::ReportUserDataSizeEvent()
 #endif
 }
 
-bool ReminderDataManager::CheckSoundConfig(const sptr<ReminderRequest> reminder)
+bool ReminderDataManager::CheckSoundConfig(const sptr<ReminderRequest> reminder, const uint32_t slotFlag)
 {
 #ifdef PLAYER_FRAMEWORK_ENABLE
-    NotificationBundleOption option;
-    option.SetBundleName(reminder->GetBundleName());
-    option.SetUid(reminder->GetUid());
-    uint32_t slotFlags;
-    ErrCode err = NotificationHelper::GetNotificationSlotFlagsAsBundle(option, slotFlags);
-    if (err != ERR_OK) {
-        ANSR_LOGE("GetNotificationSlotFlagsAsBundle failed.");
-        return false;
-    }
-    if (!(slotFlags & 1)) {
+    uint32_t closeSoundFlag = static_cast<uint32_t>(
+        NotificationNapi::NotificationControlFlagStatus::NOTIFICATION_STATUS_CLOSE_SOUND);
+    if (!(slotFlag & closeSoundFlag)) {
+        ANSR_LOGE("Application sound flag is close.");
         return false;
     }
     std::string uriStr = USER_SETINGS_DATA_SECURE_URI + std::to_string(reminder->GetUserId())
@@ -561,6 +560,59 @@ bool ReminderDataManager::CheckSoundConfig(const sptr<ReminderRequest> reminder)
         ANSR_LOGI("Currently not is do not disurb mode.");
         return false;
     }
+#endif
+    return true;
+}
+
+void ReminderDataManager::StartVibration()
+{
+#ifdef PLAYER_FRAMEWORK_ENABLE
+    if (!isVibration_) {
+        return;
+    }
+    Sensors::SetUsage(VibratorUsage::USAGE_NOTIFICATION);
+    Sensors::PlayVibratorCustom(vibrationFd_, 0, vibrationFileSize_);
+    ffrt::task_attr taskAttr;
+    taskAttr.delay(VIBRATION_PERIOD);
+    auto callback = [this]() {
+        std::lock_guard<std::mutex> lock(alertMutex_);
+        StartVibration();
+    };
+    serviceQueue_->submit(callback, taskAttr);
+#endif
+}
+
+bool ReminderDataManager::CheckVibrationConfig(const uint32_t slotFlag)
+{
+#ifdef PLAYER_FRAMEWORK_ENABLE
+    if (systemSoundClient_ == nullptr) {
+        return false;
+    }
+    Media::ToneHapticsSettings settings;
+    systemSoundClient_->GetToneHapticsSettings(nullptr, Media::ToneHapticsType::NOTIFICATION, settings);
+    if (settings.mode == Media::ToneHapticsMode::NONE) {
+        ANSR_LOGE("System vibration flag is close.");
+        return false;
+    }
+    uint32_t closeVibrationFlag = static_cast<uint32_t>(
+        NotificationNapi::NotificationControlFlagStatus::NOTIFICATION_STATUS_CLOSE_VIBRATION);
+    if (!(slotFlag & closeVibrationFlag)) {
+        ANSR_LOGE("Application vibration flag is close.");
+        return false;
+    }
+    vibrationFd_ = open(settings.hapticsUri.c_str(), O_RDONLY);
+    if (vibrationFd_ == -1) {
+        ANSR_LOGE("Open vibration file failed.");
+        return false;
+    }
+    struct stat statbuf = {0};
+    if (fstat(vibrationFd_, &statbuf) != 0) {
+        ANSR_LOGE("Get vibration file size failed.");
+        close(vibrationFd_);
+        vibrationFd_ = -1;
+        return false;
+    }
+    vibrationFileSize_ = statbuf.st_size;
 #endif
     return true;
 }
