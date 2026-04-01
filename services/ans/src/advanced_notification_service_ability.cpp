@@ -48,7 +48,9 @@ AdvancedNotificationServiceAbility::AdvancedNotificationServiceAbility(const int
 {}
 
 AdvancedNotificationServiceAbility::~AdvancedNotificationServiceAbility()
-{}
+{
+    UnsubscribeCommonEvent();
+}
 
 void AdvancedNotificationServiceAbility::OnStart()
 {
@@ -111,6 +113,14 @@ bool AdvancedNotificationServiceAbility::SubscribeCommonEvent()
     EventFwk::CommonEventManager::SubscribeCommonEvent(subscriber_);
 
     return true;
+}
+
+void AdvancedNotificationServiceAbility::UnsubscribeCommonEvent()
+{
+    if (subscriber_ != nullptr) {
+        EventFwk::CommonEventManager::NewUnSubscribeCommonEvent(subscriber_);
+        subscriber_ = nullptr;
+    }
 }
 
 void AdvancedNotificationServiceAbility::OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
