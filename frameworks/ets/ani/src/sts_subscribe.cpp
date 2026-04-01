@@ -767,13 +767,11 @@ bool SubscriberInstanceManager::ParseSubscriberInfo(ani_env *env, ani_object sub
 {
     bool isInfoUndefine = IsUndefine(env, info);
     bool isSubscribeUndefine = IsUndefine(env, subscriber);
-
     if (isSubscribeUndefine) {
         ANS_LOGD("subscriber notification is undefine");
         OHOS::NotificationSts::ThrowError(env, ERROR_PARAM_INVALID, "subscriber notification is undefine");
         return false;
     }
-
     if (!isInfoUndefine) {
         if (!UnwarpNotificationSubscribeInfo(env, info, *SubscribeInfo)) {
             ANS_LOGD("SubscribeNotification UnwarpNotificationSubscribeInfo faild");
@@ -817,10 +815,15 @@ bool SubscriberInstanceManager::SubscribeNotificationWithInfo(ani_env *env, ani_
     if (status != ERR_OK) {
         int32_t externalErrorCode = GetExternalCode(status);
         externalErrorCode = (externalErrorCode == ERR_OK) ? status : externalErrorCode;
-        ANS_LOGD("SubscribeNotification faild. status %{public}d ErrorToExternal %{public}d",
+        ANS_LOGE("SubscribeNotification faild. status %{public}d ErrorToExternal %{public}d",
             status, externalErrorCode);
         std::string msg = OHOS::NotificationSts::FindAnsErrMsg(externalErrorCode);
-        OHOS::NotificationSts::ThrowError(env, externalErrorCode, msg);
+        if (status == ERROR_USER_NOT_EXIST) {
+            OHOS::NotificationSts::ThrowError(env, externalErrorCode,
+                OHOS::NotificationSts::FindAnsErrMsg(ERROR_USER_NOT_EXIST));
+        } else {
+            OHOS::NotificationSts::ThrowError(env, externalErrorCode, msg);
+        }
         return false;
     }
     return true;
