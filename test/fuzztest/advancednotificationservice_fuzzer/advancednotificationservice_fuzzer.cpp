@@ -484,7 +484,6 @@ namespace Notification {
         service->UpdateSlotAuthInfo(record);
         service->Filter(record, fuzzData->ConsumeBool());
         service->ChangeNotificationByControlFlags(record, fuzzData->ConsumeBool());
-        service->ChangeNotificationByControlFlagsFor3rdApp(record);
         service->CheckPublishPreparedNotification(record, fuzzData->ConsumeBool());
         service->UpdateInNotificationList(record);
         service->PublishInNotificationList(record);
