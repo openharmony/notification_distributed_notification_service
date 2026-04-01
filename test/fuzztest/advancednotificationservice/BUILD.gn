@@ -100,6 +100,7 @@ group("fuzztest") {
     "servicesetusergrantedbundlestate_fuzzer:ServiceSetUserGrantedBundleStateFuzzTest",
     "servicesetusergrantedstate_fuzzer:ServiceSetUserGrantedStateFuzzTest",
     "servicesubscribe_fuzzer:ServiceSubscribeFuzzTest",
+    "servicesubscribenotification_fuzzer:ServiceSubscribeNotificationFuzzTest",
     "servicesubscribelocalliveview_fuzzer:ServiceSubscribeLocalLiveViewFuzzTest",
     "serviceunsubscribe_fuzzer:ServiceUnsubscribeFuzzTest",
     "serviceupdateslots_fuzzer:ServiceUpdateSlotsFuzzTest",
