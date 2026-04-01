@@ -64,7 +64,7 @@ void DoSomethingInterestingWithManager(FuzzedDataProvider* fdp)
     manager->LoadShareReminders();
     auto channel = static_cast<Notification::ReminderRequest::RingChannel>(type);
     manager->ConvertRingChannel(channel);
-    manager->CheckSoundConfig(reminder);
+    manager->CheckSoundConfig(reminder, uid);
     std::map<std::string, sptr<Notification::ReminderRequest>> reminders;
     manager->UpdateShareReminders(reminders);
     std::vector<sptr<Notification::ReminderRequest>> remindersFromDb;

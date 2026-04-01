@@ -535,11 +535,29 @@ private:
 
     void LoadReminderFromDb();
 
+    void PlaySoundAndVibrationLocked(const sptr<ReminderRequest>& reminder);
+    void StopSoundAndVibrationLocked(const sptr<ReminderRequest>& reminder);
+    void SetAlertingReminder(const sptr<ReminderRequest>& reminder);
+    // sound
+    std::string GetFullPath(const std::string& path);
     void SetPlayerParam(const sptr<ReminderRequest> reminder);
-    void PlaySoundAndVibrationLocked(const sptr<ReminderRequest> &reminder);
-    void PlaySoundAndVibration(const sptr<ReminderRequest> &reminder);
-    void StopSoundAndVibrationLocked(const sptr<ReminderRequest> &reminder);
-    void StopSoundAndVibration(const sptr<ReminderRequest> &reminder);
+    bool CheckSoundConfig(const sptr<ReminderRequest> reminder, const uint32_t slotFlag);
+    int32_t ConvertRingChannel(ReminderRequest::RingChannel channel);
+
+    /**
+     * @brief Get custom ring file desc.
+     */
+    bool GetCustomRingFileDesc(const sptr<ReminderRequest>& reminder,
+        Global::Resource::ResourceManager::RawFileDescriptor& desc);
+
+    /**
+     * @brief Close custom ring file desc.
+     */
+    void CloseCustomRingFileDesc(const int32_t reminderId, const std::string& customRingUri);
+
+    // vibration
+    void StartVibration();
+    bool CheckVibrationConfig(const uint32_t slotFlag);
 
     /**
      * Remove from showed reminder vector.
@@ -577,7 +595,6 @@ private:
     void ResetStates(TimerType type);
 
     void SetActiveReminder(const sptr<ReminderRequest> &reminder);
-    void SetAlertingReminder(const sptr<ReminderRequest> &reminder);
     void ShowActiveReminderExtendLocked(const uint64_t triggerTime,
         std::vector<sptr<ReminderRequest>>& immediatelyReminders,
         std::vector<sptr<ReminderRequest>>& extensionReminders);
@@ -673,8 +690,6 @@ private:
     void CheckNeedNotifyStatus(const sptr<ReminderRequest> &reminder,
         const ReminderRequest::ActionButtonType buttonType);
 
-    std::string GetFullPath(const std::string& path);
-
     /**
      * @brief Check action button data share permission
     */
@@ -686,19 +701,6 @@ private:
      */
     std::shared_ptr<Global::Resource::ResourceManager> GetResourceMgr(const std::string& bundleName,
         const int32_t uid);
-
-    /**
-     * @brief Get custom ring file desc.
-     *    lock by resourceMutex_ in function
-     */
-    bool GetCustomRingFileDesc(const sptr<ReminderRequest>& reminder,
-        Global::Resource::ResourceManager::RawFileDescriptor& desc);
-
-    /**
-     * @brief Close custom ring file desc.
-     *    lock by resourceMutex_ in function
-     */
-    void CloseCustomRingFileDesc(const int32_t reminderId, const std::string& customRingUri);
 
     /**
      * @brief report event to dfx
@@ -716,9 +718,6 @@ private:
      * @brief Load reminder from datashare.
      */
     void LoadShareReminders();
-
-    int32_t ConvertRingChannel(ReminderRequest::RingChannel channel);
-    bool CheckSoundConfig(const sptr<ReminderRequest> reminder);
 
     /**
      * @brief Load reminder from datashare.
@@ -763,7 +762,6 @@ private:
      */
     static std::mutex MUTEX;
     static std::mutex SHOW_MUTEX;
-    static std::mutex ALERT_MUTEX;
     static std::mutex TIMER_MUTEX;
     static std::mutex ACTIVE_MUTEX;
     std::mutex cancelMutex_; // for cancelReminder function
@@ -818,15 +816,19 @@ private:
     /**
      * Indicates the reminder which is playing sound or vibration.
      */
+    std::mutex alertMutex_;
     std::atomic<int32_t> alertingReminderId_ = -1;
     std::atomic<bool> alertingIdIsShared_ = false;
     sptr<ReminderRequest> alertingReminder_ = nullptr;
 #ifdef PLAYER_FRAMEWORK_ENABLE
-    std::shared_ptr<Media::Player> soundPlayer_ = nullptr;
-    std::mutex resourceMutex_;  // for soundResource_
-    std::shared_ptr<Global::Resource::ResourceManager> soundResource_ = nullptr;
-    std::shared_ptr<Media::SystemSoundManager> systemSoundClient_ = nullptr;
-    int32_t soundFd_ = -1;
+    std::shared_ptr<Media::Player> soundPlayer_;
+    std::shared_ptr<Media::SystemSoundManager> systemSoundClient_;
+    std::shared_ptr<Global::Resource::ResourceManager> soundResource_;
+    std::shared_ptr<Global::Resource::ResourceManager> vibrationResource_;
+    int32_t soundFd_ {-1};
+    int32_t vibrationFd_ {-1};
+    int64_t vibrationFileSize_ {-1};
+    bool isVibration_ {false};
 #endif
     /**
      * Indicates the total count of reminders in system.
