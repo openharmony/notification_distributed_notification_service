@@ -49,18 +49,13 @@ ErrCode AdvancedNotificationService::PublishWithMaxCapacity(
     return Publish(label, request);
 }
 
-void AdvancedNotificationService::SetControlFlagsByFlagsFor3rd(const sptr<NotificationRequest> &request)
+void AdvancedNotificationService::SetControlFlagsByFlags(const sptr<NotificationRequest> &request)
 {
-    if (request == nullptr || request->GetFlags() == nullptr) {
+    if (request == nullptr || request->GetFlags() == nullptr ||
+        request->GetSlotType() == NotificationConstant::SlotType::LIVE_VIEW) {
         return;
     }
     std::shared_ptr<NotificationFlags> flags = request->GetFlags();
-    auto tokenCaller = IPCSkeleton::GetCallingTokenID();
-    bool isSubsystem = AccessTokenHelper::VerifyNativeToken(tokenCaller);
-    bool isThirdPartApp = (!AccessTokenHelper::IsSystemApp()) && !isSubsystem;
-    if (!isThirdPartApp) {
-        return;
-    }
     uint32_t notificationControlFlags = request->GetNotificationControlFlags();
     if (flags->IsSoundEnabled() == NotificationConstant::FlagStatus::CLOSE &&
         (notificationControlFlags & NotificationConstant::ReminderFlag::SOUND_FLAG) == 0) {
@@ -156,7 +151,7 @@ ErrCode AdvancedNotificationService::Publish(const std::string &label, const spt
         return ERR_ANS_PERMISSION_DENIED;
     }
 
-    SetControlFlagsByFlagsFor3rd(request);
+    SetControlFlagsByFlags(request);
     SetIsFromSAToExtendInfo(request);
     const auto checkResult = CheckNotificationRequest(request);
     if (checkResult != ERR_OK) {

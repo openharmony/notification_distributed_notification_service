@@ -4637,96 +4637,87 @@ HWTEST_F(AdvancedNotificationServiceTest, ChangeNotificationByControlFlags_00001
 }
 
 /**
- * @tc.name: SetControlFlagsByFlagsFor3rd_00001
- * @tc.desc: Test SetControlFlagsByFlagsFor3rd
+ * @tc.name: SetControlFlagsByFlags_00001
+ * @tc.desc: Test SetControlFlagsByFlags
  * @tc.type: FUNC
  */
 HWTEST_F(AdvancedNotificationServiceTest,
-    SetControlFlagsByFlagsFor3rd_00001, Function | SmallTest | Level1)
+    SetControlFlagsByFlags_00001, Function | SmallTest | Level1)
 {
     sptr<NotificationRequest> request = nullptr;
-    advancedNotificationService_->SetControlFlagsByFlagsFor3rd(request);
+    advancedNotificationService_->SetControlFlagsByFlags(request);
     ASSERT_EQ(request, nullptr);
 }
-
+ 
 /**
- * @tc.name: SetControlFlagsByFlagsFor3rd_00002
- * @tc.desc: Test SetControlFlagsByFlagsFor3rd
+ * @tc.name: SetControlFlagsByFlags_00002
+ * @tc.desc: Test SetControlFlagsByFlags
  * @tc.type: FUNC
  */
 HWTEST_F(AdvancedNotificationServiceTest,
-    SetControlFlagsByFlagsFor3rd_00002, Function | SmallTest | Level1)
+    SetControlFlagsByFlags_00002, Function | SmallTest | Level1)
 {
     auto request = new (std::nothrow) NotificationRequest();
     auto bundle = new NotificationBundleOption(TEST_DEFUALT_BUNDLE, SYSTEM_APP_UID);
     auto record = advancedNotificationService_->MakeNotificationRecord(request, bundle);
-    advancedNotificationService_->SetControlFlagsByFlagsFor3rd(request);
+    advancedNotificationService_->SetControlFlagsByFlags(request);
     ASSERT_EQ(request->GetFlags(), nullptr);
 }
 
 /**
- * @tc.name: SetControlFlagsByFlagsFor3rd_00003
- * @tc.desc: Test SetControlFlagsByFlagsFor3rd
+ * @tc.name: SetControlFlagsByFlags_00003
+ * @tc.desc: Test SetControlFlagsByFlags
  * @tc.type: FUNC
  */
 HWTEST_F(AdvancedNotificationServiceTest,
-    SetControlFlagsByFlagsFor3rd_00003, Function | SmallTest | Level1)
+    SetControlFlagsByFlags_00003, Function | SmallTest | Level1)
+{
+    auto request = new (std::nothrow) NotificationRequest();
+    auto bundle = new NotificationBundleOption(TEST_DEFUALT_BUNDLE, SYSTEM_APP_UID);
+    auto record = advancedNotificationService_->MakeNotificationRecord(request, bundle);
+    std::shared_ptr<NotificationFlags> flags = std::make_shared<NotificationFlags>();
+    flags->SetSoundEnabled(NotificationConstant::FlagStatus::OPEN);
+    request->SetFlags(flags);
+    request->SetSlotType(NotificationConstant::SlotType::LIVE_VIEW);
+    advancedNotificationService_->SetControlFlagsByFlags(request);
+    ASSERT_NE(request->GetFlags(), nullptr);
+}
+ 
+/**
+ * @tc.name: SetControlFlagsByFlags_00004
+ * @tc.desc: Test SetControlFlagsByFlags
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceTest,
+    SetControlFlagsByFlags_00004, Function | SmallTest | Level1)
 {
     auto request = new (std::nothrow) NotificationRequest();
     auto bundle = new NotificationBundleOption(TEST_DEFUALT_BUNDLE, SYSTEM_APP_UID);
     auto record = advancedNotificationService_->MakeNotificationRecord(request, bundle);
     uint32_t notificationControlFlags = 1;
     request->SetNotificationControlFlags(notificationControlFlags);
-
+    request->SetSlotType(NotificationConstant::SlotType::SOCIAL_COMMUNICATION);
+ 
     std::shared_ptr<NotificationFlags> flags = std::make_shared<NotificationFlags>();
     flags->SetSoundEnabled(NotificationConstant::FlagStatus::OPEN);
     flags->SetVibrationEnabled(NotificationConstant::FlagStatus::OPEN);
     flags->SetLockScreenEnabled(NotificationConstant::FlagStatus::OPEN);
     flags->SetBannerEnabled(NotificationConstant::FlagStatus::OPEN);
     request->SetFlags(flags);
-
-    advancedNotificationService_->SetControlFlagsByFlagsFor3rd(request);
-
+ 
+    advancedNotificationService_->SetControlFlagsByFlags(request);
+ 
     uint32_t resultFlags = request->GetNotificationControlFlags();
     ASSERT_EQ(resultFlags, notificationControlFlags);
 }
-
+ 
 /**
- * @tc.name: SetControlFlagsByFlagsFor3rd_00004
- * @tc.desc: Test SetControlFlagsByFlagsFor3rd
+ * @tc.name: SetControlFlagsByFlags_00005
+ * @tc.desc: Test SetControlFlagsByFlags
  * @tc.type: FUNC
  */
 HWTEST_F(AdvancedNotificationServiceTest,
-    SetControlFlagsByFlagsFor3rd_00004, Function | SmallTest | Level1)
-{
-    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
-    MockIsSystemApp(false);
-    MockIsVerfyPermisson(false);
-    auto request = new (std::nothrow) NotificationRequest();
-    auto bundle = new NotificationBundleOption(TEST_DEFUALT_BUNDLE, NON_SYSTEM_APP_UID);
-    auto record = advancedNotificationService_->MakeNotificationRecord(request, bundle);
-    uint32_t notificationControlFlags = 23;
-    request->SetNotificationControlFlags(notificationControlFlags);
-
-    std::shared_ptr<NotificationFlags> flags = std::make_shared<NotificationFlags>();
-    flags->SetSoundEnabled(NotificationConstant::FlagStatus::OPEN);
-    flags->SetVibrationEnabled(NotificationConstant::FlagStatus::OPEN);
-    flags->SetLockScreenEnabled(NotificationConstant::FlagStatus::OPEN);
-    flags->SetBannerEnabled(NotificationConstant::FlagStatus::OPEN);
-    request->SetFlags(flags);
-
-    advancedNotificationService_->SetControlFlagsByFlagsFor3rd(request);
-    uint32_t resultFlags = record->request->GetNotificationControlFlags();
-    ASSERT_EQ(resultFlags, notificationControlFlags);
-}
-
-/**
- * @tc.name: SetControlFlagsByFlagsFor3rd_00005
- * @tc.desc: Test SetControlFlagsByFlagsFor3rd
- * @tc.type: FUNC
- */
-HWTEST_F(AdvancedNotificationServiceTest,
-    SetControlFlagsByFlagsFor3rd_00005, Function | SmallTest | Level1)
+    SetControlFlagsByFlags_00005, Function | SmallTest | Level1)
 {
     MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
     MockIsSystemApp(false);
@@ -4736,26 +4727,27 @@ HWTEST_F(AdvancedNotificationServiceTest,
     auto record = advancedNotificationService_->MakeNotificationRecord(request, bundle);
     uint32_t notificationControlFlags = 104;
     request->SetNotificationControlFlags(notificationControlFlags);
-
+    request->SetSlotType(NotificationConstant::SlotType::SOCIAL_COMMUNICATION);
+ 
     std::shared_ptr<NotificationFlags> flags = std::make_shared<NotificationFlags>();
     flags->SetSoundEnabled(NotificationConstant::FlagStatus::OPEN);
     flags->SetVibrationEnabled(NotificationConstant::FlagStatus::OPEN);
     flags->SetLockScreenEnabled(NotificationConstant::FlagStatus::OPEN);
     flags->SetBannerEnabled(NotificationConstant::FlagStatus::OPEN);
     request->SetFlags(flags);
-
-    advancedNotificationService_->SetControlFlagsByFlagsFor3rd(request);
+ 
+    advancedNotificationService_->SetControlFlagsByFlags(request);
     uint32_t resultFlags = record->request->GetNotificationControlFlags();
     ASSERT_EQ(resultFlags, notificationControlFlags);
 }
-
+ 
 /**
- * @tc.name: SetControlFlagsByFlagsFor3rd_00006
- * @tc.desc: Test SetControlFlagsByFlagsFor3rd
+ * @tc.name: SetControlFlagsByFlags_00006
+ * @tc.desc: Test SetControlFlagsByFlags
  * @tc.type: FUNC
  */
 HWTEST_F(AdvancedNotificationServiceTest,
-    SetControlFlagsByFlagsFor3rd_00006, Function | SmallTest | Level1)
+    SetControlFlagsByFlags_00006, Function | SmallTest | Level1)
 {
     MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
     MockIsSystemApp(false);
@@ -4765,26 +4757,27 @@ HWTEST_F(AdvancedNotificationServiceTest,
     auto record = advancedNotificationService_->MakeNotificationRecord(request, bundle);
     uint32_t notificationControlFlags = 23;
     request->SetNotificationControlFlags(notificationControlFlags);
-
+    request->SetSlotType(NotificationConstant::SlotType::SOCIAL_COMMUNICATION);
+ 
     std::shared_ptr<NotificationFlags> flags = std::make_shared<NotificationFlags>();
     flags->SetSoundEnabled(NotificationConstant::FlagStatus::CLOSE);
     flags->SetVibrationEnabled(NotificationConstant::FlagStatus::CLOSE);
     flags->SetLockScreenEnabled(NotificationConstant::FlagStatus::CLOSE);
     flags->SetBannerEnabled(NotificationConstant::FlagStatus::CLOSE);
     request->SetFlags(flags);
-
-    advancedNotificationService_->SetControlFlagsByFlagsFor3rd(request);
+ 
+    advancedNotificationService_->SetControlFlagsByFlags(request);
     uint32_t resultFlags = record->request->GetNotificationControlFlags();
     ASSERT_EQ(resultFlags, notificationControlFlags);
 }
-
+ 
 /**
- * @tc.name: SetControlFlagsByFlagsFor3rd_00007
- * @tc.desc: Test SetControlFlagsByFlagsFor3rd
+ * @tc.name: SetControlFlagsByFlags_00007
+ * @tc.desc: Test SetControlFlagsByFlags
  * @tc.type: FUNC
  */
 HWTEST_F(AdvancedNotificationServiceTest,
-    SetControlFlagsByFlagsFor3rd_00007, Function | SmallTest | Level1)
+    SetControlFlagsByFlags_00007, Function | SmallTest | Level1)
 {
     MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
     MockIsSystemApp(false);
@@ -4794,162 +4787,21 @@ HWTEST_F(AdvancedNotificationServiceTest,
     auto record = advancedNotificationService_->MakeNotificationRecord(request, bundle);
     uint32_t notificationControlFlags = 104;
     request->SetNotificationControlFlags(notificationControlFlags);
-
+    request->SetSlotType(NotificationConstant::SlotType::SOCIAL_COMMUNICATION);
+ 
     std::shared_ptr<NotificationFlags> flags = std::make_shared<NotificationFlags>();
     flags->SetSoundEnabled(NotificationConstant::FlagStatus::CLOSE);
     flags->SetVibrationEnabled(NotificationConstant::FlagStatus::CLOSE);
     flags->SetLockScreenEnabled(NotificationConstant::FlagStatus::CLOSE);
     flags->SetBannerEnabled(NotificationConstant::FlagStatus::CLOSE);
     request->SetFlags(flags);
-
-    advancedNotificationService_->SetControlFlagsByFlagsFor3rd(request);
+ 
+    advancedNotificationService_->SetControlFlagsByFlags(request);
     uint32_t resultFlags = record->request->GetNotificationControlFlags();
     ASSERT_EQ((resultFlags & NotificationConstant::ReminderFlag::SOUND_FLAG) > 0, true);
     ASSERT_EQ((resultFlags & NotificationConstant::ReminderFlag::LOCKSCREEN_FLAG) > 0, true);
     ASSERT_EQ((resultFlags & NotificationConstant::ReminderFlag::VIBRATION_FLAG) > 0, true);
     ASSERT_EQ((resultFlags & NotificationConstant::ReminderFlag::BANNER_FLAG) > 0, true);
-}
-
-/**
- * @tc.name: ChangeNotificationByControlFlagsFor3rdApp_00001
- * @tc.desc: Test ChangeNotificationByControlFlagsFor3rdApp
- * @tc.type: FUNC
- */
-HWTEST_F(AdvancedNotificationServiceTest,
-    ChangeNotificationByControlFlagsFor3rdApp_00001, Function | SmallTest | Level1)
-{
-    std::shared_ptr<NotificationRecord> record = nullptr;
-    advancedNotificationService_->ChangeNotificationByControlFlagsFor3rdApp(record);
-    ASSERT_EQ(record, nullptr);
-}
-
-/**
- * @tc.name: ChangeNotificationByControlFlagsFor3rdApp_00002
- * @tc.desc: Test ChangeNotificationByControlFlagsFor3rdApp
- * @tc.type: FUNC
- */
-HWTEST_F(AdvancedNotificationServiceTest,
-    ChangeNotificationByControlFlagsFor3rdApp_00002, Function | SmallTest | Level1)
-{
-    auto bundle = new NotificationBundleOption(TEST_DEFUALT_BUNDLE, NON_SYSTEM_APP_UID);
-    auto request = new (std::nothrow) NotificationRequest();
-
-    bool isAgentController = true;
-    auto record = advancedNotificationService_->MakeNotificationRecord(request, bundle);
-    advancedNotificationService_->ChangeNotificationByControlFlagsFor3rdApp(record);
-    ASSERT_EQ(record->request->GetNotificationControlFlags(), 0);
-}
-
-/**
- * @tc.name: ChangeNotificationByControlFlagsFor3rdApp_00003
- * @tc.desc: Test ChangeNotificationByControlFlagsFor3rdApp
- * @tc.type: FUNC
- */
-HWTEST_F(AdvancedNotificationServiceTest,
-    ChangeNotificationByControlFlagsFor3rdApp_00003, Function | SmallTest | Level1)
-{
-    sptr<NotificationRequest> request = new (std::nothrow) NotificationRequest();
-    uint32_t notificationControlFlags = 23;
-    request->SetNotificationControlFlags(notificationControlFlags);
-    std::shared_ptr<NotificationFlags> flags = std::make_shared<NotificationFlags>();
-    flags->SetSoundEnabled(NotificationConstant::FlagStatus::OPEN);
-    flags->SetVibrationEnabled(NotificationConstant::FlagStatus::OPEN);
-    flags->SetLockScreenEnabled(NotificationConstant::FlagStatus::OPEN);
-    flags->SetBannerEnabled(NotificationConstant::FlagStatus::OPEN);
-    request->SetFlags(flags);
-
-    auto bundle = new NotificationBundleOption(TEST_DEFUALT_BUNDLE, NON_SYSTEM_APP_UID);
-    auto record = advancedNotificationService_->MakeNotificationRecord(request, bundle);
-    advancedNotificationService_->ChangeNotificationByControlFlagsFor3rdApp(record);
-    u_int32_t reminderFlags = record->request->GetFlags()->GetReminderFlags();
-    ASSERT_EQ((reminderFlags & NotificationConstant::ReminderFlag::SOUND_FLAG) == 0, true);
-    ASSERT_EQ((reminderFlags & NotificationConstant::ReminderFlag::LOCKSCREEN_FLAG) == 0, true);
-    ASSERT_EQ((reminderFlags & NotificationConstant::ReminderFlag::VIBRATION_FLAG) == 0, true);
-    ASSERT_EQ((reminderFlags & NotificationConstant::ReminderFlag::BANNER_FLAG) == 0, true);
-}
-
-/**
- * @tc.name: ChangeNotificationByControlFlagsFor3rdApp_00004
- * @tc.desc: Test ChangeNotificationByControlFlagsFor3rdApp
- * @tc.type: FUNC
- */
-HWTEST_F(AdvancedNotificationServiceTest,
-    ChangeNotificationByControlFlagsFor3rdApp_00004, Function | SmallTest | Level1)
-{
-    sptr<NotificationRequest> request = new (std::nothrow) NotificationRequest();
-    uint32_t notificationControlFlags = 23;
-    request->SetNotificationControlFlags(notificationControlFlags);
-    std::shared_ptr<NotificationFlags> flags = std::make_shared<NotificationFlags>();
-    flags->SetSoundEnabled(NotificationConstant::FlagStatus::CLOSE);
-    flags->SetVibrationEnabled(NotificationConstant::FlagStatus::CLOSE);
-    flags->SetLockScreenEnabled(NotificationConstant::FlagStatus::CLOSE);
-    flags->SetBannerEnabled(NotificationConstant::FlagStatus::CLOSE);
-    request->SetFlags(flags);
-
-    auto bundle = new NotificationBundleOption(TEST_DEFUALT_BUNDLE, NON_SYSTEM_APP_UID);
-    auto record = advancedNotificationService_->MakeNotificationRecord(request, bundle);
-    advancedNotificationService_->ChangeNotificationByControlFlagsFor3rdApp(record);
-    u_int32_t reminderFlags = record->request->GetFlags()->GetReminderFlags();
-    ASSERT_EQ((reminderFlags & NotificationConstant::ReminderFlag::SOUND_FLAG) == 0, true);
-    ASSERT_EQ((reminderFlags & NotificationConstant::ReminderFlag::LOCKSCREEN_FLAG) == 0, true);
-    ASSERT_EQ((reminderFlags & NotificationConstant::ReminderFlag::VIBRATION_FLAG) == 0, true);
-    ASSERT_EQ((reminderFlags & NotificationConstant::ReminderFlag::BANNER_FLAG) == 0, true);
-}
-
-/**
- * @tc.name: ChangeNotificationByControlFlagsFor3rdApp_00005
- * @tc.desc: Test ChangeNotificationByControlFlagsFor3rdApp
- * @tc.type: FUNC
- */
-HWTEST_F(AdvancedNotificationServiceTest,
-    ChangeNotificationByControlFlagsFor3rdApp_00005, Function | SmallTest | Level1)
-{
-    sptr<NotificationRequest> request = new (std::nothrow) NotificationRequest();
-    uint32_t notificationControlFlags = 104;
-    request->SetNotificationControlFlags(notificationControlFlags);
-    std::shared_ptr<NotificationFlags> flags = std::make_shared<NotificationFlags>();
-    flags->SetSoundEnabled(NotificationConstant::FlagStatus::OPEN);
-    flags->SetVibrationEnabled(NotificationConstant::FlagStatus::OPEN);
-    flags->SetLockScreenEnabled(NotificationConstant::FlagStatus::OPEN);
-    flags->SetBannerEnabled(NotificationConstant::FlagStatus::OPEN);
-    request->SetFlags(flags);
-
-    auto bundle = new NotificationBundleOption(TEST_DEFUALT_BUNDLE, NON_SYSTEM_APP_UID);
-    auto record = advancedNotificationService_->MakeNotificationRecord(request, bundle);
-    advancedNotificationService_->ChangeNotificationByControlFlagsFor3rdApp(record);
-    u_int32_t reminderFlags = record->request->GetFlags()->GetReminderFlags();
-    ASSERT_EQ((reminderFlags & NotificationConstant::ReminderFlag::SOUND_FLAG) > 0, true);
-    ASSERT_EQ((reminderFlags & NotificationConstant::ReminderFlag::LOCKSCREEN_FLAG) > 0, true);
-    ASSERT_EQ((reminderFlags & NotificationConstant::ReminderFlag::VIBRATION_FLAG) > 0, true);
-    ASSERT_EQ((reminderFlags & NotificationConstant::ReminderFlag::BANNER_FLAG) > 0, true);
-}
-
-/**
- * @tc.name: ChangeNotificationByControlFlagsFor3rdApp_00006
- * @tc.desc: Test ChangeNotificationByControlFlagsFor3rdApp
- * @tc.type: FUNC
- */
-HWTEST_F(AdvancedNotificationServiceTest,
-    ChangeNotificationByControlFlagsFor3rdApp_00006, Function | SmallTest | Level1)
-{
-    sptr<NotificationRequest> request = new (std::nothrow) NotificationRequest();
-    uint32_t notificationControlFlags = 104;
-    request->SetNotificationControlFlags(notificationControlFlags);
-    std::shared_ptr<NotificationFlags> flags = std::make_shared<NotificationFlags>();
-    flags->SetSoundEnabled(NotificationConstant::FlagStatus::CLOSE);
-    flags->SetVibrationEnabled(NotificationConstant::FlagStatus::CLOSE);
-    flags->SetLockScreenEnabled(NotificationConstant::FlagStatus::CLOSE);
-    flags->SetBannerEnabled(NotificationConstant::FlagStatus::CLOSE);
-    request->SetFlags(flags);
-
-    auto bundle = new NotificationBundleOption(TEST_DEFUALT_BUNDLE, NON_SYSTEM_APP_UID);
-    auto record = advancedNotificationService_->MakeNotificationRecord(request, bundle);
-    advancedNotificationService_->ChangeNotificationByControlFlagsFor3rdApp(record);
-    u_int32_t reminderFlags = record->request->GetFlags()->GetReminderFlags();
-    ASSERT_EQ((reminderFlags & NotificationConstant::ReminderFlag::SOUND_FLAG) == 0, true);
-    ASSERT_EQ((reminderFlags & NotificationConstant::ReminderFlag::LOCKSCREEN_FLAG) == 0, true);
-    ASSERT_EQ((reminderFlags & NotificationConstant::ReminderFlag::VIBRATION_FLAG) == 0, true);
-    ASSERT_EQ((reminderFlags & NotificationConstant::ReminderFlag::BANNER_FLAG) == 0, true);
 }
 
 /**

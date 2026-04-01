@@ -1374,38 +1374,6 @@ AnsStatus AdvancedNotificationService::Filter(const std::shared_ptr<Notification
     return AnsStatus();
 }
 
-void AdvancedNotificationService::ChangeNotificationByControlFlagsFor3rdApp(
-    const std::shared_ptr<NotificationRecord> &record)
-{
-    if (record == nullptr || record->request == nullptr) {
-        ANS_LOGE("Make notification record failed.");
-        return;
-    }
-    uint32_t notificationControlFlags = record->request->GetNotificationControlFlags();
-    if (notificationControlFlags == 0) {
-        ANS_LOGD("The notificationControlFlags is undefined.");
-        return;
-    }
-    if ((notificationControlFlags & NotificationConstant::ReminderFlag::SOUND_FLAG) != 0) {
-        record->request->SetDistributedFlagBit(NotificationConstant::ReminderFlag::SOUND_FLAG, false);
-        record->notification->SetEnableSound(false);
-    }
- 
-    if ((notificationControlFlags & NotificationConstant::ReminderFlag::LOCKSCREEN_FLAG) != 0) {
-        record->request->SetDistributedFlagBit(NotificationConstant::ReminderFlag::LOCKSCREEN_FLAG, false);
-        record->request->SetVisibleness(NotificationConstant::VisiblenessType::SECRET);
-    }
- 
-    if ((notificationControlFlags & NotificationConstant::ReminderFlag::BANNER_FLAG) != 0) {
-        record->request->SetDistributedFlagBit(NotificationConstant::ReminderFlag::BANNER_FLAG, false);
-    }
- 
-    if ((notificationControlFlags & NotificationConstant::ReminderFlag::VIBRATION_FLAG) != 0) {
-        record->request->SetDistributedFlagBit(NotificationConstant::ReminderFlag::VIBRATION_FLAG, false);
-        record->notification->SetEnableVibration(false);
-    }
-}
-
 void AdvancedNotificationService::ChangeNotificationByControlFlags(const std::shared_ptr<NotificationRecord> &record,
     const bool isAgentController)
 {
@@ -2449,15 +2417,7 @@ AnsStatus AdvancedNotificationService::AddRecordToMemory(
         ANS_LOGE("Reject by filters: %{public}d", ansStatus.GetErrCode());
         return ansStatus;
     }
-    if (record->isThirdparty) {
-        NotificationConstant::SlotType type = record->request->GetSlotType();
-        if (type != NotificationConstant::SlotType::LIVE_VIEW) {
-            ChangeNotificationByControlFlagsFor3rdApp(record);
-        }
-    }
-    if (isSystemApp) {
-        ChangeNotificationByControlFlags(record, isAgentController);
-    }
+    ChangeNotificationByControlFlags(record, isAgentController);
     CheckDoNotDisturbProfile(record);
 
     bool remove = false;
