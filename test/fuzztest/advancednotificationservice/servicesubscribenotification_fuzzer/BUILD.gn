@@ -11,15 +11,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 #####################hydra-fuzz###################
 import("../advancednotificationservice_fuzztest_common.gni")  # 导入公共配置
 
 ##############################fuzztest##########################################
-advancednotificationservice_fuzztest_target("ServiceSubscribeNotificationFuzzTest") {
+advancednotificationservice_fuzztest_target(
+    "ServiceSubscribeNotificationFuzzTest") {
   sources_value = [ "service_subscribe_notification_fuzzer.cpp" ]
-  fuzz_config_file_value = 
-      "${component_path}/test/fuzztest/advancednotificationservice/servicesubscribenotification_fuzzer"
+  fuzz_config_file_value = "${component_path}/test/fuzztest/advancednotificationservice/servicesubscribenotification_fuzzer"
   deps_value = []  # 如果不需要额外依赖，可以留空
   common_deps_value = common_deps  # 使用公共依赖
 }
