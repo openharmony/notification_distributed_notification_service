@@ -146,8 +146,8 @@ void CreateReturnValue(const napi_env &env, const CallbackPromiseInfo &info, con
 
         napi_create_error(env, nullptr, message, &error);
         napi_set_named_property(env, error, "code", code);
-        napi_reject_deferred(env, deferred, error);
-    }  
+        napi_reject_deferred(env, info.deferred, error);
+    }
     ANS_LOGD("end");
 }
 
