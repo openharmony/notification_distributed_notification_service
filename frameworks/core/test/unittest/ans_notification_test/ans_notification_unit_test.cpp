@@ -3248,6 +3248,7 @@ HWTEST_F(AnsNotificationUnitTest, SubscribeNotificationv26_0300, Function | Medi
     ASSERT_NE(nullptr, iremoteObject_);
     std::shared_ptr<AnsManagerProxy> proxy = std::make_shared<AnsManagerProxy>(iremoteObject_);
     ASSERT_NE(nullptr, proxy);
+    MockGetAnsManagerProxy(nullptr);
     bool res = ans_->GetAnsManagerProxy();
     EXPECT_EQ(res, false);
 
@@ -3270,6 +3271,7 @@ HWTEST_F(AnsNotificationUnitTest, SubscribeNotificationv26_0400, Function | Medi
     ASSERT_NE(nullptr, iremoteObject);
     std::shared_ptr<AnsManagerProxy> proxy = std::make_shared<AnsManagerProxy>(iremoteObject);
     ASSERT_NE(nullptr, proxy);
+    MockGetAnsManagerProxy(nullptr);
     bool res = ans_->GetAnsManagerProxy();
     EXPECT_EQ(res, false);
 
