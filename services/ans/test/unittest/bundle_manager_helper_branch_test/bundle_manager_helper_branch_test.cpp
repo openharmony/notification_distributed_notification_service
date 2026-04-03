@@ -361,5 +361,29 @@ HWTEST_F(BundleManagerHelperBranchTest, GetAllBundleOption_00001, Function | Sma
     result = bundleManagerHelper.GetAllBundleOption(bundleOptions, 100);
     ASSERT_NE(result, (int32_t)ERR_OK);
 }
+
+/**
+ * @tc.number    : GetSandboxDataDir_00001
+ * @tc.name      : GetSandboxDataDir_00001
+ * @tc.desc      : test GetSandboxDataDir
+ */
+HWTEST_F(BundleManagerHelperBranchTest, GetSandboxDataDir_00001, Function | SmallTest | Level1)
+{
+    BundleManagerHelper bundleManagerHelper;
+    std::string bundleName;
+    int32_t appIndex = 0;
+    std::string sandboxDataDir;
+    bool result = bundleManagerHelper.GetSandboxDataDir(bundleName, appIndex, sandboxDataDir);
+    EXPECT_FALSE(result);
+
+    bundleName = "testBunlde";
+    MockGetSystemAbilityManager(true);
+    result = bundleManagerHelper.GetSandboxDataDir(bundleName, appIndex, sandboxDataDir);
+    EXPECT_FALSE(result);
+ 
+    MockGetSystemAbilityManager(false);
+    result = bundleManagerHelper.GetSandboxDataDir(bundleName, appIndex, sandboxDataDir);
+    EXPECT_TRUE(result);
+}
 }  // namespace Notification
 }  // namespace OHOS
