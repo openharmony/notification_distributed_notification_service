@@ -813,5 +813,50 @@ bool NotificationPreferencesInfo::GetUserDisableNotificationInfo(
     }
     return true;
 }
+
+void NotificationPreferencesInfo::UpdateNotificationStatisticsByBundle(int32_t bundleId,
+    const NotificationStatistics &statistics)
+{
+    notificationStatistics_.insert_or_assign(bundleId, statistics);
+}
+
+bool NotificationPreferencesInfo::GetNotificationStatisticsByBundle(int32_t bundleId,
+    NotificationStatistics &statistics)
+{
+    auto itr = notificationStatistics_.find(bundleId);
+    if (itr != notificationStatistics_.end()) {
+        statistics.SetBundleOption(itr->second.GetBundleOption());
+        statistics.SetLastTime(itr->second.GetLastTime());
+        statistics.SetRecentCount(itr->second.GetRecentCount());
+        return true;
+    }
+    return false;
+}
+
+void NotificationPreferencesInfo::RemoveNotificationStatisticsByBundle(int32_t bundleId)
+{
+    auto iter = notificationStatistics_.find(bundleId);
+    if (iter != notificationStatistics_.end()) {
+        notificationStatistics_.erase(iter);
+    }
+}
+
+void NotificationPreferencesInfo::UpdateNotificationStatisticsTime(int64_t offsetTime)
+{
+    for (auto iter = notificationStatistics_.begin(); iter != notificationStatistics_.end(); iter++) {
+        int64_t currentTime = iter->second.GetLastTime() + offsetTime;
+        iter->second.SetLastTime(currentTime);
+    }
+}
+
+std::vector<NotificationStatistics> NotificationPreferencesInfo::GetNotificationStatisticsAll()
+{
+    std::vector<NotificationStatistics> statistics;
+    for (auto iter = notificationStatistics_.begin(); iter != notificationStatistics_.end(); iter++) {
+        statistics.push_back(iter->second);
+    }
+
+    return statistics;
+}
 }  // namespace Notification
 }  // namespace OHOS

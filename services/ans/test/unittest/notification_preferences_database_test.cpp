@@ -395,7 +395,8 @@ HWTEST_F(NotificationPreferencesDatabaseTest, TimerCleanExperData_00100, Functio
 {
     EXPECT_TRUE(preferncesDB_->CheckRdbStore());
     sptr<NotificationBundleOption> bundleOption = new (std::nothrow) NotificationBundleOption("testbundle", 100);
-    EXPECT_TRUE(preferncesDB_->PutNotificationStatistics(100, bundleOption));
+    int64_t cTime = 1767196800000;
+    EXPECT_TRUE(preferncesDB_->PutNotificationStatistics(100, cTime, bundleOption));
     EXPECT_TRUE(preferncesDB_->TimerCleanExperData({100}));
 }
 
@@ -408,7 +409,8 @@ HWTEST_F(NotificationPreferencesDatabaseTest, CleanExperDbData_00100, Function |
 {
     EXPECT_TRUE(preferncesDB_->CheckRdbStore());
     sptr<NotificationBundleOption> bundleOption = new (std::nothrow) NotificationBundleOption("testbundle", 100);
-    EXPECT_TRUE(preferncesDB_->PutNotificationStatistics(100, bundleOption));
+    int64_t cTime = 1767196800000;
+    EXPECT_TRUE(preferncesDB_->PutNotificationStatistics(100, cTime, bundleOption));
     EXPECT_TRUE(preferncesDB_->CleanExperDbData(100));
 }
 
@@ -421,7 +423,8 @@ HWTEST_F(NotificationPreferencesDatabaseTest, DeleteStatisticsByBundle_00100, Fu
 {
     EXPECT_TRUE(preferncesDB_->CheckRdbStore());
     sptr<NotificationBundleOption> bundleOption = new (std::nothrow) NotificationBundleOption("testbundle", 100);
-    EXPECT_TRUE(preferncesDB_->PutNotificationStatistics(100, bundleOption));
+    int64_t cTime = 1767196800000;
+    EXPECT_TRUE(preferncesDB_->PutNotificationStatistics(100, cTime, bundleOption));
     EXPECT_TRUE(preferncesDB_->DeleteStatisticsByBundle(100, "testbundle", 100));
 }
 
@@ -434,7 +437,8 @@ HWTEST_F(NotificationPreferencesDatabaseTest, PutNotificationStatistics_00100, F
 {
     EXPECT_TRUE(preferncesDB_->CheckRdbStore());
     sptr<NotificationBundleOption> bundleOption = new (std::nothrow) NotificationBundleOption("", 1);
-    EXPECT_TRUE(preferncesDB_->PutNotificationStatistics(100, bundleOption));
+    int64_t cTime = 1767196800000;
+    EXPECT_TRUE(preferncesDB_->PutNotificationStatistics(100, cTime, bundleOption));
 }
 
 /**
@@ -445,6 +449,9 @@ HWTEST_F(NotificationPreferencesDatabaseTest, PutNotificationStatistics_00100, F
 HWTEST_F(NotificationPreferencesDatabaseTest, UpdateCustomTimeDbData_00100, Function | SmallTest | Level1)
 {
     EXPECT_TRUE(preferncesDB_->CheckRdbStore());
+    sptr<NotificationBundleOption> bundleOption = new (std::nothrow) NotificationBundleOption("", 1);
+    int64_t cTime = 1767196800000;
+    EXPECT_TRUE(preferncesDB_->PutNotificationStatistics(100, cTime, bundleOption));
     EXPECT_TRUE(preferncesDB_->UpdateCustomTimeDbData(1));
 }
 
