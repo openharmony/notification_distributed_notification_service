@@ -132,7 +132,7 @@ int32_t NtfRdbStoreWrapper::CleanExperDataTimer(const std::vector<int32_t> &user
         int ret = rdbStore_->Delete(affectedRows, absRdbPredicates);
         if (ret != NativeRdb::E_OK) {
             ANS_LOGE("NtfRdbStoreWrapper::CleanExperDataTimer fail: %{public}d", ret);
-            return NativeRdb::E_ERROR;
+            continue;
         }
         ANS_LOGD("NtfRdbStoreWrapper::CleanExperDataTimer sucess affectedRows:%{public}d, %{public}d",
             affectedRows, ret);

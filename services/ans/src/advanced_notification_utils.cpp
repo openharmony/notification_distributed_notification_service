@@ -661,6 +661,9 @@ void AdvancedNotificationService::OnBootSystemCompleted()
     ANS_LOGD("Called.");
     InitNotificationEnableList();
     TryStartReminderAgentService();
+#ifdef ANS_FEATURE_NOTIFICATION_STATISTICS
+    InitNotificationStatistics();
+#endif
 }
 
 #ifdef ANS_FEATURE_ORIGINAL_DISTRIBUTED
@@ -1785,6 +1788,27 @@ void AdvancedNotificationService::InitNotificationEnableList()
                 }
                 SetSlotFlagsTrustlistsAsBundle(bundleOption);
             }
+        }
+    };
+    notificationSvrQueue_.RunOnce(task);
+}
+
+void AdvancedNotificationService::InitNotificationStatistics()
+{
+    auto task = [&]() {
+        std::vector<AppExecFwk::BundleInfo> bundleInfos = GetBundlesOfActiveUser();
+        for (const auto &bundleInfo : bundleInfos) {
+            sptr<NotificationBundleOption> bundleOption = new (std::nothrow) NotificationBundleOption(
+                bundleInfo.applicationInfo.bundleName, bundleInfo.uid);
+            if (bundleOption == nullptr) {
+                ANS_LOGE("New bundle option obj error! bundlename:%{public}s",
+                    bundleInfo.applicationInfo.bundleName.c_str());
+                continue;
+            }
+            int32_t recentCount = 0;
+            int64_t lastTime = 0;
+            NotificationPreferences::GetInstance()->QueryStatisticsByBundle(bundleOption,
+                recentCount, lastTime);
         }
     };
     notificationSvrQueue_.RunOnce(task);

@@ -83,7 +83,7 @@ declare_args() {
   distributed_notification_service_feature_support_geofence = false
   distributed_notification_service_feature_enable_pgo = false
   distributed_notification_service_feature_pgo_path = ""
-  distributed_notification_service_feature_notification_statistics = true
+  distributed_notification_service_feature_notification_statistics = false
   notification_smart_reminder_supported = true
   ans_config_policy_enable = true
   screenlock_mgr_enable = true
