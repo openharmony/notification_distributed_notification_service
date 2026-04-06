@@ -2640,7 +2640,7 @@ export default namespace notificationManager {
             result = nativeGetDeviceRemindType(undefined);
         } catch (err) {
             let error: BusinessError = err as BusinessError;
-            throw error;
+            return Promise.reject(error);
         }
         return result;
     }
@@ -2654,7 +2654,7 @@ export default namespace notificationManager {
             nativeGetDeviceRemindType(callback);
         } catch (err) {
             let error: BusinessError = err as BusinessError;
-            throw error;
+            callback(error, undefined);
         }
     }
 
