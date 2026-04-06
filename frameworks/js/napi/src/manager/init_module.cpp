@@ -151,12 +151,14 @@ napi_value NotificationManagerInit(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("isDistributedEnabledByBundle", NapiIsDistributedEnableByBundle),
         DECLARE_NAPI_FUNCTION("setSyncNotificationEnabledWithoutApp", NapiSetSyncNotificationEnabledWithoutApp),
         DECLARE_NAPI_FUNCTION("getSyncNotificationEnabledWithoutApp", NapiGetSyncNotificationEnabledWithoutApp),
+        DECLARE_NAPI_FUNCTION("getDeviceRemindType", NapiGetDeviceRemindType),
 #else
         DECLARE_NAPI_FUNCTION("setDistributedEnable", Common::NapiReturnCapErrCb),
         DECLARE_NAPI_FUNCTION("setDistributedEnableByBundle", Common::NapiReturnCapErrCb),
         DECLARE_NAPI_FUNCTION("isDistributedEnabledByBundle", Common::NapiReturnCapErrCb),
         DECLARE_NAPI_FUNCTION("setSyncNotificationEnabledWithoutApp", Common::NapiReturnCapErrCb),
         DECLARE_NAPI_FUNCTION("getSyncNotificationEnabledWithoutApp", Common::NapiReturnCapErrCb),
+        DECLARE_NAPI_FUNCTION("getDeviceRemindType", Common::NapiReturnCapErrCb),
 #endif
         
 #ifdef ANS_FEATURE_DISTRIBUTED_SUPPORTED
@@ -165,19 +167,17 @@ napi_value NotificationManagerInit(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("setDistributedEnabledByBundle", NapiSetDistributedEnabledByBundle),
         DECLARE_NAPI_FUNCTION("setSmartReminderEnabled", NapiSetSmartReminderEnabled),
         DECLARE_NAPI_FUNCTION("setDistributedEnableByBundles", NapiSetDistributedBundleOption),
-        DECLARE_NAPI_FUNCTION("getDeviceRemindType", NapiGetDeviceRemindType),
         DECLARE_NAPI_FUNCTION("isSmartReminderEnabled", NapiIsSmartReminderEnabled),
         DECLARE_NAPI_FUNCTION("setDistributedEnabled", NapiSetDistributedEnabled),
         DECLARE_NAPI_FUNCTION("getDistributedDeviceList", NapiGetDistributedDeviceList),
         DECLARE_NAPI_FUNCTION("getDistributedBundleListByType", NapiGetDistributedBundleListByType),
         DECLARE_NAPI_FUNCTION("getDistributedBundleInfo", NapiGetDistributedBundleInfo),
 #else
-        DECLARE_NAPI_FUNCTION("isDistributedEnabled", Common::NapiReturnFalseCbNewType),
+        DECLARE_NAPI_FUNCTION("isDistributedEnabled", Common::NapiReturnCapErrCb),
         DECLARE_NAPI_FUNCTION("enableDistributedSelf", Common::NapiReturnCapErrCb),
         DECLARE_NAPI_FUNCTION("setDistributedEnabledByBundle", Common::NapiReturnCapErr),
         DECLARE_NAPI_FUNCTION("setSmartReminderEnabled", Common::NapiReturnCapErr),
         DECLARE_NAPI_FUNCTION("setDistributedEnableByBundles", Common::NapiReturnCapErr),
-        DECLARE_NAPI_FUNCTION("getDeviceRemindType", Common::NapiReturnCapErrCb),
         DECLARE_NAPI_FUNCTION("isSmartReminderEnabled", Common::NapiReturnCapErr),
         DECLARE_NAPI_FUNCTION("setDistributedEnabled", Common::NapiReturnCapErr),
         DECLARE_NAPI_FUNCTION("getDistributedDeviceList", Common::NapiReturnCapErr),

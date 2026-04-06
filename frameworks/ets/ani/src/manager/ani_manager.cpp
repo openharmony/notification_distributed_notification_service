@@ -174,6 +174,7 @@ static std::array kitManagerFunctions = {
         reinterpret_cast<void *>(AniSetSyncNotificationEnabledWithoutApp)},
     ani_native_function {"nativeGetSyncNotificationEnabledWithoutApp", nullptr,
         reinterpret_cast<void *>(AniGetSyncNotificationEnabledWithoutApp)},
+    ani_native_function {"nativeGetDeviceRemindType", nullptr, reinterpret_cast<void *>(AniGetDeviceRemindType)},
 #else
     ani_native_function {"nativeIsDistributedEnabled", nullptr, reinterpret_cast<void *>(ThrowSystemCapErr)},
     ani_native_function {"nativeSetDistributedEnable", nullptr, reinterpret_cast<void *>(ThrowSystemCapErr)},
@@ -184,6 +185,7 @@ static std::array kitManagerFunctions = {
         reinterpret_cast<void *>(ThrowSystemCapErr)},
     ani_native_function {"nativeGetSyncNotificationEnabledWithoutApp", nullptr,
         reinterpret_cast<void *>(ThrowSystemCapErr)},
+    ani_native_function {"nativeGetDeviceRemindType", nullptr, reinterpret_cast<void *>(ThrowSystemCapErr)},
 #endif
 
 #ifdef ANS_FEATURE_DISTRIBUTED_SUPPORTED
@@ -197,7 +199,6 @@ static std::array kitManagerFunctions = {
         reinterpret_cast<void *>(AniIsSmartReminderEnabled)},
     ani_native_function {"nativeSetDistributedEnableByBundles", nullptr,
         reinterpret_cast<void *>(AniSetDistributedEnableByBundles)},
-    ani_native_function {"nativeGetDeviceRemindType", nullptr, reinterpret_cast<void *>(AniGetDeviceRemindType)},
     ani_native_function {"nativeIsDistributedEnabledByDeviceType", nullptr,
         reinterpret_cast<void *>(AniIsDistributedEnabledByDeviceType)},
     ani_native_function {"nativeSetDistributedEnabledByDeviceType", nullptr,
@@ -212,7 +213,6 @@ static std::array kitManagerFunctions = {
     ani_native_function {"nativesetSmartReminderEnabled", nullptr, reinterpret_cast<void *>(ThrowSystemCapErr)},
     ani_native_function {"nativeisSmartReminderEnabled", nullptr, reinterpret_cast<void *>(ThrowSystemCapErr)},
     ani_native_function {"nativeSetDistributedEnableByBundles", nullptr, reinterpret_cast<void *>(ThrowSystemCapErr)},
-    ani_native_function {"nativeGetDeviceRemindType", nullptr, reinterpret_cast<void *>(ThrowSystemCapErr)},
     ani_native_function {"nativeIsDistributedEnabledByDeviceType", nullptr,
         reinterpret_cast<void *>(ThrowSystemCapErr)},
     ani_native_function {"nativeSetDistributedEnabledByDeviceType", nullptr,
