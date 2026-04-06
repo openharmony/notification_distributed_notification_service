@@ -1980,6 +1980,7 @@ ohos_unittest("common_utils_test") {
     "common_utils/notification_analytics_util_test.cpp",
     "mock/mock_common_event_manager.cpp",
   ]
+  use_exceptions = true
 
   defines = []
 
