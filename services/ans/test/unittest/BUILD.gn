@@ -899,6 +899,7 @@ ohos_unittest("notification_preferences_test") {
     "${services_path}/infrastructure/external_adapter/rdb/include",
   ]
 
+  use_exceptions = true
   defines = []
 
   sources = [

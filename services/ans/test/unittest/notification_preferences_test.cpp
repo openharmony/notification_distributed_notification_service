@@ -25,6 +25,7 @@
 #include "notification_ringtone_info.h"
 #include "os_account_manager.h"
 #include "os_account_manager_helper.h"
+#include "mock_bundle_manager_helper.h"
 #undef private
 #undef protected
 
@@ -3645,6 +3646,108 @@ HWTEST_F(NotificationPreferencesTest, GetPriorityStrategyByBundle_001, Function 
     int64_t strategy = 32;
     auto ret = notificationPreferences.GetPriorityStrategyByBundle(nullptr, strategy);
     EXPECT_EQ(ret, ERR_ANS_INVALID_PARAM);
+}
+
+/**
+ * @tc.name: SetAncoApplicationUserId_001
+ * @tc.desc: Test SetAncoApplicationUserId with valid userId
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesTest, SetAncoApplicationUserId_001, Function | SmallTest | Level1)
+{
+    int32_t testUserId = 100;
+    MockBundleManager::MockIsAncoApp(true);
+    EXPECT_NO_THROW({
+        NotificationPreferences::GetInstance()->SetAncoApplicationUserId(testUserId);
+    });
+    MockBundleManager::MockIsAncoApp(false);
+}
+
+/**
+ * @tc.name: SetAncoApplicationUserId_002
+ * @tc.desc: Test SetAncoApplicationUserId with zero userId
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesTest, SetAncoApplicationUserId_002, Function | SmallTest | Level1)
+{
+    int32_t testUserId = 0;
+    MockBundleManager::MockIsAncoApp(true);
+    EXPECT_NO_THROW({
+        NotificationPreferences::GetInstance()->SetAncoApplicationUserId(testUserId);
+    });
+    MockBundleManager::MockIsAncoApp(false);
+}
+
+/**
+ * @tc.name: SetAncoApplicationUserIdWithBundleOption_001
+ * @tc.desc: Test SetAncoApplicationUserId with valid bundle option
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesTest, SetAncoApplicationUserIdWithBundleOption_001, Function | SmallTest | Level1)
+{
+    sptr<NotificationBundleOption> bundleOption = new NotificationBundleOption("testBundle", 1000);
+    int32_t testUserId = 100;
+    EXPECT_NE(bundleOption, nullptr);
+    EXPECT_EQ(bundleOption->GetBundleName(), "testBundle");
+    EXPECT_EQ(bundleOption->GetUid(), 1000);
+    EXPECT_NO_THROW({
+        NotificationPreferences::GetInstance()->SetAncoApplicationUserId(bundleOption, testUserId);
+    });
+}
+
+/**
+ * @tc.name: SetAncoApplicationUserIdWithBundleOption_002
+ * @tc.desc: Test SetAncoApplicationUserId with null bundle option
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesTest, SetAncoApplicationUserIdWithBundleOption_002, Function | SmallTest | Level1)
+{
+    sptr<NotificationBundleOption> bundleOption = nullptr;
+    int32_t testUserId = 100;
+    EXPECT_EQ(bundleOption, nullptr);
+    EXPECT_NO_THROW({
+        NotificationPreferences::GetInstance()->SetAncoApplicationUserId(bundleOption, testUserId);
+    });
+}
+
+/**
+ * @tc.name: SetAncoApplicationUserIdWithBundleOption_003
+ * @tc.desc: Test SetAncoApplicationUserId with different userId values
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesTest, SetAncoApplicationUserIdWithBundleOption_003, Function | SmallTest | Level1)
+{
+    sptr<NotificationBundleOption> bundleOption = new NotificationBundleOption("testBundle", 1000);
+    std::vector<int32_t> testUserIds = {0, 100, 999999};
+    
+    for (auto userId : testUserIds) {
+        EXPECT_NO_THROW({
+            NotificationPreferences::GetInstance()->SetAncoApplicationUserId(bundleOption, userId);
+        });
+    }
+}
+
+/**
+ * @tc.name: SetAncoApplicationUserIdWithBundleOption_004
+ * @tc.desc: Test SetAncoApplicationUserId with different bundle names
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesTest, SetAncoApplicationUserIdWithBundleOption_004, Function | SmallTest | Level1)
+{
+    std::vector<std::string> testBundleNames = {
+        "com.example.test1",
+        "com.example.test2",
+        "com.example.test3"
+    };
+    int32_t testUserId = 100;
+    
+    for (auto bundleName : testBundleNames) {
+        sptr<NotificationBundleOption> bundleOption = new NotificationBundleOption(bundleName, 1000);
+        EXPECT_EQ(bundleOption->GetBundleName(), bundleName);
+        EXPECT_NO_THROW({
+            NotificationPreferences::GetInstance()->SetAncoApplicationUserId(bundleOption, testUserId);
+        });
+    }
 }
 }  // namespace Notification
 }  // namespace OHOS

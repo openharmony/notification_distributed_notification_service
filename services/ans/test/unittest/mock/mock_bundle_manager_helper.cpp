@@ -28,6 +28,7 @@ bool g_getBundle = true;
 bool g_systemBundle = false;
 int32_t g_bundleHelperResult = 0;
 std::vector<NotificationBundleOption> g_installedBundles;
+bool g_isAncoApp = false;
 
 void MockBundleManager::MockBundleInterfaceResult(const int32_t result)
 {
@@ -65,6 +66,11 @@ void MockBundleManager::MockBundleRseult(bool result)
 void MockBundleManager::MockSystemBundle(bool systemBundle)
 {
     g_systemBundle = systemBundle;
+}
+
+void MockBundleManager::MockIsAncoApp(bool isAncoApp)
+{
+    g_isAncoApp = isAncoApp;
 }
 
 void BundleManagerHelper::OnRemoteDied(const wptr<IRemoteObject> &object)
@@ -196,7 +202,7 @@ bool BundleManagerHelper::CheckCurrentUserIdApp(const std::string &bundleName, c
 
 bool BundleManagerHelper::IsAncoApp(const std::string &bundleName, int32_t uid)
 {
-    return false;
+    return g_isAncoApp;
 }
 
 bool BundleManagerHelper::GetCloneAppIndexes(

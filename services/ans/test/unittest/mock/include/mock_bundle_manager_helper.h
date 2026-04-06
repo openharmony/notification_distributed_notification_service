@@ -29,6 +29,7 @@ public:
     static void MockBundleInterfaceResult(const int32_t result);
     static void MockInstallBundle(const NotificationBundleOption& bundleOption);
     static void MockUninstallBundle(const NotificationBundleOption& bundleOption);
+    static void MockIsAncoApp(bool isAncoApp);
 };
 }  // namespace OHOS::Notification
 
