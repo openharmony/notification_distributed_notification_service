@@ -64,6 +64,9 @@ Notification::Notification(const Notification &other)
     updateTimerId_ = other.updateTimerId_;
     finishTimerId_ = other.finishTimerId_;
     archiveTimerId_ = other.archiveTimerId_;
+    if (other.voiceContent_ != nullptr) {
+        voiceContent_ = std::make_shared<NotificationVoiceContent>(*other.voiceContent_);
+    }
 }
 
 Notification::~Notification()
@@ -370,6 +373,19 @@ bool Notification::MarshallingParcelable(Parcel &parcel) const
         return false;
     }
 
+    bool hasVoiceContent = (voiceContent_ != nullptr);
+    if (!parcel.WriteBool(hasVoiceContent)) {
+        ANS_LOGE("Failed to write hasVoiceContent");
+        return false;
+    }
+
+    if (hasVoiceContent) {
+        if (!parcel.WriteParcelable(voiceContent_.get())) {
+            ANS_LOGE("Failed to write voiceContent");
+            return false;
+        }
+    }
+
     return true;
 }
 
@@ -461,7 +477,21 @@ bool Notification::ReadFromParcelParcelable(Parcel &parcel)
 {
     // Read request_
     request_ = parcel.ReadStrongParcelable<NotificationRequest>();
-    return request_ != nullptr;
+    if (request_ == nullptr) {
+        return false;
+    }
+
+    // Read voiceContent_
+    bool hasVoiceContent = parcel.ReadBool();
+    if (hasVoiceContent) {
+        voiceContent_ = std::shared_ptr<NotificationVoiceContent>(parcel.ReadParcelable<NotificationVoiceContent>());
+        if (voiceContent_ == nullptr) {
+            ANS_LOGE("Voice content read parcel error.");
+            return false;
+        }
+    }
+
+    return true;
 }
 
 bool Notification::ReadFromParcel(Parcel &parcel)
@@ -608,6 +638,16 @@ void Notification::SetArchiveTimer(uint64_t archiveTimerId)
 uint64_t Notification::GetArchiveTimer() const
 {
     return archiveTimerId_;
+}
+
+void Notification::SetVoiceContent(const std::shared_ptr<NotificationVoiceContent> &voiceContent)
+{
+    voiceContent_ = voiceContent;
+}
+
+std::shared_ptr<NotificationVoiceContent> Notification::GetVoiceContent() const
+{
+    return voiceContent_;
 }
 
 void Notification::SetAutoDeletedTimer(uint64_t autoDeletedTimerId)

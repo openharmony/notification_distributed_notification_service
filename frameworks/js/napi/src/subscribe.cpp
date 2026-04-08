@@ -144,6 +144,18 @@ napi_value SetSubscribeCallbackData(const napi_env &env,
     }
     napi_set_named_property(env, result, "vibrationValues", arr);
 
+    // voiceContent?: {textContent: string}
+    auto voiceContent = request->GetVoiceContent();
+    if (voiceContent != nullptr) {
+        napi_value voiceContentResult = nullptr;
+        napi_create_object(env, &voiceContentResult);
+        if (!Common::SetNotificationVoiceContent(env, *voiceContent, voiceContentResult)) {
+            ANS_LOGE("SetNotificationVoiceContent call failed");
+            return Common::NapiGetBoolean(env, false);
+        }
+        napi_set_named_property(env, result, "voiceContent", voiceContentResult);
+    }
+
     return Common::NapiGetBoolean(env, true);
 }
 
