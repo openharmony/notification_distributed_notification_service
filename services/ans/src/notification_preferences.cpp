@@ -2199,6 +2199,9 @@ int32_t NotificationPreferences::SetKvToDb(
     if (key == KIOSK_APP_TRUST_LIST_KEY) {
         isKioskTrustListUpdate_ = true;
     }
+    if (key == RESTRICTED_MODE_TRUST_LIST_KEY) {
+        isRestrictedTrustListUpdate_ = true;
+    }
     return preferncesDB_->SetKvToDb(key, value, userId);
 }
 
@@ -2489,12 +2492,27 @@ bool NotificationPreferences::GetkioskAppTrustList(std::vector<std::string> &kio
     return true;
 }
 
+bool NotificationPreferences::IsExistKioskAppTrustList(const std::string &bundleName)
+{
+    ANS_LOGD("%{public}s", __FUNCTION__);
+    std::vector<std::string> kioskAppTrustList;
+    if (NotificationPreferences::GetInstance()->GetkioskAppTrustList(kioskAppTrustList)) {
+        auto it = std::find(kioskAppTrustList.begin(), kioskAppTrustList.end(), bundleName);
+        if (it != kioskAppTrustList.end()) {
+            return true;
+        } else {
+            ANS_LOGW("kioskAppTrustList bundle(%{public}s) not exist.", bundleName.c_str());
+        }
+    }
+    return false;
+}
+
 bool NotificationPreferences::GetRestrictedModeTrustList(std::unordered_map<int32_t,
     std::vector<std::string>> &restrictedModeTrustList)
 {
     ANS_LOGD("%{public}s", __FUNCTION__);
     std::lock_guard<ffrt::mutex> lock(preferenceMutex_);
-    if (preferencesInfo_.GetRestrictedModeTrustList(restrictedModeTrustList)) {
+    if (preferencesInfo_.GetRestrictedModeTrustList(restrictedModeTrustList) && !isRestrictedTrustListUpdate_) {
         ANS_LOGD("info get restricted mode TrustList success");
         return true;
     }
@@ -2505,13 +2523,36 @@ bool NotificationPreferences::GetRestrictedModeTrustList(std::unordered_map<int3
     if (preferncesDB_->GetRestrictedModeTrustList(preferencesInfo_)) {
         ANS_LOGD("db get restricted mode TrustList success");
         preferencesInfo_.GetRestrictedModeTrustList(restrictedModeTrustList);
+        isRestrictedTrustListUpdate_ = false;
     } else {
         ANS_LOGE("db get restricted mode TrustList fail");
         return false;
     }
     return true;
 }
- 
+
+bool NotificationPreferences::IsExistRestrictedModeTrustList(const std::string &bundleName, const int32_t &userId)
+{
+    ANS_LOGD("%{public}s", __FUNCTION__);
+    std::unordered_map<int32_t, std::vector<std::string>> restrictedModeTrustList;
+    if (NotificationPreferences::GetInstance()->GetRestrictedModeTrustList(restrictedModeTrustList)) {
+        auto it = restrictedModeTrustList.find(userId);
+        if (it == restrictedModeTrustList.end()) {
+            ANS_LOGE("restrictedModeTrustList userId(%{public}d) not exist.", userId);
+            return false;
+        }
+        const auto& trustList = it->second;
+        auto itBundle = std::find(trustList.begin(), trustList.end(), bundleName);
+        if (itBundle != trustList.end()) {
+            return true;
+        } else {
+            ANS_LOGW("restrictedModeTrustList bundle(%{public}s) not exist in userId(%{public}d).",
+                bundleName.c_str(), userId);
+        }
+    }
+    return false;
+}
+
 bool NotificationPreferences::SetRestrictedModeTrustList(const std::string &value)
 {
     ANS_LOGD("%{public}s", __FUNCTION__);
