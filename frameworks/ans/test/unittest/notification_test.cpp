@@ -644,5 +644,98 @@ HWTEST_F(NotificationTest, GetGeofenceTriggerTimer_00001, Function | SmallTest |
     notification->SetGeofenceTriggerTimer(triggerTimerId);
     EXPECT_EQ(notification->GetGeofenceTriggerTimer(), 10);
 }
+
+/**
+ * @tc.name: SetVoiceContent_00001
+ * @tc.desc: Test SetVoiceContent with valid content.
+ * @tc.type: FUNC
+ * @tc.require: AR000H0PCK
+ */
+HWTEST_F(NotificationTest, SetVoiceContent_00001, Function | SmallTest | Level1)
+{
+    sptr<NotificationRequest> request = new NotificationRequest();
+    auto notification = std::make_shared<Notification>(request);
+    auto voiceContent = std::make_shared<NotificationVoiceContent>();
+    voiceContent->SetTextContent("Test voice content");
+    notification->SetVoiceContent(voiceContent);
+    EXPECT_EQ(notification->GetVoiceContent()->GetTextContent(), "Test voice content");
+}
+
+/**
+ * @tc.name: SetVoiceContent_00002
+ * @tc.desc: Test SetVoiceContent with null content.
+ * @tc.type: FUNC
+ * @tc.require: AR000H0PCK
+ */
+HWTEST_F(NotificationTest, SetVoiceContent_00002, Function | SmallTest | Level1)
+{
+    sptr<NotificationRequest> request = new NotificationRequest();
+    auto notification = std::make_shared<Notification>(request);
+    notification->SetVoiceContent(nullptr);
+    EXPECT_EQ(notification->GetVoiceContent(), nullptr);
+}
+
+/**
+ * @tc.name: GetVoiceContent_00001
+ * @tc.desc: Test GetVoiceContent with default value.
+ * @tc.type: FUNC
+ * @tc.require: AR000H0PCK
+ */
+HWTEST_F(NotificationTest, GetVoiceContent_00001, Function | SmallTest | Level1)
+{
+    sptr<NotificationRequest> request = new NotificationRequest();
+    auto notification = std::make_shared<Notification>(request);
+    EXPECT_EQ(notification->GetVoiceContent(), nullptr);
+}
+
+/**
+ * @tc.name: NotificationVoiceContentMarshalling_00001
+ * @tc.desc: Test Notification with VoiceContent Marshalling.
+ * @tc.type: FUNC
+ * @tc.require: AR000H0PCK
+ */
+HWTEST_F(NotificationTest, NotificationVoiceContentMarshalling_00001, Function | SmallTest | Level1)
+{
+    Parcel parcel;
+    std::shared_ptr<NotificationMediaContent> mediaContent = std::make_shared<NotificationMediaContent>();
+    std::shared_ptr<NotificationContent> content = std::make_shared<NotificationContent>(mediaContent);
+    sptr<NotificationRequest> request = new NotificationRequest();
+    request->SetContent(content);
+    request->SetNotificationId(1);
+    auto notification = std::make_shared<Notification>(request);
+    auto voiceContent = std::make_shared<NotificationVoiceContent>();
+    voiceContent->SetTextContent("Test voice content");
+    notification->SetVoiceContent(voiceContent);
+
+    EXPECT_EQ(notification->Marshalling(parcel), true);
+
+    auto result = Notification::Unmarshalling(parcel);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->GetVoiceContent()->GetTextContent(), "Test voice content");
+}
+
+/**
+ * @tc.name: NotificationVoiceContentMarshalling_00002
+ * @tc.desc: Test Notification with null VoiceContent Marshalling.
+ * @tc.type: FUNC
+ * @tc.require: AR000H0PCK
+ */
+HWTEST_F(NotificationTest, NotificationVoiceContentMarshalling_00002, Function | SmallTest | Level1)
+{
+    Parcel parcel;
+    std::shared_ptr<NotificationMediaContent> mediaContent = std::make_shared<NotificationMediaContent>();
+    std::shared_ptr<NotificationContent> content = std::make_shared<NotificationContent>(mediaContent);
+    sptr<NotificationRequest> request = new NotificationRequest();
+    request->SetNotificationId(1);
+    request->SetContent(content);
+    auto notification = std::make_shared<Notification>(request);
+    notification->SetVoiceContent(nullptr);
+
+    EXPECT_EQ(notification->Marshalling(parcel), true);
+
+    auto result = Notification::Unmarshalling(parcel);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->GetVoiceContent(), nullptr);
+}
 } // namespace Notification
 } // namespace OHOS
