@@ -1249,35 +1249,15 @@ bool AdvancedNotificationService::IsDisableNotificationForSaByRestrictedMode(
 */
 bool AdvancedNotificationService::IsExistRestrictedModeTrustList(const std::string &bundleName, const int32_t &userId)
 {
-    std::vector<std::string> kioskAppTrustList;
-    std::unordered_map<int32_t, std::vector<std::string>> restrictedModeTrustList;
-    if (NotificationPreferences::GetInstance()->GetkioskAppTrustList(kioskAppTrustList)) {
-        auto it = std::find(kioskAppTrustList.begin(), kioskAppTrustList.end(), bundleName);
-        if (it != kioskAppTrustList.end()) {
-            ANS_LOGI("kioskAppTrustList bundle(%{public}s) is exist.", bundleName.c_str());
-            return true;
-        } else {
-            ANS_LOGW("kioskAppTrustList bundle(%{public}s) not exist.", bundleName.c_str());
-        }
+    if (NotificationPreferences::GetInstance()->IsExistKioskAppTrustList(bundleName)) {
+        ANS_LOGI("kioskAppTrustList bundle(%{public}s) is exist.", bundleName.c_str());
+        return true;
     }
-    if (NotificationPreferences::GetInstance()->GetRestrictedModeTrustList(restrictedModeTrustList)) {
-        auto it = restrictedModeTrustList.find(userId);
-        if (it == restrictedModeTrustList.end()) {
-            ANS_LOGE("restrictedModeTrustList userId(%{public}d) not exist.", userId);
-            return false;
-        }
-        const auto& trustList = it->second;
-        auto itBundle = std::find(trustList.begin(), trustList.end(), bundleName);
-        if (itBundle != trustList.end()) {
-            ANS_LOGI("restrictedModeTrustList bundle(%{public}s) exist in userId(%{public}d).",
-                bundleName.c_str(), userId);
-            return true;
-        } else {
-            ANS_LOGW("restrictedModeTrustList bundle(%{public}s) not exist in userId(%{public}d).",
-                bundleName.c_str(), userId);
-        }
+    if (NotificationPreferences::GetInstance()->IsExistRestrictedModeTrustList(bundleName, userId)) {
+        ANS_LOGI("restrictedModeTrustList bundle(%{public}s) exist in userId(%{public}d).",
+            bundleName.c_str(), userId);
+        return true;
     }
-    ANS_LOGD("no restricted mode trust list has been set up");
     return false;
 }
 

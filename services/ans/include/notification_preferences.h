@@ -703,9 +703,13 @@ public:
 
     bool GetkioskAppTrustList(std::vector<std::string> &kioskAppTrustList);
 
+    bool IsExistKioskAppTrustList(const std::string &bundleName);
+
     bool IsRestrictedMode(const int32_t &userId);
 
     bool GetRestrictedModeTrustList(std::unordered_map<int32_t, std::vector<std::string>> &restrictedModeTrustList);
+
+    bool IsExistRestrictedModeTrustList(const std::string &bundleName, const int32_t &userId);
 
     bool SetRestrictedModeTrustList(const std::string &value);
 
@@ -805,6 +809,7 @@ private:
     std::vector<std::string> mirrorNotificationEnabledStatus_ = {};
     bool isKioskMode_ = false;
     bool isKioskTrustListUpdate_ = false;
+    bool isRestrictedTrustListUpdate_ = false;
 };
 }  // namespace Notification
 }  // namespace OHOS
