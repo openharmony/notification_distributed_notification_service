@@ -28,6 +28,7 @@ extern const char* OHOS_PERMISSION_SEND_NOTIFICATION_CROSS_USER;
 extern const char* OHOS_PERMISSION_MANAGE_EDM_POLICY;
 extern const char* OHOS_PERMISSION_SUBSCRIBE_NOTIFICATION;
 extern const char* OHOS_PERMISSION_ACCESS_BLUETOOTH;
+extern const char* OHOS_PERMISSION_NOTIFICATION_SYSTEM_SUBSCRIBER;
 }  // namespace Notification
 }  // namespace OHOS
 

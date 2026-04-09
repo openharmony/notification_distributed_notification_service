@@ -86,11 +86,50 @@ export default namespace notificationSubscribe {
     export native function nativeDistributeOperation(hashcode: string, operationInfo?: OperationInfo): Promise<int>;
     export native function nativeSleep(seconds: int): void;
     export native function nativeSubscribe(subscriber: NotificationSubscriber, info?: NotificationSubscribeInfo): void;
+    export native function nativeSubscribeNotificationWithInfo(subscriber: NotificationSubscriber, info: NotificationSubscribeInfo): void;
+    export native function nativeSubscribeNotification(subscriber: NotificationSubscriber): void;
     export native function nativeUnSubscribe(subscriber: NotificationSubscriber): void
     export native function nativeSubscribeSelf(subscriber: NotificationSubscriber): void
     export native function nativeRemoveAllForBundle(bundle?: BundleOption): void;
     export native function nativeRemoveAllForUserId(userId: int): void;
     export native function nativeRemoveAll(): void;
+
+    export function subscribeNotification(subscriber: NotificationSubscriber): Promise<void> {
+        if (subscriber == undefined) {
+            throw errorParamInvalid;
+        }
+        let pPromise = new Promise<void>((resolve: ResolveCallback<void>, reject: RejectCallback): void =>{
+            let p = taskpool.execute((): void => { notificationSubscribe.nativeSubscribeNotification(subscriber)});
+            p.then(
+                (e: Any): void => {
+                    resolve(undefined);
+                }, (error: Error): void => {
+                    reject(error);
+                }
+            )
+        });
+        return pPromise;
+    }
+
+    export function subscribeNotification(subscriber: NotificationSubscriber, info: NotificationSubscribeInfo): Promise<void> {
+        if (subscriber == undefined) {
+            throw errorParamInvalid;
+        }
+        if (!isInvalidParameter(info)) {
+            throw errorParamInvalid;
+        }
+        let pPromise = new Promise<void>((resolve: ResolveCallback<void>, reject: RejectCallback): void =>{
+            let p = taskpool.execute((): void => { notificationSubscribe.nativeSubscribeNotificationWithInfo(subscriber, info)});
+            p.then(
+                (e: Any): void => {
+                    resolve(undefined);
+                }, (error: Error): void => {
+                    reject(error);
+                }
+            )
+        });
+        return pPromise;
+    }
 
     export function subscribe(subscriber: NotificationSubscriber, callback: AsyncCallback<void>): void {
         if (subscriber == undefined || callback == undefined) {

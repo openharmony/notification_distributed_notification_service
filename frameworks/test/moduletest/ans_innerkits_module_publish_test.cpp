@@ -711,6 +711,14 @@ HWTEST_F(AnsInnerKitsModulePublishTest, ANS_Interface_MT_Publish_00100, Function
     WaitOnUnsubscribeResult();
 }
 
+HWTEST_F(AnsInnerKitsModulePublishTest, ANS_SUBSCRIBE_NOTIFICATION_26, Function | MediumTest | Level1)
+{
+    auto subscriber = std::make_shared<TestAnsSubscriber>();
+    EXPECT_EQ(0, NotificationHelper::SubscribeNotificationV26(subscriber));
+    sptr<NotificationSubscribeInfo> subscribeInfo = new NotificationSubscribeInfo();
+    EXPECT_EQ(0, NotificationHelper::SubscribeNotificationV26(subscriber, subscribeInfo));
+}
+
 /**
  * @tc.number    : ANS_Interface_MT_Publish_00200
  * @tc.name      : Publish_00200

@@ -31,6 +31,7 @@ napi_value NotificationSubscribeInit(napi_env env, napi_value exports)
 
     napi_property_descriptor desc[] = {
         DECLARE_NAPI_FUNCTION("subscribe", NapiSubscribe),
+        DECLARE_NAPI_FUNCTION("subscribeNotification", NapiSubscribeNotification),
         DECLARE_NAPI_FUNCTION("unsubscribe", NapiUnsubscribe),
         DECLARE_NAPI_FUNCTION("remove", NapiRemove),
         DECLARE_NAPI_FUNCTION("removeAll", NapiRemoveAll),

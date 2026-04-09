@@ -936,6 +936,67 @@ HWTEST_F(AdvancedNotificationServiceTest, AdvancedNotificationServiceTest_08300,
 }
 
 /**
+ * @tc.number    : AdvancedNotificationServiceTest_000010
+ * @tc.name      : ANS_SubscribeNotification_0100
+ * @tc.desc      : Test Subscribe function
+ */
+HWTEST_F(AdvancedNotificationServiceTest, AdvancedNotificationServiceTest_000010, Function | SmallTest | Level1)
+{
+    auto subscriber = new TestAnsSubscriber();
+    sptr<NotificationSubscribeInfo> info = new NotificationSubscribeInfo();
+    EXPECT_EQ((int)advancedNotificationService_->SubscribeNotification(subscriber->GetImpl(),
+        subscriber->subscribedFlags_), (int)ERR_OK);
+    ASSERT_EQ((int)advancedNotificationService_->SubscribeNotification(nullptr, info, subscriber->subscribedFlags_),
+        (int)ERR_ANS_INVALID_PARAM);
+    EXPECT_EQ((int)advancedNotificationService_->Unsubscribe(subscriber->GetImpl(), nullptr), (int)ERR_OK);
+}
+
+/**
+ * @tc.number    : AdvancedNotificationServiceTest_000020
+ * @tc.name      : ANS_SubscribeNotification_0200
+ * @tc.desc      : Test Subscribe function
+ */
+HWTEST_F(AdvancedNotificationServiceTest, AdvancedNotificationServiceTest_000020, Function | SmallTest | Level1)
+{
+    auto subscriber = new TestAnsSubscriber();
+    sptr<NotificationSubscribeInfo> info = new NotificationSubscribeInfo();
+    EXPECT_EQ((int)advancedNotificationService_->SubscribeNotification(subscriber->GetImpl(), info,
+        subscriber->subscribedFlags_), (int)ERR_OK);
+    EXPECT_EQ((int)advancedNotificationService_->Unsubscribe(subscriber->GetImpl(), nullptr), (int)ERR_OK);
+}
+
+/**
+ * @tc.number    : AdvancedNotificationServiceTest_000030
+ * @tc.name      : ANS_SubscribeNotification_0300
+ * @tc.desc      : Test Subscribe function
+ */
+HWTEST_F(AdvancedNotificationServiceTest, AdvancedNotificationServiceTest_000030, Function | SmallTest | Level1)
+{
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
+    MockIsSystemApp(false);
+    auto subscriber = new TestAnsSubscriber();
+    sptr<NotificationSubscribeInfo> info = new NotificationSubscribeInfo();
+    EXPECT_EQ((int)advancedNotificationService_->SubscribeNotification(subscriber->GetImpl(), info,
+        subscriber->subscribedFlags_), (int)ERR_ANS_NON_SYSTEM_APP);
+}
+
+/**
+ * @tc.number    : AdvancedNotificationServiceTest_000040
+ * @tc.name      : ANS_SubscribeNotification_0400
+ * @tc.desc      : Test Subscribe function
+ */
+HWTEST_F(AdvancedNotificationServiceTest, AdvancedNotificationServiceTest_000040, Function | SmallTest | Level1)
+{
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
+    MockIsSystemApp(true);
+    MockIsVerfyPermisson(false);
+    auto subscriber = new TestAnsSubscriber();
+    sptr<NotificationSubscribeInfo> info = new NotificationSubscribeInfo();
+    EXPECT_EQ((int)advancedNotificationService_->SubscribeNotification(subscriber->GetImpl(), info,
+        subscriber->subscribedFlags_), (int)ERR_ANS_PERMISSION_DENIED);
+}
+
+/**
  * @tc.number    : AdvancedNotificationServiceTest_08600
  * @tc.name      : ANS_GetShowBadgeEnabledForBundle_0200
  * @tc.desc      : Test GetShowBadgeEnabledForBundle function
