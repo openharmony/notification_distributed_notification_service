@@ -892,9 +892,9 @@ AnsStatus __attribute__((weak)) AdvancedNotificationService::PublishPreparedNoti
 #endif
         NotificationRequestDb requestDb = { .request = record->request, .bundleOption = bundleOption};
         UpdateNotificationTimerInfo(record);
-        result = SetNotificationRequestToDb(requestDb);
+        result = SetNotificationRequestToDbCommon(requestDb);
         if (result != ERR_OK) {
-            ansStatus = AnsStatus(result, "SetNotificationRequestToDb fail.");
+            ansStatus = AnsStatus(result, "SetNotificationRequestToDbCommon fail.");
             return;
         }
 #ifdef ANS_FEATURE_NOTIFICATION_STATISTICS
@@ -1746,7 +1746,7 @@ ErrCode AdvancedNotificationService::RemoveFromNotificationList(const sptr<Notif
                 TriggerRemoveWantAgent(record->request, removeReason, record->isThirdparty);
             }
             CancelWantAgent(notification);
-            ProcForDeleteLiveView(record);
+            ProcForDeleteNotificationFromDb(record);
             notificationList_.remove(record);
             if (IsSaCreateSystemLiveViewAsBundle(record,
                 record->notification->GetNotificationRequest().GetCreatorUid())) {
@@ -1789,7 +1789,7 @@ ErrCode AdvancedNotificationService::RemoveFromNotificationList(
         // delete or delete all, call the function
         if (removeReason != NotificationConstant::CLICK_REASON_DELETE &&
             removeReason != NotificationConstant::DISTRIBUTED_COLLABORATIVE_CLICK_DELETE) {
-            ProcForDeleteLiveView(record);
+            ProcForDeleteNotificationFromDb(record);
             if (!isCancel) {
                 TriggerRemoveWantAgent(record->request, removeReason, record->isThirdparty);
             }
@@ -1819,7 +1819,7 @@ ErrCode AdvancedNotificationService::RemoveFromNotificationListForDeleteAll(
                 return ERR_ANS_NOTIFICATION_IS_UNREMOVABLE;
             }
 
-            ProcForDeleteLiveView(record);
+            ProcForDeleteNotificationFromDb(record);
 
             notification = record->notification;
             notificationList_.remove(record);
@@ -2280,7 +2280,7 @@ void AdvancedNotificationService::TriggerAutoDelete(const std::string &hashCode,
             TriggerRemoveWantAgent(record->request, reason, record->isThirdparty);
             CancelTimer(record->notification->GetAutoDeletedTimer());
             NotificationSubscriberManager::GetInstance()->NotifyCanceled(record->notification, nullptr, reason);
-            ProcForDeleteLiveView(record);
+            ProcForDeleteNotificationFromDb(record);
             notificationList_.remove(record);
             break;
         }
@@ -2466,6 +2466,7 @@ void PushCallbackRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 
 void AdvancedNotificationService::RemoveNotificationList(const std::shared_ptr<NotificationRecord> &record)
 {
+    ProcForDeleteNotificationFromDb(record);
     notificationList_.remove(record);
 }
 

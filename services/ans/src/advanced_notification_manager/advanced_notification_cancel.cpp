@@ -626,7 +626,7 @@ ErrCode AdvancedNotificationService::ExcuteRemoveNotification(const sptr<Notific
             isThirdParty = record->isThirdparty;
 
             if (!IsReasonClickDelete(removeReason)) {
-                ProcForDeleteLiveView(record);
+                ProcForDeleteNotificationFromDb(record);
             }
 
             notificationList_.remove(record);
@@ -726,6 +726,7 @@ void AdvancedNotificationService::ExcuteRemoveAllNotificationsInner(const sptr<N
     std::vector<sptr<Notification>> notifications;
     std::vector<uint64_t> timerIds;
     for (auto record : removeList) {
+        ProcForDeleteNotificationFromDb(record);
         notificationList_.remove(record);
         if (record->notification != nullptr) {
             ANS_LOGD("record->notification is not nullptr.");
@@ -784,7 +785,6 @@ void AdvancedNotificationService::GetRemoveListForRemoveAll(const sptr<Notificat
                 continue;
             }
         }
-        ProcForDeleteLiveView(record);
         removeList.push_back(record);
     }
 }
@@ -874,6 +874,7 @@ ErrCode AdvancedNotificationService::RemoveNotificationBySlot(const sptr<Notific
             ANS_LOGE("null record");
             continue;
         }
+        ProcForDeleteNotificationFromDb(record);
         notificationList_.remove(record);
         if (record->notification != nullptr) {
             ANS_LOGD("record->notification is not nullptr.");
@@ -913,7 +914,6 @@ void AdvancedNotificationService::GetRemoveListForRemoveNtfBySlot(const sptr<Not
                 ANS_LOGW("Agent systemliveview no need remove.");
                 continue;
             }
-            ProcForDeleteLiveView(record);
             removeList.push_back(record);
         }
     }
@@ -1436,7 +1436,7 @@ bool AdvancedNotificationService::ExecuteDeleteDistributedNotification(
     if (IsDistributedNotification(request)) {
         notifications.emplace_back(notification);
         CancelTimer(notification->GetAutoDeletedTimer());
-        ProcForDeleteLiveView(record);
+        ProcForDeleteNotificationFromDb(record);
         TriggerRemoveWantAgent(request, removeReason, record->isThirdparty);
         CancelWantAgent(notification);
         return true;
