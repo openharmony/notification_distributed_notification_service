@@ -1738,8 +1738,13 @@ ErrCode AdvancedNotificationService::UpdateNotificationSwitchState(
             + "_st" + std::to_string(static_cast<int32_t>(targetState)));
         NotificationAnalyticsUtil::ReportModifyEvent(message);
         enable = (targetState == NotificationConstant::SWITCH_STATE::SYSTEM_DEFAULT_ON) ? true : false;
-        return AdvancedNotificationService::GetInstance()->SetDefaultNotificationEnabled(
-            bundleOption, enable);
+        if (enable) {
+            return AdvancedNotificationService::GetInstance()->SetDefaultNotificationEnabled(
+                bundleOption, enable);
+        } else {
+            return NotificationPreferences::GetInstance()->SetNotificationsEnabledForBundle(
+                bundleOption, targetState);
+        }
     }
 
     bool isSystemDefaultState = (currentState == NotificationConstant::SWITCH_STATE::SYSTEM_DEFAULT_ON ||
