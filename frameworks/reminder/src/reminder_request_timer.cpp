@@ -15,40 +15,29 @@
 
 #include "reminder_request_timer.h"
 
+#include "ans_log_wrapper.h"
+
 #include <chrono>
 #include <cstdlib>
-
-#include "ans_log_wrapper.h"
-#include "time_service_client.h"
 
 namespace OHOS {
 namespace Notification {
 ReminderRequestTimer::ReminderRequestTimer(uint64_t countDownTimeInSeconds)
     : ReminderRequest(ReminderRequest::ReminderType::TIMER)
 {
-    CheckParamsValid(countDownTimeInSeconds);
     countDownTimeInSeconds_ = countDownTimeInSeconds;
     time_t now;  // unit is seconds.
     (void)time(&now);
     ReminderRequest::SetTriggerTimeInMilli(
         ReminderRequest::GetDurationSinceEpochInMilli(now) + countDownTimeInSeconds_ * ReminderRequest::MILLI_SECONDS);
-    sptr<MiscServices::TimeServiceClient> timer = MiscServices::TimeServiceClient::GetInstance();
-    if (timer == nullptr) {
-        ANSR_LOGE("Failed to get boot time due to TimeServiceClient is null.");
-    } else {
-        int64_t bootTimeMs = timer->GetBootTimeMs();
-        if (bootTimeMs >= 0) {
-            firstRealTimeInMilliSeconds_ = static_cast<uint64_t>(bootTimeMs);
-        } else {
-            ANSR_LOGE("Get boot time error.");
-        }
-    }
 }
 
 ReminderRequestTimer::ReminderRequestTimer(const ReminderRequestTimer &other) : ReminderRequest(other)
 {
-    firstRealTimeInMilliSeconds_ = other.firstRealTimeInMilliSeconds_;
     countDownTimeInSeconds_ = other.countDownTimeInSeconds_;
+    repeatIntervalInSeconds_ = other.repeatIntervalInSeconds_;
+    repeatCount_ = other.repeatCount_;
+    remainedRepeatCount_ = other.remainedRepeatCount_;
 }
 
 uint64_t ReminderRequestTimer::GetInitInfo() const
@@ -61,10 +50,42 @@ void ReminderRequestTimer::SetInitInfo(const uint64_t countDownTimeInSeconds)
     countDownTimeInSeconds_ = countDownTimeInSeconds;
 }
 
+uint64_t ReminderRequestTimer::GetRepeatInterval() const
+{
+    return repeatIntervalInSeconds_;
+}
+
+int32_t ReminderRequestTimer::GetRepeatCount() const
+{
+    return repeatCount_;
+}
+
+int32_t ReminderRequestTimer::GetRemainedRepeatCount() const
+{
+    return remainedRepeatCount_;
+}
+
+void ReminderRequestTimer::SetRepeatInfo(const uint64_t repeatInterval, const int32_t repeatCount,
+    const int32_t remainedRepeatCount)
+{
+    repeatIntervalInSeconds_ = repeatInterval;
+    repeatCount_ = repeatCount;
+    if (remainedRepeatCount == -1) {
+        remainedRepeatCount_ = repeatCount;
+    } else {
+        remainedRepeatCount_ = remainedRepeatCount;
+    }
+}
+
 uint64_t ReminderRequestTimer::PreGetNextTriggerTimeIgnoreSnooze(bool ignoreRepeat, bool forceToGetNext)
 {
-    ANSR_LOGD("called");
-    return ReminderRequest::INVALID_LONG_LONG_VALUE;
+    if (repeatIntervalInSeconds_ <= 0) {
+        return ReminderRequest::INVALID_LONG_LONG_VALUE;
+    }
+    if (repeatCount_ != 0 && remainedRepeatCount_ <= 0) {
+        return ReminderRequest::INVALID_LONG_LONG_VALUE;
+    }
+    return GetTriggerTimeInMilli();
 }
 
 bool ReminderRequestTimer::OnDateTimeChange()
@@ -82,16 +103,24 @@ bool ReminderRequestTimer::OnTimeZoneChange()
 bool ReminderRequestTimer::UpdateNextReminder()
 {
     ANSR_LOGD("called");
+    time_t now;
+    (void)time(&now);
+    uint64_t nowInMilli = ReminderRequest::GetDurationSinceEpochInMilli(now);
+    if (repeatIntervalInSeconds_ > 0) {
+        if (repeatCount_ == 0) {
+            SetTriggerTimeInMilli(nowInMilli + repeatIntervalInSeconds_ * MILLI_SECONDS);
+            SetExpired(false);
+            return true;
+        }
+        if (remainedRepeatCount_ > 0) {
+            remainedRepeatCount_--;
+            SetTriggerTimeInMilli(nowInMilli + repeatIntervalInSeconds_ * MILLI_SECONDS);
+            SetExpired(false);
+            return true;
+        }
+    }
     SetExpired(true);
     return false;
-}
-
-void ReminderRequestTimer::CheckParamsValid(const uint64_t countDownTimeInSeconds) const
-{
-    if (countDownTimeInSeconds == 0 || countDownTimeInSeconds >= (UINT64_MAX / ReminderRequest::MILLI_SECONDS)) {
-        ANSR_LOGE("Illegal count down time, please check the description of the constructor");
-        return;
-    }
 }
 
 void ReminderRequestTimer::UpdateTimeInfo(const std::string &description)
@@ -103,19 +132,11 @@ void ReminderRequestTimer::UpdateTimeInfo(const std::string &description)
     ANSR_LOGD("%{public}s, update countdown time trigger time", description.c_str());
     time_t now;
     (void)time(&now);  // unit is seconds.
-    whenToChangeSysTime_ = ReminderRequest::GetDurationSinceEpochInMilli(now);
-    sptr<MiscServices::TimeServiceClient> timer = MiscServices::TimeServiceClient::GetInstance();
-    if (timer == nullptr) {
-        ANSR_LOGE("Failed to updateTime info due to TimeServiceClient is null.");
-        return;
+    uint64_t whenToChangeSysTime = ReminderRequest::GetDurationSinceEpochInMilli(now);
+    uint64_t lastTriggerTime = GetTriggerTimeInMilli();
+    if (lastTriggerTime < whenToChangeSysTime) {
+        UpdateNextReminder();
     }
-    int64_t bootTime = timer->GetBootTimeMs();
-    if (bootTime < 0) {
-        ANSR_LOGE("BootTime is illegal");
-        return;
-    }
-    SetTriggerTimeInMilli(whenToChangeSysTime_ + countDownTimeInSeconds_ * MILLI_SECONDS -
-        (static_cast<uint64_t>(bootTime) - firstRealTimeInMilliSeconds_));
 }
 
 bool ReminderRequestTimer::Marshalling(Parcel &parcel) const
@@ -127,8 +148,10 @@ bool ReminderRequestTimer::WriteParcel(Parcel &parcel) const
 {
     if (ReminderRequest::WriteParcel(parcel)) {
         // write int
-        WRITE_UINT64_RETURN_FALSE_LOG(parcel, firstRealTimeInMilliSeconds_, "firstRealTimeInMilliSeconds");
         WRITE_UINT64_RETURN_FALSE_LOG(parcel, countDownTimeInSeconds_, "countDownTimeInSeconds");
+        WRITE_UINT64_RETURN_FALSE_LOG(parcel, repeatIntervalInSeconds_, "repeatIntervalInSeconds");
+        WRITE_INT32_RETURN_FALSE_LOG(parcel, repeatCount_, "repeatCount");
+        WRITE_INT32_RETURN_FALSE_LOG(parcel, remainedRepeatCount_, "remainedRepeatCount");
         return true;
     }
     return false;
@@ -152,8 +175,10 @@ bool ReminderRequestTimer::ReadFromParcel(Parcel &parcel)
 {
     if (ReminderRequest::ReadFromParcel(parcel)) {
         // read int
-        READ_UINT64_RETURN_FALSE_LOG(parcel, firstRealTimeInMilliSeconds_, "firstRealTimeInMilliSeconds");
         READ_UINT64_RETURN_FALSE_LOG(parcel, countDownTimeInSeconds_, "countDownTimeInSeconds");
+        READ_UINT64_RETURN_FALSE_LOG(parcel, repeatIntervalInSeconds_, "repeatIntervalInSeconds");
+        READ_INT32_RETURN_FALSE_LOG(parcel, repeatCount_, "repeatCount");
+        READ_INT32_RETURN_FALSE_LOG(parcel, remainedRepeatCount_, "remainedRepeatCount");
         return true;
     }
     return false;

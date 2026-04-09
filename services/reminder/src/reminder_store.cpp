@@ -43,7 +43,8 @@ constexpr int32_t REMINDER_RDB_VERSION_V7 = 7;
 constexpr int32_t REMINDER_RDB_VERSION_V8 = 8;
 constexpr int32_t REMINDER_RDB_VERSION_V9 = 9;
 constexpr int32_t REMINDER_RDB_VERSION_V10 = 10;
-constexpr int32_t REMINDER_RDB_VERSION = 11;
+constexpr int32_t REMINDER_RDB_VERSION_V11 = 11;
+constexpr int32_t REMINDER_RDB_VERSION = 12;
 constexpr int64_t DURATION_PRELOAD_TIME = 10 * 60 * 60 * 1000;  // 10h, millisecond
 }
 
@@ -89,12 +90,7 @@ int32_t ReminderStore::ReminderStoreDataCallBack::OnUpgrade(
                     ReminderCalendarTable::CALENDAR_LAST_DATE_TIME, "BIGINT", "0");
                 [[fallthrough]];
             case REMINDER_RDB_VERSION_V7:
-                AddRdbColum(store, ReminderBaseTable::TABLE_NAME, ReminderBaseTable::TITLE_RESOURCE_ID, "INT", "0");
-                AddRdbColum(store, ReminderBaseTable::TABLE_NAME, ReminderBaseTable::CONTENT_RESOURCE_ID, "INT", "0");
-                AddRdbColum(store, ReminderBaseTable::TABLE_NAME,
-                    ReminderBaseTable::SNOOZE_CONTENT_RESOURCE_ID, "INT", "0");
-                AddRdbColum(store, ReminderBaseTable::TABLE_NAME,
-                    ReminderBaseTable::EXPIRED_CONTENT_RESOURCE_ID, "INT", "0");
+                UpgradeV7(store);
                 [[fallthrough]];
             case REMINDER_RDB_VERSION_V8:
                 AddRdbColum(store, ReminderBaseTable::TABLE_NAME, ReminderBaseTable::RING_CHANNEL, "INT", "0");
@@ -106,6 +102,9 @@ int32_t ReminderStore::ReminderStoreDataCallBack::OnUpgrade(
                 [[fallthrough]];
             case REMINDER_RDB_VERSION_V10:
                 CreateStateTable(store);
+                [[fallthrough]];
+            case REMINDER_RDB_VERSION_V11:
+                UpgradeV11(store);
                 [[fallthrough]];
             default:
                 break;
@@ -130,6 +129,21 @@ int32_t ReminderStore::ReminderStoreDataCallBack::OnDowngrade(
     }
     store.SetVersion(targetVersion);
     return NativeRdb::E_OK;
+}
+
+inline void ReminderStore::ReminderStoreDataCallBack::UpgradeV7(NativeRdb::RdbStore& store)
+{
+    AddRdbColum(store, ReminderBaseTable::TABLE_NAME, ReminderBaseTable::TITLE_RESOURCE_ID, "INT", "0");
+    AddRdbColum(store, ReminderBaseTable::TABLE_NAME, ReminderBaseTable::CONTENT_RESOURCE_ID, "INT", "0");
+    AddRdbColum(store, ReminderBaseTable::TABLE_NAME, ReminderBaseTable::SNOOZE_CONTENT_RESOURCE_ID, "INT", "0");
+    AddRdbColum(store, ReminderBaseTable::TABLE_NAME, ReminderBaseTable::EXPIRED_CONTENT_RESOURCE_ID, "INT", "0");
+}
+
+inline void ReminderStore::ReminderStoreDataCallBack::UpgradeV11(NativeRdb::RdbStore& store)
+{
+    AddRdbColum(store, ReminderTimerTable::TABLE_NAME, ReminderTimerTable::REPEAT_INTERVAL, "BIGINT", "0");
+    AddRdbColum(store, ReminderTimerTable::TABLE_NAME, ReminderTimerTable::REPEAT_COUNT, "INTEGER", "0");
+    AddRdbColum(store, ReminderTimerTable::TABLE_NAME, ReminderTimerTable::REMAINED_REPEAT_COUNT, "INTEGER", "0");
 }
 
 int32_t ReminderStore::ReminderStoreDataCallBack::CreateTable(NativeRdb::RdbStore& store)
@@ -623,7 +637,7 @@ __attribute__((no_sanitize("cfi"))) int32_t ReminderStore::Delete(const std::str
 
     // delete reminder_timer
     sql = "DELETE FROM " + ReminderTimerTable::TABLE_NAME + " WHERE "
-        + ReminderTimerTable::TABLE_NAME + "." + ReminderTimerTable::REMINDER_ID
+        + ReminderTimerTable::TABLE_NAME + "." + std::string(ReminderTimerTable::REMINDER_ID)
         + " IN " + assoConditon;
     ret = rdbStore_->ExecuteSql(sql);
     if (ret != NativeRdb::E_OK) {

@@ -127,6 +127,8 @@ struct ReminderRequestAlarm {
 struct ReminderRequestTimer {
     @extends base: ReminderRequest;
     triggerTimeInSeconds: i64;
+    repeatInterval: Optional<i64>;
+    repeatCount: Optional<i32>;
 }
 
 union ParamReminder {
