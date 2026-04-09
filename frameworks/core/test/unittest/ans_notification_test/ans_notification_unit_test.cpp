@@ -3234,5 +3234,85 @@ HWTEST_F(AnsNotificationUnitTest, SetAdditionConfig_0200, Function | MediumTest 
     MockGetAnsManagerProxy(nullptr);
     EXPECT_EQ(ret1, ERR_OK);
 }
+
+/*
+ * @tc.name: SubscribeNotificationv26_0300
+ * @tc.desc: test SubscribeNotification return false.
+ * @tc.type: FUNC
+ * @tc.require: #I62SME
+ */
+HWTEST_F(AnsNotificationUnitTest, SubscribeNotificationv26_0300, Function | MediumTest | Level1)
+{
+    MockWriteInterfaceToken(false);
+    sptr<MockIRemoteObject> iremoteObject_ = new (std::nothrow) MockIRemoteObject();
+    ASSERT_NE(nullptr, iremoteObject_);
+    std::shared_ptr<AnsManagerProxy> proxy = std::make_shared<AnsManagerProxy>(iremoteObject_);
+    ASSERT_NE(nullptr, proxy);
+    MockGetAnsManagerProxy(nullptr);
+    bool res = ans_->GetAnsManagerProxy();
+    EXPECT_EQ(res, false);
+
+    auto subscriber = std::make_shared<TestAnsSubscriber>();
+    sptr<NotificationSubscribeInfo> info = new (std::nothrow) NotificationSubscribeInfo();
+    ErrCode ret1 = ans_->SubscribeNotificationV26(subscriber, info);
+    EXPECT_EQ(ret1, ERR_ANS_SERVICE_NOT_CONNECTED);
+}
+
+/*
+ * @tc.name: SubscribeNotificationv26_0400
+ * @tc.desc: test SubscribeNotification return false.
+ * @tc.type: FUNC
+ * @tc.require: #I62SME
+ */
+HWTEST_F(AnsNotificationUnitTest, SubscribeNotificationv26_0400, Function | MediumTest | Level1)
+{
+    MockWriteInterfaceToken(false);
+    sptr<MockIRemoteObject> iremoteObject = new (std::nothrow) MockIRemoteObject();
+    ASSERT_NE(nullptr, iremoteObject);
+    std::shared_ptr<AnsManagerProxy> proxy = std::make_shared<AnsManagerProxy>(iremoteObject);
+    ASSERT_NE(nullptr, proxy);
+    MockGetAnsManagerProxy(nullptr);
+    bool res = ans_->GetAnsManagerProxy();
+    EXPECT_EQ(res, false);
+
+    ErrCode ret1 = ans_->SubscribeNotificationV26(nullptr);
+    EXPECT_EQ(ret1, ERR_ANS_INVALID_PARAM);
+}
+
+/*
+ * @tc.name: SubscribeNotificationv26_0800
+ * @tc.desc: test SubscribeNotification normal.
+ * @tc.type: FUNC
+ * @tc.require: #I62SME
+ */
+HWTEST_F(AnsNotificationUnitTest, SubscribeNotificationv26_0800, Function | MediumTest | Level1)
+{
+    sptr<MockAnsManagerProxy> proxy = new (std::nothrow) MockAnsManagerProxy();
+    MockGetAnsManagerProxy(proxy);
+    std::shared_ptr<TestAnsSubscriber> subscriberPtr = std::make_shared<TestAnsSubscriber>();
+    sptr<NotificationSubscribeInfo> infoPtr = new (std::nothrow) NotificationSubscribeInfo();
+    infoPtr->AddDeviceType("phone");
+    ErrCode ret1 = ans_->SubscribeNotificationV26(subscriberPtr, infoPtr);
+    EXPECT_EQ(ret1, ERR_OK);
+    ErrCode ret2 = ans_->UnSubscribeNotification(subscriberPtr, infoPtr);
+    EXPECT_EQ(ret2, ERR_OK);
+}
+
+/*
+ * @tc.name: SubscribeNotificationv26_0900
+ * @tc.desc: test SubscribeNotification when subscribeInfo is nullptr.
+ * @tc.type: FUNC
+ * @tc.require: #I62SME
+ */
+HWTEST_F(AnsNotificationUnitTest, SubscribeNotificationv26_0900, Function | MediumTest | Level1)
+{
+    sptr<MockAnsManagerProxy> proxy = new (std::nothrow) MockAnsManagerProxy();
+    MockGetAnsManagerProxy(proxy);
+    std::shared_ptr<TestAnsSubscriber> subscriberPtr = std::make_shared<TestAnsSubscriber>();
+    ErrCode ret1 = ans_->SubscribeNotificationV26(subscriberPtr, nullptr);
+    EXPECT_EQ(ret1, ERR_OK);
+    ErrCode ret2 = ans_->UnSubscribeNotification(subscriberPtr, nullptr);
+    EXPECT_EQ(ret2, ERR_OK);
+}
 }  // namespace Notification
 }  // namespace OHOS

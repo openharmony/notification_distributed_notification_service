@@ -86,6 +86,52 @@ ErrCode AdvancedNotificationService::Subscribe(
     return errCode;
 }
 
+ErrCode AdvancedNotificationService::SubscribeNotification(const sptr<IAnsSubscriber> &subscriber,
+    uint32_t subscribedFlags)
+{
+    return SubscribeNotification(subscriber, nullptr, subscribedFlags);
+}
+
+ErrCode AdvancedNotificationService::SubscribeNotification(
+    const sptr<IAnsSubscriber> &subscriber, const sptr<NotificationSubscribeInfo> &info, uint32_t subscribedFlags)
+{
+    NOTIFICATION_HITRACE(HITRACE_TAG_NOTIFICATION);
+    ANS_LOGD("%{public}s", __FUNCTION__);
+    ErrCode errCode = ERR_OK;
+    do {
+        if (subscriber == nullptr) {
+            errCode = ERR_ANS_INVALID_PARAM;
+            break;
+        }
+
+        bool isSubsystem = AccessTokenHelper::VerifyNativeToken(IPCSkeleton::GetCallingTokenID());
+        if (!isSubsystem && !AccessTokenHelper::IsSystemApp()) {
+            ANS_LOGE("Client is not a system app or subsystem");
+            errCode = ERR_ANS_NON_SYSTEM_APP;
+            break;
+        }
+
+        if (!AccessTokenHelper::CheckPermission(OHOS_PERMISSION_NOTIFICATION_SYSTEM_SUBSCRIBER)) {
+            errCode = ERR_ANS_PERMISSION_DENIED;
+            break;
+        }
+
+        if (info != nullptr && info->GetAppUserId() != SUBSCRIBE_USER_ALL) {
+            errCode = CheckUserIdParams(info->GetAppUserId());
+            if (errCode != ERR_OK) {
+                break;
+            }
+        }
+
+        errCode = NotificationSubscriberManager::GetInstance()->AddSubscriber(subscriber, info, subscribedFlags);
+        if (errCode != ERR_OK) {
+            break;
+        }
+    } while (0);
+    SendSubscribeHiSysEvent(IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid(), info, errCode);
+    return errCode;
+}
+
 ErrCode AdvancedNotificationService::SubscribeSelf(const sptr<IAnsSubscriber> &subscriber, uint32_t subscribedFlags)
 {
     NOTIFICATION_HITRACE(HITRACE_TAG_NOTIFICATION);

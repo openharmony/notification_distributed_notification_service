@@ -235,6 +235,17 @@ ErrCode NotificationHelper::SubscribeLocalLiveViewNotification(const Notificatio
     return DelayedSingleton<AnsNotification>::GetInstance()->SubscribeLocalLiveViewNotification(subscriber, isNative);
 }
 
+ErrCode NotificationHelper::SubscribeNotificationV26(const std::shared_ptr<NotificationSubscriber> &subscriber)
+{
+    return DelayedSingleton<AnsNotification>::GetInstance()->SubscribeNotificationV26(subscriber, nullptr);
+}
+
+ErrCode NotificationHelper::SubscribeNotificationV26(const std::shared_ptr<NotificationSubscriber> &subscriber,
+    const sptr<NotificationSubscribeInfo> &subscribeInfo)
+{
+    return DelayedSingleton<AnsNotification>::GetInstance()->SubscribeNotificationV26(subscriber, subscribeInfo);
+}
+
 ErrCode NotificationHelper::SubscribeNotification(
     const NotificationSubscriber &subscriber, const NotificationSubscribeInfo &subscribeInfo)
 {

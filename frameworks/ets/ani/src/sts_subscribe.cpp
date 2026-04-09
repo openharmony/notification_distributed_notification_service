@@ -757,6 +757,78 @@ void SubscriberInstanceManager::DelDeletingSubscriber(std::shared_ptr<StsSubscri
     }
 }
 
+bool SubscriberInstanceManager::SubscribeNotification(ani_env *env, ani_object subscriber)
+{
+    return SubscribeNotificationWithInfo(env, subscriber, nullptr);
+}
+
+bool SubscriberInstanceManager::ParseSubscriberInfo(ani_env *env, ani_object subscriber,
+    ani_object info, sptr<OHOS::Notification::NotificationSubscribeInfo> SubscribeInfo)
+{
+    bool isInfoUndefine = IsUndefine(env, info);
+    bool isSubscribeUndefine = IsUndefine(env, subscriber);
+    if (isSubscribeUndefine) {
+        ANS_LOGD("subscriber notification is undefine");
+        OHOS::NotificationSts::ThrowError(env, ERROR_PARAM_INVALID, "subscriber notification is undefine");
+        return false;
+    }
+    if (!isInfoUndefine) {
+        if (!UnwarpNotificationSubscribeInfo(env, info, *SubscribeInfo)) {
+            ANS_LOGD("SubscribeNotification UnwarpNotificationSubscribeInfo faild");
+            OHOS::NotificationSts::ThrowError(env, ERROR_PARAM_INVALID, "UnwarpNotificationSubscribeInfo faild");
+            return false;
+        }
+    }
+    return true;
+}
+
+bool SubscriberInstanceManager::SubscribeNotificationWithInfo(ani_env *env, ani_object subscriber, ani_object info)
+{
+    sptr<OHOS::Notification::NotificationSubscribeInfo> SubscribeInfo =
+        new (std::nothrow) OHOS::Notification::NotificationSubscribeInfo();
+    if (SubscribeInfo == nullptr) {
+        return false;
+    }
+    bool isUndefine = ParseSubscriberInfo(env, subscriber, info, SubscribeInfo);
+    if (!isUndefine) {
+        return false;
+    }
+    std::shared_ptr<StsSubscriberInstance> stsSubscriber = nullptr;
+    if (!HasNotificationSubscriber(env, subscriber, stsSubscriber)) {
+        if (!GetNotificationSubscriber(env, subscriber, stsSubscriber)) {
+            ANS_LOGD("SubscribeNotification GetNotificationSubscriber faild");
+            OHOS::NotificationSts::ThrowError(env, ERROR_INTERNAL_ERROR, "GetNotificationSubscriber faild");
+            return false;
+        }
+        if (!AddSubscriberInstancesInfo(env, stsSubscriber)) {
+            ANS_LOGD("SubscribeNotification AddSubscriberInstancesInfo faild");
+            OHOS::NotificationSts::ThrowError(env, ERROR_INTERNAL_ERROR, "AddSubscriberInstancesInfo faild");
+            return false;
+        }
+    }
+    ErrCode status = ERR_OK;
+    if (info == nullptr) {
+        status = NotificationHelper::SubscribeNotificationV26(stsSubscriber);
+    } else {
+        status = NotificationHelper::SubscribeNotificationV26(stsSubscriber, SubscribeInfo);
+    }
+    if (status != ERR_OK) {
+        int32_t externalErrorCode = GetExternalCode(status);
+        externalErrorCode = (externalErrorCode == ERR_OK) ? status : externalErrorCode;
+        ANS_LOGE("SubscribeNotification faild. status %{public}d ErrorToExternal %{public}d",
+            status, externalErrorCode);
+        std::string msg = OHOS::NotificationSts::FindAnsErrMsg(externalErrorCode);
+        if (status == ERROR_USER_NOT_EXIST) {
+            OHOS::NotificationSts::ThrowError(env, externalErrorCode,
+                OHOS::NotificationSts::FindAnsErrMsg(ERROR_USER_NOT_EXIST));
+        } else {
+            OHOS::NotificationSts::ThrowError(env, externalErrorCode, msg);
+        }
+        return false;
+    }
+    return true;
+}
+
 bool SubscriberInstanceManager::Subscribe(ani_env *env, ani_object subscriber, ani_object info)
 {
     bool isSubscribeUndefine = IsUndefine(env, subscriber);
@@ -787,7 +859,7 @@ bool SubscriberInstanceManager::Subscribe(ani_env *env, ani_object subscriber, a
         }
         if (!AddSubscriberInstancesInfo(env, stsSubscriber)) {
             ANS_LOGD("AddSubscriberInstancesInfo faild");
-            OHOS::NotificationSts::ThrowError(env, ERROR_INTERNAL_ERROR, "GetNotificationSubscriber faild");
+            OHOS::NotificationSts::ThrowError(env, ERROR_INTERNAL_ERROR, "AddSubscriberInstancesInfo faild");
             return false;
         }
     }
