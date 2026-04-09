@@ -546,6 +546,7 @@ ErrCode AdvancedNotificationService::ExcuteCancelGroupCancel(
         std::vector<sptr<Notification>> notifications;
         std::vector<uint64_t> timerIds;
         for (auto record : removeList) {
+            ProcForDeleteNotificationFromDb(record);
             notificationList_.remove(record);
             if (record->notification != nullptr) {
                 UpdateRecentNotification(record->notification, true, reason);
@@ -640,7 +641,7 @@ ErrCode AdvancedNotificationService::RemoveGroupByBundle(
         std::vector<uint64_t> timerIds;
         for (auto record : removeList) {
             notificationList_.remove(record);
-            ProcForDeleteLiveView(record);
+            ProcForDeleteNotificationFromDb(record);
 
             if (record->notification != nullptr) {
                 UpdateRecentNotification(record->notification, true, reason);
@@ -860,7 +861,12 @@ AnsStatus AdvancedNotificationService::PublishNotificationBySa(const sptr<Notifi
             ANS_LOGE("Failed to assign notification list");
             return;
         }
-
+        NotificationRequestDb requestDb = { .request = record->request, .bundleOption = bundleOption};
+        ErrCode result = SetNotificationRequestToDbCommon(requestDb);
+        if (result != ERR_OK) {
+            ansStatus = AnsStatus(result, "SetNotificationRequestToDb fail.");
+            return;
+        }
 #ifdef ANS_FEATURE_NOTIFICATION_STATISTICS
         if (!directAgency) {
             SetNotificationStatisticsToDB(record, bundleOption, isNotificationExists);
@@ -1378,7 +1384,7 @@ ErrCode AdvancedNotificationService::RemoveAllNotificationsByBundleName(
                 && record->deviceId.empty()
 #endif
             ) {
-                ProcForDeleteLiveView(record);
+                ProcForDeleteNotificationFromDb(record);
                 removeList.push_back(record);
             }
         }

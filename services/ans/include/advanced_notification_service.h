@@ -2248,9 +2248,11 @@ private:
     ErrCode OnSubscriberAdd(const std::shared_ptr<NotificationSubscriberManager::SubscriberRecord> &record,
         const int32_t userId);
     bool IsLiveViewCanRecover(const sptr<NotificationRequest> request);
+    bool IsCanRecoverCommon(const sptr<NotificationRequest> request);
     AnsStatus FillNotificationRecord(const NotificationRequestDb &requestdbObj,
         std::shared_ptr<NotificationRecord> record);
     static int32_t SetNotificationRequestToDb(const NotificationRequestDb &requestDb);
+    static int32_t SetNotificationRequestToDbCommon(const NotificationRequestDb &requestDb);
     static int32_t GetBatchNotificationRequestsFromDb(std::vector<NotificationRequestDb> &requests,
         int32_t userId = -1);
     static int32_t DoubleDeleteNotificationFromDb(const std::string &key,
@@ -2271,6 +2273,7 @@ private:
     void CancelArchiveTimer(const std::shared_ptr<NotificationRecord> &record);
     ErrCode StartAutoDeletedTimer(const std::shared_ptr<NotificationRecord> &record);
     void ProcForDeleteLiveView(const std::shared_ptr<NotificationRecord> &record);
+    void ProcForDeleteNotificationFromDb(const std::shared_ptr<NotificationRecord> &record);
     void QueryDoNotDisturbProfile(const int32_t &userId, std::string &enable, std::string &profileId);
     void QueryIntelligentExperienceEnable(const int32_t &userId, std::string &enable);
     void CheckDoNotDisturbProfile(const std::shared_ptr<NotificationRecord> &record);

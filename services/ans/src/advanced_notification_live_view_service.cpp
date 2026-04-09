@@ -57,7 +57,7 @@ void AdvancedNotificationService::RecoverLiveViewFromDb(int32_t userId)
         ANS_LOGI("The number of live views to recover: %{public}zu.", requestsdb.size());
         std::vector<std::string> keys;
         for (const auto &requestObj : requestsdb) {
-            if (!IsLiveViewCanRecover(requestObj.request)) {
+            if (!IsCanRecoverCommon(requestObj.request)) {
                 int32_t userId = requestObj.request->GetReceiverUserId();
                 keys.emplace_back(requestObj.request->GetBaseKey(""));
                 if (DoubleDeleteNotificationFromDb(requestObj.request->GetKey(),
@@ -95,18 +95,21 @@ void AdvancedNotificationService::RecoverLiveViewFromDb(int32_t userId)
                 continue;
             }
             UpdateRecentNotification(record->notification, false, 0);
-
-            CancelTimer(record->notification->GetFinishTimer());
-            CancelTimer(record->notification->GetUpdateTimer());
-            StartFinishTimer(record, requestObj.request->GetFinishDeadLine(),
-                NotificationConstant::TRIGGER_EIGHT_HOUR_REASON_DELETE);
-            StartUpdateTimer(record, requestObj.request->GetUpdateDeadLine(),
-                NotificationConstant::TRIGGER_FOUR_HOUR_REASON_DELETE);
-            auto triggerDeadLine = requestObj.request->GetGeofenceTriggerDeadLine();
-            if (triggerDeadLine != NotificationConstant::INVALID_DISPLAY_TIME) {
-                CancelTimer(record->notification->GetGeofenceTriggerTimer());
-                StartGeofenceTriggerTimer(record, triggerDeadLine,
-                    NotificationConstant::TRIGGER_GEOFENCE_REASON_DELETE);
+            if (requestObj.request->IsCommonLiveView() || requestObj.request->IsSystemLiveView()) {
+                CancelTimer(record->notification->GetFinishTimer());
+                CancelTimer(record->notification->GetUpdateTimer());
+                StartFinishTimer(record, requestObj.request->GetFinishDeadLine(),
+                    NotificationConstant::TRIGGER_EIGHT_HOUR_REASON_DELETE);
+                StartUpdateTimer(record, requestObj.request->GetUpdateDeadLine(),
+                    NotificationConstant::TRIGGER_FOUR_HOUR_REASON_DELETE);
+                auto triggerDeadLine = requestObj.request->GetGeofenceTriggerDeadLine();
+                if (triggerDeadLine != NotificationConstant::INVALID_DISPLAY_TIME) {
+                    CancelTimer(record->notification->GetGeofenceTriggerTimer());
+                    StartGeofenceTriggerTimer(record, triggerDeadLine,
+                        NotificationConstant::TRIGGER_GEOFENCE_REASON_DELETE);
+                }
+            } else if (requestObj.request->GetAutoDeletedTime() > GetCurrentTime()) {
+                StartAutoDeletedTimer(record);
             }
         }
 
@@ -192,6 +195,23 @@ void AdvancedNotificationService::ProcForDeleteLiveView(const std::shared_ptr<No
     CancelArchiveTimer(record);
 }
 
+void AdvancedNotificationService::ProcForDeleteNotificationFromDb(const std::shared_ptr<NotificationRecord> &record)
+{
+    if (record->request == nullptr) {
+        return;
+    }
+    if (record->request->IsCommonLiveView() || record->request->IsSystemLiveView()) {
+        ProcForDeleteLiveView(record);
+        return;
+    }
+    
+    int32_t userId = record->request->GetReceiverUserId();
+    if (DoubleDeleteNotificationFromDb(record->request->GetKey(),
+        record->request->GetSecureKey(), userId) != ERR_OK) {
+        ANS_LOGE("Live View cancel, delete notification failed.");
+    }
+}
+
 ErrCode AdvancedNotificationService::OnSubscriberAdd(
     const std::shared_ptr<NotificationSubscriberManager::SubscriberRecord> &record, const int32_t userId)
 {
@@ -204,8 +224,7 @@ ErrCode AdvancedNotificationService::OnSubscriberAdd(
     std::vector<sptr<Notification>> notifications;
     for (auto notificationRecord : notificationList_) {
         if (notificationRecord != nullptr &&
-            notificationRecord->notification != nullptr &&
-            notificationRecord->notification->GetNotificationRequest().IsCommonLiveView()) {
+            notificationRecord->notification != nullptr) {
             notifications.emplace_back(notificationRecord->notification);
         }
     }
@@ -244,6 +263,29 @@ bool AdvancedNotificationService::IsLiveViewCanRecover(const sptr<NotificationRe
         (request->GetGeofenceTriggerDeadLine() != NotificationConstant::INVALID_DISPLAY_TIME &&
         curTime > request->GetGeofenceTriggerDeadLine())) {
         ANS_LOGE("The liveView has expired.");
+        return false;
+    }
+
+    return true;
+}
+
+bool AdvancedNotificationService::IsCanRecoverCommon(const sptr<NotificationRequest> request)
+{
+    if (request == nullptr) {
+        ANS_LOGE("Invalid liveview.");
+        return false;
+    }
+    if (request->IsSystemLiveView()) {
+        ANS_LOGE("system liveview is not supported.");
+        return false;
+    }
+    if (request->IsCommonLiveView()) {
+        return IsLiveViewCanRecover(request);
+    }
+
+    if (request->GetAutoDeletedTime() != NotificationConstant::INVALID_AUTO_DELETE_TIME &&
+        GetCurrentTime() > request->GetAutoDeletedTime()) {
+        ANS_LOGE("The notification has expired.");
         return false;
     }
 
@@ -315,6 +357,56 @@ int32_t AdvancedNotificationService::SetNotificationRequestToDb(const Notificati
         ANS_LOGE("Failed to set lock screen picture to db");
         NotificationAnalyticsUtil::ReportModifyEvent(message.ErrorCode(result).Message("SetToDb failed"));
     }
+    return result;
+}
+
+int32_t AdvancedNotificationService::SetNotificationRequestToDbCommon(const NotificationRequestDb &requestDb)
+{
+    auto request = requestDb.request;
+    if (request->IsSystemLiveView()) {
+        return ERR_OK;
+    }
+    if (request->IsCommonLiveView()) {
+        ANS_LOGD("Slot type %{public}d, content type %{public}d.",
+            request->GetSlotType(), request->GetNotificationType());
+        return SetNotificationRequestToDb(requestDb);
+    }
+
+    ANS_LOGD("Enter.");
+    HaMetaMessage message = HaMetaMessage(EventSceneId::SCENE_6, EventBranchId::BRANCH_3).
+        BundleName(request->GetCreatorBundleName()).NotificationId(request->GetNotificationId());
+    nlohmann::json jsonObject;
+    if (!NotificationJsonConverter::ConvertToJson(request, jsonObject)) {
+        ANS_LOGE("Convert request to json object failed, bundle name %{public}s, id %{public}d.",
+            request->GetCreatorBundleName().c_str(), request->GetNotificationId());
+        NotificationAnalyticsUtil::ReportModifyEvent(message.Message("convert request failed"));
+        return ERR_ANS_TASK_ERR;
+    }
+    auto bundleOption = requestDb.bundleOption;
+    if (!NotificationJsonConverter::ConvertToJson(bundleOption, jsonObject)) {
+        ANS_LOGE("Convert bundle to json object failed, bundle name %{public}s, id %{public}d.",
+            bundleOption->GetBundleName().c_str(), request->GetNotificationId());
+        NotificationAnalyticsUtil::ReportModifyEvent(message.Message("convert option failed"));
+        return ERR_ANS_TASK_ERR;
+    }
+    
+    std::string encryptValue;
+    ErrCode errorCode = AesGcmHelper::Encrypt(jsonObject.dump(), encryptValue);
+    if (errorCode != ERR_OK) {
+        ANS_LOGE("SetNotificationRequestToDb encrypt error");
+        return static_cast<int>(errorCode);
+    }
+    auto result = NotificationPreferences::GetInstance()->SetKvToDb(
+        request->GetSecureKey(), encryptValue, request->GetReceiverUserId());
+    if (result != ERR_OK) {
+        ANS_LOGE("Set failed, bundle name %{public}s, id %{public}d, key %{public}s, ret %{public}d.",
+            request->GetCreatorBundleName().c_str(), request->GetNotificationId(), request->GetKey().c_str(), result);
+        NotificationAnalyticsUtil::ReportModifyEvent(message.ErrorCode(result).Message("set failed"));
+        return result;
+    } else {
+        DeleteNotificationRequestFromDb(request->GetKey(), request->GetReceiverUserId());
+    }
+
     return result;
 }
 
