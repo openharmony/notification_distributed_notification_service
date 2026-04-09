@@ -409,12 +409,21 @@ void ReminderTimerStrategy::AppendValuesBucket(const sptr<ReminderRequest>& remi
     NativeRdb::ValuesBucket& values)
 {
     uint64_t seconds = 0;
+    uint64_t repeatInterval = 0;
+    int32_t repeatCount = 0;
+    int32_t remainedRepeatCount = 0;
     if (reminder->GetReminderType() == ReminderRequest::ReminderType::TIMER) {
         ReminderRequestTimer* timer = static_cast<ReminderRequestTimer*>(reminder.GetRefPtr());
         seconds = timer->GetInitInfo();
+        repeatInterval = timer->GetRepeatInterval();
+        repeatCount = timer->GetRepeatCount();
+        remainedRepeatCount = timer->GetRemainedRepeatCount();
     }
     values.PutInt(ReminderTimerTable::REMINDER_ID, reminder->GetReminderId());
     values.PutLong(ReminderTimerTable::TRIGGER_SECOND, seconds);
+    values.PutLong(ReminderTimerTable::REPEAT_INTERVAL, repeatInterval);
+    values.PutInt(ReminderTimerTable::REPEAT_COUNT, repeatCount);
+    values.PutInt(ReminderTimerTable::REMAINED_REPEAT_COUNT, remainedRepeatCount);
     values.PutLong(ReminderTimerTable::START_DATE_TIME, 0);
     values.PutLong(ReminderTimerTable::END_DATE_TIME, 0);
 }
@@ -442,6 +451,14 @@ void ReminderTimerStrategy::RecoverFromDb(sptr<ReminderRequest>& reminder,
         uint64_t seconds;
         ReminderStrategy::GetRdbValue<uint64_t>(resultSet, ReminderTimerTable::TRIGGER_SECOND, seconds);
         timer->SetInitInfo(seconds);
+        uint64_t repeatInterval = 0;
+        ReminderStrategy::GetRdbValue<uint64_t>(resultSet, ReminderTimerTable::REPEAT_INTERVAL, repeatInterval);
+        int32_t repeatCount = 0;
+        ReminderStrategy::GetRdbValue<int32_t>(resultSet, ReminderTimerTable::REPEAT_COUNT, repeatCount);
+        int32_t remainedRepeatCount = 0;
+        ReminderStrategy::GetRdbValue<int32_t>(resultSet, ReminderTimerTable::REMAINED_REPEAT_COUNT,
+            remainedRepeatCount);
+        timer->SetRepeatInfo(repeatInterval, repeatCount, remainedRepeatCount);
     }
 }
 

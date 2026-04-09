@@ -958,6 +958,7 @@ void ReminderDataManager::ShowActiveReminder(const EventFwk::Want &want)
     std::vector<sptr<ReminderRequest>> showImmediately;
     ShowActiveReminderExtendLocked(reminder->GetTriggerTimeInMilli(), showImmediately, extensionReminders);
     ShowLimit limits;
+    limits.checkIsShowing = false;
     HandleImmediatelyShow(showImmediately, limits, false, false);
     HandleExtensionReminder(extensionReminders, NORMAL_CALLBACK);
     StartRecentReminder();
@@ -1199,7 +1200,7 @@ void ReminderDataManager::HandleImmediatelyShow(std::vector<sptr<ReminderRequest
             break;
         }
         ++index;
-        if ((*it)->IsShowing()) {
+        if (limits.checkIsShowing && (*it)->IsShowing()) {
             continue;
         }
         if (!CheckShowLimit(limits, (*it))) {
@@ -1358,7 +1359,7 @@ void ReminderDataManager::CheckReminderTime(std::vector<sptr<ReminderRequest>>& 
 {
     std::lock_guard<std::mutex> lock(ReminderDataManager::MUTEX);
     for (auto reminder : reminderVector_) {
-        if (reminder->GetReminderType() != ReminderRequest::ReminderType::CALENDAR) {
+        if (reminder->GetReminderType() == ReminderRequest::ReminderType::ALARM) {
             continue;
         }
 
