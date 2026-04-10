@@ -34,6 +34,7 @@
 #include "notification_constant.h"
 #include "notification_config_parse.h"
 #include "notification_extension_wrapper.h"
+#include "voice_content_option.h"
 #include "os_account_manager.h"
 #include "os_account_manager_helper.h"
 #include "remote_death_recipient.h"
@@ -101,6 +102,20 @@ ErrCode NotificationSubscriberManager::AddSubscriber(const sptr<IAnsSubscriber> 
     subInfo->SetSubscriberUid(callingUid);
     subInfo->SetSubscribedFlags(subscribedFlags);
 
+    auto voiceContentOption = subInfo->GetVoiceContentOption();
+    uint32_t currentFlags = subInfo->GetSubscribedFlags();
+
+    if (voiceContentOption != nullptr && voiceContentOption->GetEnabled()) {
+        currentFlags |= NotificationConstant::SubscribedFlag::SUBSCRIBE_ON_VOICE_CONTENT;
+        ANS_LOGI("SUBSCRIBE_ON_VOICE_CONTENT flag set for subscriber %{public}s",
+            callingBuneldName.c_str());
+    } else {
+        currentFlags &= ~NotificationConstant::SubscribedFlag::SUBSCRIBE_ON_VOICE_CONTENT;
+        ANS_LOGI("SUBSCRIBE_ON_VOICE_CONTENT flag cleared for subscriber %{public}s",
+            callingBuneldName.c_str());
+    }
+    subInfo->SetSubscribedFlags(currentFlags);
+
     HaMetaMessage message = HaMetaMessage(EventSceneId::SCENE_9, EventBranchId::BRANCH_2);
     message.Message(callingBuneldName + "_" +
         " user:" + std::to_string(subInfo->GetAppUserId()));
@@ -138,9 +153,9 @@ ErrCode NotificationSubscriberManager::AddSubscriber(const sptr<IAnsSubscriber> 
         slotTypes += " ";
     }
     ANS_LOGI("%{public}s_, user: %{public}s, bundleNames: %{public}s, deviceType: %{public}s, slotTypes: %{public}s, "
-        "Add subscriber result: %{public}d", callingBuneldName.c_str(),
+        "Add subscriber flag %{public}d, result: %{public}d", callingBuneldName.c_str(),
         std::to_string(subInfo->GetAppUserId()).c_str(), bundleNames.c_str(), subInfo->GetDeviceType().c_str(),
-        slotTypes.c_str(), result);
+        slotTypes.c_str(), currentFlags, result);
     message.ErrorCode(result).Append(bundleNames + "," + subInfo->GetDeviceType() + "," + slotTypes);
     NotificationAnalyticsUtil::ReportModifyEvent(message);
     return result;

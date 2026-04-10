@@ -90,6 +90,10 @@ enum class NotificationFlagStatus {
     TYPE_CLOSE
 };
 
+struct VoiceContentOption {
+    bool enabled = false;
+};
+
 struct NotificationSubscribeInfo {
     std::vector<std::string> bundleNames;
     int32_t userId = 0;
@@ -97,6 +101,7 @@ struct NotificationSubscribeInfo {
     std::string deviceType;
     std::vector<NotificationConstant::SlotType> slotTypes;
     uint32_t filterType = 0;
+    VoiceContentOption voiceContentOption;
 };
 
 struct CallbackPromiseInfo {
@@ -651,6 +656,17 @@ public:
      */
     static napi_value GetNotificationGroupInfo(
         const napi_env &env, const napi_value &value, NotificationRequest &request);
+
+    /**
+     * @brief Gets voiceContentOption property from specified js object
+     *
+     * @param env Indicates environment that API is invoked under
+     * @param value Indicates a js object to be converted
+     * @param subscriberInfo Indicates a NotificationSubscribeInfo object to be updated
+     * @return Returns null object if success, returns null value otherwise
+     */
+    static napi_value GetSubscriberVoiceContentOption(
+        const napi_env &env, const napi_value &value, NotificationSubscribeInfo &subscriberInfo);
 
     /**
      * @brief Gets a NotificationSubscribeInfo object from specified js object

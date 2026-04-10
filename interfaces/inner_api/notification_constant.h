@@ -106,6 +106,7 @@ public:
         SUBSCRIBE_ON_SYSTEM_UPDATE = 1 << 15,
         SUBSCRIBE_ON_ENABL_WATCH_CHANGED = 1 << 16,
         SUBSCRIBE_ON_ENABLEDSILENTREMINDER_CHANGED = 1 << 17,
+        SUBSCRIBE_ON_VOICE_CONTENT = 1 << 18,
     };
 
     enum DistributedDeleteType {

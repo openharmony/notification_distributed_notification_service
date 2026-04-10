@@ -345,6 +345,46 @@ napi_value Common::SetBadgeCallbackData(const napi_env &env, const BadgeNumberCa
     return NapiGetBoolean(env, true);
 }
 
+napi_value Common::GetSubscriberVoiceContentOption(
+    const napi_env &env, const napi_value &value, NotificationSubscribeInfo &subscriberInfo)
+{
+    bool hasProperty = false;
+    napi_valuetype valuetype = napi_undefined;
+
+    NAPI_CALL(env, napi_has_named_property(env, value, "voiceContentOptions", &hasProperty));
+    if (!hasProperty) {
+        return NapiGetNull(env);
+    }
+
+    napi_value nVoiceContentOption = nullptr;
+    NAPI_CALL(env, napi_get_named_property(env, value, "voiceContentOptions", &nVoiceContentOption));
+    NAPI_CALL(env, napi_typeof(env, nVoiceContentOption, &valuetype));
+    if (valuetype != napi_object) {
+        ANS_LOGE("Wrong argument type. Object expected for voiceContentOption.");
+        return nullptr;
+    }
+
+    napi_value nEnabled = nullptr;
+    bool hasEnabled = false;
+    NAPI_CALL(env, napi_has_named_property(env, nVoiceContentOption, "enabled", &hasEnabled));
+    if (!hasEnabled) {
+        return NapiGetNull(env);
+    }
+
+    NAPI_CALL(env, napi_get_named_property(env, nVoiceContentOption, "enabled", &nEnabled));
+    NAPI_CALL(env, napi_typeof(env, nEnabled, &valuetype));
+    if (valuetype != napi_boolean) {
+        ANS_LOGE("Wrong argument type. Boolean expected for enabled.");
+        return nullptr;
+    }
+    bool enabled = false;
+    NAPI_CALL(env, napi_get_value_bool(env, nEnabled, &enabled));
+    subscriberInfo.voiceContentOption.enabled = enabled;
+    subscriberInfo.hasSubscribeInfo = true;
+
+    return NapiGetNull(env);
+}
+
 napi_value Common::GetNotificationSubscriberInfo(
     const napi_env &env, const napi_value &value, NotificationSubscribeInfo &subscriberInfo)
 {
@@ -475,6 +515,10 @@ napi_value Common::GetNotificationSubscriberInfo(
             subscriberInfo.slotTypes.emplace_back(outType);
             subscriberInfo.hasSubscribeInfo = true;
         }
+    }
+
+    if (!GetSubscriberVoiceContentOption(env, value, subscriberInfo)) {
+        return nullptr;
     }
 
     return NapiGetNull(env);
