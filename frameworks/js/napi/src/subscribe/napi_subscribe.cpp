@@ -271,6 +271,11 @@ napi_value NapiSubscribe(napi_env env, napi_callback_info info)
                     subscribeInfo->AddDeviceType(asynccallbackinfo->subscriberInfo.deviceType);
                     subscribeInfo->SetSlotTypes(asynccallbackinfo->subscriberInfo.slotTypes);
                     subscribeInfo->SetFilterType(asynccallbackinfo->subscriberInfo.filterType);
+                    if (asynccallbackinfo->subscriberInfo.voiceContentOption.enabled) {
+                        sptr<OHOS::Notification::VoiceContentOption> voiceContentOption =
+                            new (std::nothrow) OHOS::Notification::VoiceContentOption(true);
+                        subscribeInfo->SetVoiceContentOption(voiceContentOption);
+                    }
                     asynccallbackinfo->info.errorCode =
                         NotificationHelper::SubscribeNotification(asynccallbackinfo->objectInfo, subscribeInfo);
                 } else {

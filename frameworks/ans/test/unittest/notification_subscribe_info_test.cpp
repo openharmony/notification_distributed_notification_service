@@ -175,9 +175,192 @@ HWTEST_F(NotificationSubscribeInfoTest, Dump_00001, Function | SmallTest | Level
             "appNames = [" + appName + ", ]" +
             "deviceType = " + deviceType +
             "userId = " + std::to_string(userId) +
-            "slotTypes = []needNotify = 0filterType = 0needResponse = 0isSubscribeSelf = 0"
+            "slotTypes = []needNotify = 0filterType = 0needResponse = 0isSubscribeSelf = 0voiceContentOption = null"
             " }";
     EXPECT_EQ(res, rrc->Dump());
+}
+
+/**
+ * @tc.name: SetVoiceContentOption_00001
+ * @tc.desc: Test SetVoiceContentOption with nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issueI5WRQ2
+ */
+HWTEST_F(NotificationSubscribeInfoTest, SetVoiceContentOption_00001, Function | SmallTest | Level1)
+{
+    NotificationSubscribeInfo subscribeInfo;
+    auto rrc = std::make_shared<NotificationSubscribeInfo>(subscribeInfo);
+    rrc->SetVoiceContentOption(nullptr);
+    EXPECT_EQ(rrc->GetVoiceContentOption(), nullptr);
+}
+
+/**
+ * @tc.name: SetVoiceContentOption_00002
+ * @tc.desc: Test SetVoiceContentOption with valid object.
+ * @tc.type: FUNC
+ * @tc.require: issueI5WRQ2
+ */
+HWTEST_F(NotificationSubscribeInfoTest, SetVoiceContentOption_00002, Function | SmallTest | Level1)
+{
+    NotificationSubscribeInfo subscribeInfo;
+    auto rrc = std::make_shared<NotificationSubscribeInfo>(subscribeInfo);
+    sptr<VoiceContentOption> option = new VoiceContentOption(true);
+    rrc->SetVoiceContentOption(option);
+    ASSERT_NE(rrc->GetVoiceContentOption(), nullptr);
+    EXPECT_EQ(rrc->GetVoiceContentOption()->GetEnabled(), true);
+}
+
+/**
+ * @tc.name: SetVoiceContentOption_00003
+ * @tc.desc: Test SetVoiceContentOption with disabled option.
+ * @tc.type: FUNC
+ * @tc.require: issueI5WRQ2
+ */
+HWTEST_F(NotificationSubscribeInfoTest, SetVoiceContentOption_00003, Function | SmallTest | Level1)
+{
+    NotificationSubscribeInfo subscribeInfo;
+    auto rrc = std::make_shared<NotificationSubscribeInfo>(subscribeInfo);
+    sptr<VoiceContentOption> option = new VoiceContentOption(false);
+    rrc->SetVoiceContentOption(option);
+    ASSERT_NE(rrc->GetVoiceContentOption(), nullptr);
+    EXPECT_EQ(rrc->GetVoiceContentOption()->GetEnabled(), false);
+}
+
+/**
+ * @tc.name: Marshalling_VoiceContentOption_00001
+ * @tc.desc: Test Marshalling with VoiceContentOption.
+ * @tc.type: FUNC
+ * @tc.require: issueI5WRQ2
+ */
+HWTEST_F(NotificationSubscribeInfoTest, Marshalling_VoiceContentOption_00001, Function | SmallTest | Level1)
+{
+    NotificationSubscribeInfo subscribeInfo;
+    auto rrc = std::make_shared<NotificationSubscribeInfo>(subscribeInfo);
+    sptr<VoiceContentOption> option = new VoiceContentOption(true);
+    rrc->SetVoiceContentOption(option);
+    Parcel parcel;
+    EXPECT_EQ(rrc->Marshalling(parcel), true);
+}
+
+/**
+ * @tc.name: Unmarshalling_VoiceContentOption_00001
+ * @tc.desc: Test Unmarshalling with VoiceContentOption.
+ * @tc.type: FUNC
+ * @tc.require: issueI5WRQ2
+ */
+HWTEST_F(NotificationSubscribeInfoTest, Unmarshalling_VoiceContentOption_00001, Function | SmallTest | Level1)
+{
+    NotificationSubscribeInfo subscribeInfo;
+    auto rrc = std::make_shared<NotificationSubscribeInfo>(subscribeInfo);
+    sptr<VoiceContentOption> option = new VoiceContentOption(true);
+    rrc->SetVoiceContentOption(option);
+    Parcel parcel;
+    rrc->Marshalling(parcel);
+    parcel.RewindRead(0);
+    NotificationSubscribeInfo *result = NotificationSubscribeInfo::Unmarshalling(parcel);
+    ASSERT_NE(result, nullptr);
+    ASSERT_NE(result->GetVoiceContentOption(), nullptr);
+    EXPECT_EQ(result->GetVoiceContentOption()->GetEnabled(), true);
+    delete result;
+}
+
+/**
+ * @tc.name: Unmarshalling_VoiceContentOption_00002
+ * @tc.desc: Test Unmarshalling without VoiceContentOption.
+ * @tc.type: FUNC
+ * @tc.require: issueI5WRQ2
+ */
+HWTEST_F(NotificationSubscribeInfoTest, Unmarshalling_VoiceContentOption_00002, Function | SmallTest | Level1)
+{
+    NotificationSubscribeInfo subscribeInfo;
+    auto rrc = std::make_shared<NotificationSubscribeInfo>(subscribeInfo);
+    Parcel parcel;
+    rrc->Marshalling(parcel);
+    parcel.RewindRead(0);
+    NotificationSubscribeInfo *result = NotificationSubscribeInfo::Unmarshalling(parcel);
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result->GetVoiceContentOption(), nullptr);
+    delete result;
+}
+
+/**
+ * @tc.name: CopyConstructor_VoiceContentOption_00001
+ * @tc.desc: Test copy constructor with VoiceContentOption.
+ * @tc.type: FUNC
+ * @tc.require: issueI5WRQ2
+ */
+HWTEST_F(NotificationSubscribeInfoTest, CopyConstructor_VoiceContentOption_00001, Function | SmallTest | Level1)
+{
+    NotificationSubscribeInfo subscribeInfo;
+    auto rrc = std::make_shared<NotificationSubscribeInfo>(subscribeInfo);
+    sptr<VoiceContentOption> option = new VoiceContentOption(true);
+    rrc->SetVoiceContentOption(option);
+    NotificationSubscribeInfo copyInfo(*rrc);
+    ASSERT_NE(copyInfo.GetVoiceContentOption(), nullptr);
+    EXPECT_EQ(copyInfo.GetVoiceContentOption()->GetEnabled(), true);
+}
+
+/**
+ * @tc.name: Dump_VoiceContentOption_00001
+ * @tc.desc: Test Dump with VoiceContentOption enabled.
+ * @tc.type: FUNC
+ * @tc.require: issueI5WRQ2
+ */
+HWTEST_F(NotificationSubscribeInfoTest, Dump_VoiceContentOption_00001, Function | SmallTest | Level1)
+{
+    NotificationSubscribeInfo subscribeInfo;
+    auto rrc = std::make_shared<NotificationSubscribeInfo>(subscribeInfo);
+    sptr<VoiceContentOption> option = new VoiceContentOption(true);
+    rrc->SetVoiceContentOption(option);
+    std::string dump = rrc->Dump();
+    EXPECT_NE(dump.find("voiceContentOption = enabled"), std::string::npos);
+}
+
+/**
+ * @tc.name: Dump_VoiceContentOption_00002
+ * @tc.desc: Test Dump with VoiceContentOption disabled.
+ * @tc.type: FUNC
+ * @tc.require: issueI5WRQ2
+ */
+HWTEST_F(NotificationSubscribeInfoTest, Dump_VoiceContentOption_00002, Function | SmallTest | Level1)
+{
+    NotificationSubscribeInfo subscribeInfo;
+    auto rrc = std::make_shared<NotificationSubscribeInfo>(subscribeInfo);
+    sptr<VoiceContentOption> option = new VoiceContentOption(false);
+    rrc->SetVoiceContentOption(option);
+    std::string dump = rrc->Dump();
+    EXPECT_NE(dump.find("voiceContentOption = disabled"), std::string::npos);
+}
+
+/**
+ * @tc.name: SubscribedFlags_VoiceContentOption_00001
+ * @tc.desc: Test that VoiceContentOption enabled sets SUBSCRIBE_ON_VOICE_CONTENT flag.
+ * @tc.type: FUNC
+ * @tc.require: issueI5WRQ2
+ */
+HWTEST_F(NotificationSubscribeInfoTest, SubscribedFlags_VoiceContentOption_00001, Function | SmallTest | Level1)
+{
+    NotificationSubscribeInfo subscribeInfo;
+    auto rrc = std::make_shared<NotificationSubscribeInfo>(subscribeInfo);
+    sptr<VoiceContentOption> option = new VoiceContentOption(true);
+    rrc->SetVoiceContentOption(option);
+    uint32_t flags = NotificationConstant::SubscribedFlag::SUBSCRIBE_ON_VOICE_CONTENT;
+    EXPECT_EQ(rrc->GetSubscribedFlags() & flags, 0);
+}
+
+/**
+ * @tc.name: SubscribedFlags_VoiceContentOption_00003
+ * @tc.desc: Test that nullptr VoiceContentOption does not set SUBSCRIBE_ON_VOICE_CONTENT flag.
+ * @tc.type: FUNC
+ * @tc.require: issueI5WRQ2
+ */
+HWTEST_F(NotificationSubscribeInfoTest, SubscribedFlags_VoiceContentOption_00003, Function | SmallTest | Level1)
+{
+    NotificationSubscribeInfo subscribeInfo;
+    auto rrc = std::make_shared<NotificationSubscribeInfo>(subscribeInfo);
+    rrc->SetVoiceContentOption(nullptr);
+    uint32_t flags = NotificationConstant::SubscribedFlag::SUBSCRIBE_ON_VOICE_CONTENT;
+    EXPECT_EQ(rrc->GetSubscribedFlags() & flags, 0);
 }
 }
 }

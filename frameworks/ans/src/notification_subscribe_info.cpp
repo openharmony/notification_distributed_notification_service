@@ -20,6 +20,8 @@
 
 #include "ans_log_wrapper.h"
 #include "parcel.h"                       // for Parcel
+#include "refbase.h"
+#include "voice_content_option.h"
 
 namespace OHOS {
 namespace Notification {
@@ -39,6 +41,7 @@ NotificationSubscribeInfo::NotificationSubscribeInfo(const NotificationSubscribe
     subscriberUid_ = subscribeInfo.GetSubscriberUid();
     slotTypes_ = subscribeInfo.GetSlotTypes();
     filterType_ = subscribeInfo.GetFilterType();
+    voiceContentOption_ = subscribeInfo.GetVoiceContentOption();
 }
 
 void NotificationSubscribeInfo::AddAppName(const std::string appName)
@@ -89,6 +92,20 @@ void NotificationSubscribeInfo::AddDeviceType(const std::string deviceType)
 std::string NotificationSubscribeInfo::GetDeviceType() const
 {
     return deviceType_;
+}
+
+bool NotificationSubscribeInfo::MarshallingVoiceContentOption(Parcel &parcel) const
+{
+    bool hasVoice = (voiceContentOption_ != nullptr);
+    if (!parcel.WriteBool(hasVoice)) {
+        ANS_LOGE("Can't write hasVoiceContentOption");
+        return false;
+    }
+    if (hasVoice && !voiceContentOption_->Marshalling(parcel)) {
+        ANS_LOGE("Can't write voiceContentOption_");
+        return false;
+    }
+    return true;
 }
 
 bool NotificationSubscribeInfo::Marshalling(Parcel &parcel) const
@@ -144,6 +161,9 @@ bool NotificationSubscribeInfo::Marshalling(Parcel &parcel) const
     }
     if (!parcel.WriteUint32(subscribedFlags_)) {
         ANS_LOGE("Can't write subscribedFlags");
+        return false;
+    }
+    if (!MarshallingVoiceContentOption(parcel)) {
         return false;
     }
     return true;
@@ -218,6 +238,15 @@ bool NotificationSubscribeInfo::ReadFromParcel(Parcel &parcel)
     // read isSubscribeSelf_
     isSubscribeSelf_ = parcel.ReadBool();
     subscribedFlags_ = parcel.ReadUint32();
+
+    bool hasVoiceContentOption = parcel.ReadBool();
+    if (hasVoiceContentOption) {
+        voiceContentOption_ = VoiceContentOption::Unmarshalling(parcel);
+        if (voiceContentOption_ == nullptr) {
+            ANS_LOGE("Failed to unmarshal voiceContentOption_");
+            return false;
+        }
+    }
     return true;
 }
 
@@ -233,6 +262,10 @@ std::string NotificationSubscribeInfo::Dump()
         slotTypes += std::to_string(static_cast<int32_t>(slotType));
         slotTypes += ", ";
     }
+    std::string voiceContentOption = "null";
+    if (voiceContentOption_ != nullptr) {
+        voiceContentOption = voiceContentOption_->GetEnabled() ? "enabled" : "disabled";
+    }
     return "NotificationSubscribeInfo{ "
             "appNames = [" + appNames + "]" +
             "deviceType = " + deviceType_ +
@@ -242,6 +275,7 @@ std::string NotificationSubscribeInfo::Dump()
             "filterType = " + std::to_string(filterType_) +
             "needResponse = " + std::to_string(needNotifyResponse_) +
             "isSubscribeSelf = " + std::to_string(isSubscribeSelf_) +
+            "voiceContentOption = " + voiceContentOption +
             " }";
 }
 
@@ -313,6 +347,16 @@ bool NotificationSubscribeInfo::GetIsSubscribeSelf() const
 void NotificationSubscribeInfo::SetIsSubscribeSelf(bool isSubscribeSelf)
 {
     isSubscribeSelf_ = isSubscribeSelf;
+}
+
+void NotificationSubscribeInfo::SetVoiceContentOption(const sptr<VoiceContentOption> &option)
+{
+    voiceContentOption_ = option;
+}
+
+sptr<VoiceContentOption> NotificationSubscribeInfo::GetVoiceContentOption() const
+{
+    return voiceContentOption_;
 }
 }  // namespace Notification
 }  // namespace OHOS
