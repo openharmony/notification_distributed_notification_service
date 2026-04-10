@@ -131,9 +131,6 @@ void CreateReturnValue(const napi_env &env, const CallbackPromiseInfo &info, con
     if (info.errorCode == ERROR_USER_NOT_EXIST) {
         errorCode = ERROR_USER_NOT_EXIST;
     }
-    if (info.errorCode == ERROR_NO_MEMORY) {
-        errorCode = ERROR_NO_MEMORY;
-    }
     if (errorCode == ERR_OK) {
         napi_resolve_deferred(env, info.deferred, result);
     } else {
