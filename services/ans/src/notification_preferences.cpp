@@ -1004,7 +1004,7 @@ void NotificationPreferences::SetAncoApplicationUserId(int32_t userId)
         if (bundle.GetBundleUserId() != -1) {
             continue;
         }
-        if (BundleManagerHelper::GetInstance()->IsAncoApp(bundle.GetBundleName(), bundle.GetBundleUid())) {
+        if (!BundleManagerHelper::GetInstance()->IsAncoApp(bundle.GetBundleName(), bundle.GetBundleUid())) {
             continue;
         }
         if (BundleManagerHelper::GetInstance()->CheckCurrentUserIdApp(bundle.GetBundleName(),
