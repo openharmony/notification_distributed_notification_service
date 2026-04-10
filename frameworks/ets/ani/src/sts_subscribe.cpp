@@ -821,6 +821,8 @@ bool SubscriberInstanceManager::SubscribeNotificationWithInfo(ani_env *env, ani_
         if (status == ERROR_USER_NOT_EXIST) {
             OHOS::NotificationSts::ThrowError(env, externalErrorCode,
                 OHOS::NotificationSts::FindAnsErrMsg(ERROR_USER_NOT_EXIST));
+        } else if (status == ERR_ANS_NO_MEMORY) {
+            OHOS::NotificationSts::ThrowError(env, ERROR_INTERNAL_ERROR, msg); 
         } else {
             OHOS::NotificationSts::ThrowError(env, externalErrorCode, msg);
         }

@@ -131,6 +131,9 @@ void CreateReturnValue(const napi_env &env, const CallbackPromiseInfo &info, con
     if (info.errorCode == ERROR_USER_NOT_EXIST) {
         errorCode = ERROR_USER_NOT_EXIST;
     }
+    if (info.errorCode == ERROR_NO_MEMORY) {
+        errorCode = ERROR_NO_MEMORY;
+    }
     if (errorCode == ERR_OK) {
         napi_resolve_deferred(env, info.deferred, result);
     } else {
@@ -139,6 +142,9 @@ void CreateReturnValue(const napi_env &env, const CallbackPromiseInfo &info, con
         napi_value message = nullptr;
         napi_create_string_utf8(env, errMsg.c_str(), NAPI_AUTO_LENGTH, &message);
         if (errorCode == ERROR_USER_NOT_EXIST) {
+            errorCode = ERROR_INTERNAL_ERROR;
+        }
+        if (errorCode == ERROR_NO_MEMORY) {
             errorCode = ERROR_INTERNAL_ERROR;
         }
         napi_value code = nullptr;
