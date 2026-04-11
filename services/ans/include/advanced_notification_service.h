@@ -56,6 +56,7 @@
 #include "notification_clone_bundle_info.h"
 #include "ibadge_query_callback.h"
 #include "ffrt_queue_impl.h"
+#include "notification_app_state_observer.h"
 
 namespace OHOS {
 namespace Notification {
@@ -1968,6 +1969,12 @@ public:
     ErrCode GetNotificationSwitch(const sptr<NotificationBundleOption> &bundleOption,
         int32_t &state) override;
 
+    /**
+     * @brief Remove common live view notification
+     *
+     * @param pid Process id.
+     */
+    void RemoveCommonLiveViewNotification(const int32_t pid);
 protected:
     /**
      * @brief Query whether there is a agent relationship between the two apps.
@@ -2539,6 +2546,46 @@ private:
     void SetNotificationStatisticsToDB(const std::shared_ptr<NotificationRecord> &record,
         const sptr<NotificationBundleOption> bundleOption, const bool isExists);
 #endif
+    /**
+     * @brief Add observer of application state
+     */
+    void AddAppStateObserver();
+
+    /**
+     * @brief Remove observer of application state
+     */
+    void RemoveAppStateObserver();
+
+    /**
+     * @brief Get list of common live view
+     *
+     * @param pid Process id.
+     * @param recordList Common live view recoreds.
+     */
+    void GetCommonLiveViewRecordList(const int32_t pid, std::vector<std::shared_ptr<NotificationRecord>>& recordList);
+
+    /**
+     * @brief Add observer set
+     *
+     * @param pid Process id.
+     * @param request NotificationRequest.
+     */
+    void AddAppObserverSet(const int32_t pid, const sptr<NotificationRequest> &request);
+
+    /**
+     * @brief Remove observer set
+     *
+     * @param pid Process id.
+     */
+    void RemoveAppObserverSet(const int32_t pid);
+
+    /**
+     * @brief Check pid is exists in observer set
+     *
+     * @param pid Process id.
+     * @return Returns is exists pid in observerSet
+     */
+    bool IsExistsPidInObserverSet(const int32_t pid);
 private:
     static sptr<AdvancedNotificationService> instance_;
     static ffrt::mutex instanceMutex_;
@@ -2588,6 +2635,9 @@ private:
     int32_t notDisturbEnableState_ = -1;
     std::string soundWhiteListString_ = "";
     std::atomic<bool> hasRegisterNotDisturbEnableListener_ = false;
+    std::mutex appObserverLock_;
+    std::set<int32_t> appObserverSet_;
+    sptr<AppExecFwk::IApplicationStateObserver> notificationAppObserver_ = nullptr;
 };
 
 /**

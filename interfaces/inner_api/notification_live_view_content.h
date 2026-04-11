@@ -39,6 +39,12 @@ public:
         LIVE_VIEW_BUTT = 255
     };
 
+    enum class LiveViewRemoveStatus: uint32_t {
+        LIVE_VIEW_INVAILD,
+        LIVE_VIEW_REMOVE,
+        LIVE_VIEW_NO_REMOVE
+    };
+
     NotificationLiveViewContent() = default;
     ~NotificationLiveViewContent() override = default;
     /**
@@ -150,6 +156,20 @@ public:
 
     bool GetIsOnlyLocalUpdate() const;
 
+    /**
+     * @brief Set isRemoveOnProcessExit property.
+     *
+     * @param removeOnProcessExitState Is remove on process exit.
+     */
+    void SetRemoveOnProcessExitState(const LiveViewRemoveStatus &removeOnProcessExitState);
+
+    /**
+     * @brief Get isRemoveOnProcessExit property.
+     *
+     * @return Is remove on process exit.
+     */
+    LiveViewRemoveStatus GetRemoveOnProcessExitState() const;
+
     void SetExtensionWantAgent(const std::shared_ptr<AbilityRuntime::WantAgent::WantAgent> &wantAgent);
 
     const std::shared_ptr<AbilityRuntime::WantAgent::WantAgent> GetExtensionWantAgent() const;
@@ -178,6 +198,7 @@ private:
     bool isOnlyLocalUpdate_ = false;
     int32_t uid_ = -1;
     std::shared_ptr<AbilityRuntime::WantAgent::WantAgent> extensionWantAgent_ {};
+    LiveViewRemoveStatus removeOnProcessExitState_ = LiveViewRemoveStatus::LIVE_VIEW_INVAILD;
 };
 }  // namespace Notification
 }  // namespace OHOS
