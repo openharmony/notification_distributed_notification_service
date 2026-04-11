@@ -31,6 +31,7 @@ import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSessi
 import { MeasureOptions } from '@ohos.measure';
 import { MeasureUtils } from '@ohos.arkui.UIContext';
 import common from '@ohos.app.ability.common';
+import uiMaterial from '@ohos.arkui.uiMaterial';
 
 const TAG = 'NotificationDialog_Service ';
 const mainWindowId = 'mainWindow';
@@ -40,6 +41,7 @@ const permission: Record<string, Resource> = {
   'reason': $r('app.string.reason'),
 };
 const bottomPopoverTypes = ['default', 'phone'];
+const defaultUiMaterial = new uiMaterial.ImmersiveMaterial({style: 0});
 
 let storage = LocalStorage.getShared();
 
@@ -87,6 +89,7 @@ struct NotificationDialogPage {
     alignment: DialogAlignment.Center,
     customStyle: true,
     maskColor: $r('app.color.mask_thin'),
+    systemMaterial: defaultUiMaterial,
     onWillDismiss: (dismissDialogAction: DismissDialogAction) => {
       console.info(TAG, `dialog onWillDismiss reason= : ${JSON.stringify(dismissDialogAction.reason)}`);
     }
@@ -203,6 +206,7 @@ struct PermissionDialog {
                     await this.enableNotification(false);
                     })
                     .customizeButton()
+                    .systemMaterial(defaultUiMaterial)
                     .fontColor($r('sys.color.ohos_id_color_warning'))
                   Divider()
                     .color($r('app.color.comp_divider'))
@@ -215,6 +219,7 @@ struct PermissionDialog {
                       await this.enableNotification(true);
                     })
                     .customizeButton()
+                    .systemMaterial(defaultUiMaterial)
                     .fontColor($r('app.color.button_text'))
                 }
                 .margin({ 
@@ -231,6 +236,7 @@ struct PermissionDialog {
                   .onClick(async (): Promise<void> => {
                     await this.enableNotification(false);
                   })
+                  .systemMaterial(defaultUiMaterial)
                   .singleRowButton()
                   .fontColor($r('sys.color.ohos_id_color_warning'))
                   .margin({ 
@@ -253,6 +259,7 @@ struct PermissionDialog {
                       await this.enableNotification(true);
                     })
                     .singleRowButton()
+                    .systemMaterial(defaultUiMaterial)
                     .fontColor($r('app.color.button_text'))
                     .margin({ 
                       left: Constants.MARGIN_ZERO, 
@@ -277,6 +284,7 @@ struct PermissionDialog {
         .onAreaChange((oldArea: Area, newArea: Area) => {
           this.updateButtomVisibility(newArea.width as number);
         })
+        .systemMaterial(defaultUiMaterial)
       }
     }
     .margin({
