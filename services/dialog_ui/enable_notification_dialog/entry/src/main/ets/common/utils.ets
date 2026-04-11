@@ -190,5 +190,5 @@ export function isEuropeRegion(context: Context): boolean {
 }
 
 export function isDrp(): boolean {
-  return deviceInfo.productSeries === "DRP";
+  return deviceInfo.productSeries === "DRP" || deviceInfo.productSeries === "DRA";
 }
