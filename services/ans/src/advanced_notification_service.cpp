@@ -87,6 +87,8 @@
 #include "advanced_notdisturb_enabled_observer.h"
 #include "advanced_notdisturb_white_list_observer.h"
 #include "advanced_datashare_observer.h"
+#include "singleton.h"
+#include "app_mgr_client.h"
 
 namespace OHOS {
 namespace Notification {
@@ -362,11 +364,13 @@ AdvancedNotificationService::AdvancedNotificationService()
 #ifdef ANS_FEATURE_NOTIFICATION_STATISTICS
     NotificationAnalyticsUtil::CreateCleanExperDataTimerExecute();
 #endif
+    AddAppStateObserver();
 }
 
 AdvancedNotificationService::~AdvancedNotificationService()
 {
     ANS_LOGD("called");
+    RemoveAppStateObserver();
 }
 
 void AdvancedNotificationService::SelfClean()
@@ -2567,6 +2571,38 @@ bool AdvancedNotificationService::isProxyForUnaware(const int32_t uid)
 {
     std::shared_lock<std::shared_mutex> lock(proxyForUnawareUidSetMutex_);
     return proxyForUnawareUidSet_.find(uid) != proxyForUnawareUidSet_.end();
+}
+
+void AdvancedNotificationService::AddAppStateObserver()
+{
+    notificationAppObserver_ = sptr<NotificationAppStateObserver>::MakeSptr();
+    if (notificationAppObserver_ == nullptr) {
+        ANS_LOGE("NotificationAppStateObserver create failed");
+        return;
+    }
+    
+    //Register notificationAppObserver
+    int32_t ret = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()
+        ->RegisterApplicationStateObserver(notificationAppObserver_);
+    if (ret != ERR_OK) {
+        notificationAppObserver_ = nullptr;
+        ANS_LOGE("ANS RegisterApplicationStateObserver failed, ret=%{public}d.", ret);
+    }
+}
+
+void AdvancedNotificationService::RemoveAppStateObserver()
+{
+    if (notificationAppObserver_ == nullptr) {
+        return;
+    }
+    //Register notificationAppObserver
+    int32_t ret = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()
+        ->UnregisterApplicationStateObserver(notificationAppObserver_);
+    if (ret != ERR_OK) {
+        ANS_LOGE("ANS UnRegisterApplicationStateObserver failed, ret=%{public}d.", ret);
+    }
+    
+    notificationAppObserver_ = nullptr;
 }
 }  // namespace Notification
 }  // namespace OHOS

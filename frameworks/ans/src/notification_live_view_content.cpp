@@ -75,6 +75,16 @@ bool NotificationLiveViewContent::GetIsOnlyLocalUpdate() const
     return isOnlyLocalUpdate_;
 }
 
+void NotificationLiveViewContent::SetRemoveOnProcessExitState(const LiveViewRemoveStatus &removeOnProcessExitState)
+{
+    removeOnProcessExitState_ = removeOnProcessExitState;
+}
+
+NotificationLiveViewContent::LiveViewRemoveStatus NotificationLiveViewContent::GetRemoveOnProcessExitState() const
+{
+    return removeOnProcessExitState_;
+}
+
 void NotificationLiveViewContent::SetExtensionWantAgent(
     const std::shared_ptr<AbilityRuntime::WantAgent::WantAgent> &wantAgent)
 {
@@ -118,7 +128,9 @@ std::string NotificationLiveViewContent::Dump()
         ", status = " + std::to_string(static_cast<int32_t>(liveViewStatus_)) + ", version = " +
         std::to_string(static_cast<int32_t>(version_)) + ", extraInfo = " + extraStr +
         ", isOnlyLocalUpdate_ = " + (GetIsOnlyLocalUpdate()?"true":"false") + pictureStr +
-        ", extensionWantAgent_ = " + (extensionWantAgent_ ? "not null" : "null") + "}";
+        ", extensionWantAgent_ = " + (extensionWantAgent_ ? "not null" : "null") +
+        ", removeOnProcessExitState_ = " + std::to_string(static_cast<uint32_t>(removeOnProcessExitState_)) +
+        "}";
 }
 
 bool NotificationLiveViewContent::PictureToJson(nlohmann::json &jsonObject) const
@@ -159,7 +171,7 @@ bool NotificationLiveViewContent::ToJson(nlohmann::json &jsonObject) const
         jsonObject["extensionWantAgent"] = AbilityRuntime::WantAgent::WantAgentHelper::ToString(extensionWantAgent_);
         jsonObject["uid"] = uid_;
     }
-
+    jsonObject["removeState"] = static_cast<uint32_t>(removeOnProcessExitState_);
     return PictureToJson(jsonObject);
 }
 
@@ -195,7 +207,6 @@ NotificationLiveViewContent *NotificationLiveViewContent::FromJson(const nlohman
     }
 
     pContent->ReadFromJson(jsonObject);
-
     const auto &jsonEnd = jsonObject.cend();
     if (jsonObject.find("status") != jsonEnd && jsonObject.at("status").is_number_integer()) {
         auto statusValue = jsonObject.at("status").get<int32_t>();
@@ -217,17 +228,19 @@ NotificationLiveViewContent *NotificationLiveViewContent::FromJson(const nlohman
         pContent->isOnlyLocalUpdate_ = jsonObject.at("isOnlyLocalUpdate").get<bool>();
     }
     pContent->ConvertPictureFromJson(jsonObject);
-
     if (jsonObject.find("uid") != jsonEnd && jsonObject.at("uid").is_number_integer()) {
         pContent->uid_ =jsonObject.at("uid").get<int32_t>();
     }
-
     if (jsonObject.find("extensionWantAgent") != jsonEnd && jsonObject.at("extensionWantAgent").is_string()) {
         auto extensionWantAgentString  = jsonObject.at("extensionWantAgent").get<std::string>();
         pContent->extensionWantAgent_ = AbilityRuntime::WantAgent::WantAgentHelper::FromString(
             extensionWantAgentString, pContent->uid_);
     } else {
         ANS_LOGW("no want");
+    }
+    if (jsonObject.find("removeState") != jsonEnd && jsonObject.at("removeState").is_number_integer()) {
+        auto res = jsonObject.at("removeState").get<uint32_t>();
+        pContent->removeOnProcessExitState_ = static_cast<NotificationLiveViewContent::LiveViewRemoveStatus>(res);
     }
     return pContent;
 }
@@ -248,7 +261,6 @@ bool NotificationLiveViewContent::Marshalling(Parcel &parcel) const
         ANS_LOGE("Failed to write version");
         return false;
     }
-
     bool valid{false};
     if (extraInfo_ != nullptr) {
         valid = true;
@@ -271,12 +283,19 @@ bool NotificationLiveViewContent::Marshalling(Parcel &parcel) const
         ANS_LOGE("Failed to write the size of pictureMap.");
         return false;
     }
-
     bool res = MarshallingPictureMap(parcel);
     if (!res) {
         return res;
     }
-    return MarshallingExtensionWantAgent(parcel);
+    bool wantRes = MarshallingExtensionWantAgent(parcel);
+    if (!wantRes) {
+        return wantRes;
+    }
+    if (!parcel.WriteUint32(static_cast<uint32_t>(removeOnProcessExitState_))) {
+        ANS_LOGE("Failed to write the remove on process exis state");
+        return false;
+    }
+    return true;
 }
 
 bool NotificationLiveViewContent::MarshallingExtensionWantAgent(Parcel &parcel) const
@@ -354,6 +373,7 @@ bool NotificationLiveViewContent::ReadFromParcel(Parcel &parcel)
             return false;
         }
     }
+    removeOnProcessExitState_ = static_cast<NotificationLiveViewContent::LiveViewRemoveStatus>(parcel.ReadUint32());
     return true;
 }
 

@@ -3184,10 +3184,15 @@ void NotificationRequest::IncrementalUpdateLiveview(const sptr<NotificationReque
     }
 
     auto oldIsOnlyLocalUpdate = oldLiveViewContent->GetIsOnlyLocalUpdate();
-    if (oldIsOnlyLocalUpdate!= newLiveViewContent->GetIsOnlyLocalUpdate()) {
+    if (oldIsOnlyLocalUpdate != newLiveViewContent->GetIsOnlyLocalUpdate()) {
         newLiveViewContent->SetIsOnlyLocalUpdate(oldIsOnlyLocalUpdate);
     }
 
+    auto oldRemoveOnProcessExitState = oldLiveViewContent->GetRemoveOnProcessExitState();
+    if (oldRemoveOnProcessExitState != newLiveViewContent->GetRemoveOnProcessExitState()) {
+        newLiveViewContent->SetRemoveOnProcessExitState(oldRemoveOnProcessExitState);
+    }
+    
     auto newPicture = newLiveViewContent->GetPicture();
     bool isSet = false;
     for (const auto &pictureRecord : oldLiveViewContent->GetPicture()) {

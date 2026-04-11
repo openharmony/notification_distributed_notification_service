@@ -96,6 +96,7 @@ constexpr char SPLIT_FLAG[] = "-";
 constexpr int32_t KEYWORD_SIZE = 4;
 constexpr int32_t MIN_VERSION = 1;
 constexpr int32_t OPERATION_TYPE_COMMON_EVENT = 4;
+constexpr size_t MIN_NOTIFICATION_LIST_SIZE = 0;
 #ifdef ANM_SUPPORT_DUMP
 const std::unordered_map<std::string, std::string> HIDUMPER_CMD_MAP = {
     { "--help", HELP_NOTIFICATION_OPTION },
@@ -2475,6 +2476,87 @@ void AdvancedNotificationService::CheckRemovalWantAgent(const sptr<NotificationR
             request->SetRemovalWantAgent(nullptr);
         }
     }
+}
+
+void AdvancedNotificationService::RemoveCommonLiveViewNotification(const int32_t pid)
+{
+    if (!IsExistsPidInObserverSet(pid)) {
+        return;
+    }
+
+    ANS_LOGD("ans OnProcessDied RemoveCommonLiveViewNotification enter");
+    //remove notification by send sync ffrt task
+    auto submitResult = notificationSvrQueue_.SyncSubmit(std::bind([&]() {
+        std::vector<std::shared_ptr<NotificationRecord>> recordList;
+        GetCommonLiveViewRecordList(pid, recordList);
+
+        if (recordList.size() == MIN_NOTIFICATION_LIST_SIZE) {
+            return;
+        }
+
+        //Remove common live view notification
+        ErrCode result = RemoveNotificationFromRecordList(recordList);
+        if (result != ERR_OK) {
+            ANS_LOGW("OnProcessDied Remove Error: %{public}d", result);
+        }
+    }));
+    if (submitResult != ERR_OK) {
+        ANS_LOGW("OnProcessDied ffrt task send failed: %{public}d", submitResult);
+    }
+    RemoveAppObserverSet(pid);
+}
+
+void AdvancedNotificationService::GetCommonLiveViewRecordList(const int32_t pid,
+    std::vector<std::shared_ptr<NotificationRecord>>& recordList)
+{
+    for (auto& notification : notificationList_) {
+        if (notification->request == nullptr || !notification->request->IsCommonLiveView()
+            || notification->request->GetContent() == nullptr) {
+            continue;
+        }
+        auto liveViewContent = std::static_pointer_cast<NotificationLiveViewContent>(
+            notification->request->GetContent()->GetNotificationContent());
+        if (static_cast<int32_t>(notification->request->GetCreatorPid()) == pid &&
+            liveViewContent->GetRemoveOnProcessExitState() ==
+            NotificationLiveViewContent::LiveViewRemoveStatus::LIVE_VIEW_REMOVE) {
+                recordList.emplace_back(notification);
+        }
+    }
+}
+
+void AdvancedNotificationService::AddAppObserverSet(const int32_t pid, const sptr<NotificationRequest> &request)
+{
+    if (request == nullptr || request->GetContent() == nullptr || !request->IsCommonLiveView()) {
+        return;
+    }
+
+    auto liveViewContent = std::static_pointer_cast<NotificationLiveViewContent>(
+        request->GetContent()->GetNotificationContent());
+    if (liveViewContent->GetRemoveOnProcessExitState() !=
+        NotificationLiveViewContent::LiveViewRemoveStatus::LIVE_VIEW_REMOVE) {
+            return;
+    }
+
+    std::lock_guard<std::mutex> lock(appObserverLock_);
+    appObserverSet_.insert(pid);
+}
+
+
+void AdvancedNotificationService::RemoveAppObserverSet(const int32_t pid)
+{
+    std::lock_guard<std::mutex> lock(appObserverLock_);
+    appObserverSet_.erase(pid);
+}
+
+
+bool AdvancedNotificationService::IsExistsPidInObserverSet(const int32_t pid)
+{
+    std::lock_guard<std::mutex> lock(appObserverLock_);
+    auto it = appObserverSet_.find(pid);
+    if (it == appObserverSet_.end()) {
+        return false;
+    }
+    return true;
 }
 }  // namespace Notification
 }  // namespace OHOS
