@@ -1369,7 +1369,7 @@ ErrCode AdvancedNotificationService::RemoveAllNotificationsByBundleName(
                 int32_t bundleUserId = -1;
                 auto ret = OsAccountManagerHelper::GetInstance().GetOsAccountLocalIdFromUid(
                     record->bundleOption->GetUid(), bundleUserId);
-                if (ret != ERR_OK || bundleUserId != userId) {
+                if ((ret != ERR_OK || bundleUserId != userId) && record->request->GetReceiverUserId() != userId) {
                     continue;
                 }
             }
