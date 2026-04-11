@@ -117,7 +117,8 @@ HWTEST_F(NotificationLiveViewContentTest, Dump_00001, Function | SmallTest | Lev
     std::string ret = "NotificationLiveViewContent{ title = , text = , "
     "additionalText = , lockScreenPicture = null, structuredText = null, "
     "status = 0, version = -1, extraInfo = null, "
-    "isOnlyLocalUpdate_ = false, pictureMap = {}, extensionWantAgent_ = null}";
+    "isOnlyLocalUpdate_ = false, pictureMap = {}, extensionWantAgent_ = null, "
+    "removeOnProcessExitState_ = 0}";
 
     EXPECT_EQ(rrc->Dump(), ret);
 }
@@ -146,7 +147,7 @@ HWTEST_F(NotificationLiveViewContentTest, Dump_00002, Function | SmallTest | Lev
         "additionalText = addText, lockScreenPicture = null, structuredText = null, "
         "status = 0, version = -1, extraInfo = null, "
         "isOnlyLocalUpdate_ = false, pictureMap = { { key = test, value = not empty } }, "
-        "extensionWantAgent_ = null}";
+        "extensionWantAgent_ = null, removeOnProcessExitState_ = 0}";
 
     EXPECT_EQ(rrc->Dump(), ret);
 }
