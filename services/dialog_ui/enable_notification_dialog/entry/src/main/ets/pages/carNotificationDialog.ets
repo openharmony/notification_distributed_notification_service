@@ -22,8 +22,10 @@ import UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSessi
 import { MeasureOptions } from '@ohos.measure';
 import common from '@ohos.app.ability.common';
 import uiextension from '@ohos.arkui.uiExtension';
+import uiMaterial from '@ohos.arkui.uiMaterial';
 
 const TAG = 'NotificationDialog_Service ';
+const defaultUiMaterial = new uiMaterial.ImmersiveMaterial({style: 0});
 
 let storage = LocalStorage.getShared();
 
@@ -51,6 +53,7 @@ struct NotificationDialogPage {
     alignment: DialogAlignment.Center,
     customStyle: true,
     cornerRadius: 0,
+    systemMaterial: defaultUiMaterial,
     maskColor: '#CC000000',
     onWillDismiss: (dismissDialogAction: DismissDialogAction) => {
       console.info(TAG, `dialog onWillDismiss reason= : ${JSON.stringify(dismissDialogAction.reason)}`);
@@ -149,12 +152,14 @@ struct PermissionDialog {
                     .onClick(async (): Promise<void> => {
                       await this.enableNotification(false);
                     })
+                    .systemMaterial(defaultUiMaterial)
                     .customizeButton()
                     .margin({right: 8})
                   Button($r('app.string.ALLOW'))
                     .onClick(async (): Promise<void> => {
                       await this.enableNotification(true);
                     })
+                    .systemMaterial(defaultUiMaterial)
                     .customizeButton()
                     .margin({left: 8})
                 }
@@ -169,6 +174,7 @@ struct PermissionDialog {
         .backgroundEffect({ radius: 40, color: '#1AFFFFFF' })
         .outline({ width: 0.5, color: '#26FFFFFF', radius: 24 })
         .clip(true)
+        .systemMaterial(defaultUiMaterial)
       }
       .backgroundEffect({ radius: 40})
       .width('100%')
