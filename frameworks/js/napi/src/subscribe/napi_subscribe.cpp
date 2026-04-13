@@ -141,6 +141,9 @@ void CreateReturnValue(const napi_env &env, const CallbackPromiseInfo &info, con
         if (errorCode == ERROR_USER_NOT_EXIST) {
             errorCode = ERROR_INTERNAL_ERROR;
         }
+        if (errorCode == ERROR_NO_MEMORY) {
+            errorCode = ERROR_INTERNAL_ERROR;
+        }
         napi_value code = nullptr;
         napi_create_int32(env, errorCode, &code);
 
