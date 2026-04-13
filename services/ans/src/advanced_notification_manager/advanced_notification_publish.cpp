@@ -111,9 +111,16 @@ bool AdvancedNotificationService::GrantSoundPermission(const sptr<NotificationRe
     if (OsAccountManagerHelper::GetInstance().GetOsAccountLocalIdFromUid(uid, userId) != ERR_OK) {
         return false;
     }
-    int32_t appTokenId =  Security::AccessToken::AccessTokenKit::GetHapTokenID(userId, bundleName, appIndex);
-    int32_t sceneboardTokenId = Security::AccessToken::AccessTokenKit::GetHapTokenID(userId, sceneboard, 0);
-    auto uri = OHOS::Uri(uriPath);
+    Security::AccessToken::AccessTokenID appTokenId = Security::AccessToken::AccessTokenKit::GetHapTokenID(
+        userId, bundleName, appIndex);
+    bool appHasPermission = AAFwk::UriPermissionManagerClient::GetInstance().CheckUriAuthorization({uriPath},
+        AAFwk::Want::FLAG_AUTH_READ_URI_PERMISSION, appTokenId).at(0);
+    if (!appHasPermission) {
+        ANS_LOGE("App does not have read permission for uri");
+        return false;
+    }
+    Security::AccessToken::AccessTokenID sceneboardTokenId = Security::AccessToken::AccessTokenKit::GetHapTokenID(
+        userId, sceneboard, 0);
     bool isGranted = AAFwk::UriPermissionManagerClient::GetInstance().CheckUriAuthorization({uriPath},
         AAFwk::Want::FLAG_AUTH_READ_URI_PERMISSION, sceneboardTokenId).at(0);
     if (isGranted) {
@@ -133,6 +140,7 @@ bool AdvancedNotificationService::GrantSoundPermission(const sptr<NotificationRe
         ANS_LOGE("Path format failed");
         return false;
     }
+    auto uri = OHOS::Uri(uriPath);
     auto result = AAFwk::UriPermissionManagerClient::GetInstance().GrantUriPermission(
         uri, AAFwk::Want::FLAG_AUTH_READ_URI_PERMISSION, sceneboard, 0, appTokenId);
     if (result != ERR_OK) {
