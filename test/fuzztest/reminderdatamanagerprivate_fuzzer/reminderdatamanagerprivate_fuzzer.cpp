@@ -61,9 +61,7 @@ void DoSomethingInterestingWithManager(FuzzedDataProvider* fdp)
     manager->IsReminderAgentReady();
     manager->SetPlayerParam(reminder);
     manager->PlaySoundAndVibrationLocked(reminder);
-    manager->PlaySoundAndVibration(reminder);
     manager->StopSoundAndVibrationLocked(reminder);
-    manager->StopSoundAndVibration(reminder);
     manager->RemoveFromShowedReminders(reminder);
     std::vector<sptr<ReminderRequest>> immediatelys;
     std::vector<sptr<ReminderRequest>> extensions;

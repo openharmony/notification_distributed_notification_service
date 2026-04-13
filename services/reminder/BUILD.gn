@@ -131,6 +131,7 @@ ohos_source_set("reminder_service_sources") {
     external_deps += [ "player_framework:media_client" ]
     external_deps += [ "audio_framework:audio_client" ]
     external_deps += [ "player_framework:system_sound_client" ]
+    external_deps += [ "miscdevice:vibrator_interface_native" ]
     defines += [ "PLAYER_FRAMEWORK_ENABLE" ]
   }
 
