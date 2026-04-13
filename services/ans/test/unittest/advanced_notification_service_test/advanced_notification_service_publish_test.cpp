@@ -1572,6 +1572,8 @@ HWTEST_F(AdvancedNotificationServiceTest, GrantSoundPermission_100, Function | S
     req->SetSound("testSound");
     EXPECT_FALSE(advancedNotificationService_->GrantSoundPermission(req, bundleOption));
     req->SetSound("uri::file://notification_service_publish_test/data/storage/el1/base/testSound.mp3");
+    bundleOption->SetBundleName("notification_service_publish_test1");
+    EXPECT_FALSE(advancedNotificationService_->GrantSoundPermission(req, bundleOption));
     bundleOption->SetBundleName("notification_service_publish_test");
     EXPECT_FALSE(advancedNotificationService_->GrantSoundPermission(req, bundleOption));
     req->SetSound("uri::file://notification_service_publish_test/data/storage/el1/base/files/testSound.mp3");
