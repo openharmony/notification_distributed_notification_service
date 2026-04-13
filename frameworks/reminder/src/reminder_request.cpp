@@ -1830,7 +1830,6 @@ void ReminderRequest::UpdateNotificationContent(NotificationRequest& notificatio
     } else {
         displayContent_ = extendContent;
     }
-    ANSR_LOGD("Display content=%{public}s", displayContent_.c_str());
 }
 
 void ReminderRequest::UpdateNotificationStateForAlert(NotificationRequest& notificationRequest)
