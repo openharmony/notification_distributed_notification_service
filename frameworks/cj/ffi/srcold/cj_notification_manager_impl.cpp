@@ -51,7 +51,6 @@ namespace CJSystemapi {
             return false;
         }
         basicContent->SetTitle(std::string(str));
-        LOGI("normal::title = %{public}s", str);
 
         // text: String
         if (strcpy_s(str, STR_MAX_SIZE, contentResult->text) != EOK) {
@@ -62,14 +61,12 @@ namespace CJSystemapi {
             return false;
         }
         basicContent->SetText(std::string(str));
-        LOGI("normal::text = %{public}s", str);
 
         // additionalText: string
         if (strcpy_s(str, STR_MAX_SIZE, contentResult->additionalText) != EOK) {
             return false;
         }
         basicContent->SetAdditionalText(std::string(str));
-        LOGI("normal::additionalText = %{public}s", str);
 
         return true;
     }
@@ -98,7 +95,6 @@ namespace CJSystemapi {
             return false;
         }
         longContent->SetLongText(std::string(longStr));
-        LOGI("longText::longText = %{public}s", longStr);
 
         // briefText: String
         if (strcpy_s(str, STR_MAX_SIZE, contentResult->briefText) != EOK) {
@@ -109,7 +105,6 @@ namespace CJSystemapi {
             return false;
         }
         longContent->SetBriefText(std::string(str));
-        LOGI("longText::briefText = %{public}s", str);
 
         // expandedTitle: String
         if (strcpy_s(str, STR_MAX_SIZE, contentResult->expandedTitle) != EOK) {
@@ -120,7 +115,6 @@ namespace CJSystemapi {
             return false;
         }
         longContent->SetExpandedTitle(std::string(str));
-        LOGI("longText::expandedTitle = %{public}s", str);
 
         return true;
     }
@@ -148,7 +142,6 @@ namespace CJSystemapi {
             return false;
         }
         pictureContent->SetBriefText(std::string(str));
-        LOGI("longText::briefText = %{public}s", str);
 
         // expandedTitle: String
         if (strcpy_s(str, STR_MAX_SIZE, contentResult->expandedTitle) != EOK) {
@@ -159,7 +152,6 @@ namespace CJSystemapi {
             return false;
         }
         pictureContent->SetExpandedTitle(std::string(str));
-        LOGI("picture::expandedTitle = %{public}s", str);
 
         // picture: image.PixelMap
         auto pixelMap = FFI::FFIData::GetData<Media::PixelMapImpl>(contentResult->picture);
@@ -241,7 +233,6 @@ namespace CJSystemapi {
                 return false;
             }
             multiLineContent->AddSingleLine(std::string(str));
-            LOGI("multiLine: lines : addSingleLine = %{public}s", str);
         }
         return true;
     }
@@ -276,7 +267,6 @@ namespace CJSystemapi {
             return false;
         }
         multiLineContent->SetBriefText(std::string(str));
-        LOGI("multiLine: briefText = %{public}s", str);
 
         // longTitle: String
         if (strcpy_s(str, STR_MAX_SIZE, contentResult->longTitle)) {
@@ -287,7 +277,6 @@ namespace CJSystemapi {
             return false;
         }
         multiLineContent->SetExpandedTitle(std::string(str));
-        LOGI("multiLine: longTitle = %{public}s", str);
 
         // lines: Array<String>
         if (!GetNotificationMultiLineContentLines(contentResult, multiLineContent)) {
@@ -450,7 +439,6 @@ namespace CJSystemapi {
                 return false;
             }
             devices.emplace_back(str);
-            LOGI("supportDisplayDevices = %{public}s", str);
         }
         request.SetDevicesSupportDisplay(devices);
         return true;
