@@ -87,7 +87,6 @@ namespace Notification {
                 return false;
             }
             devices.emplace_back(str);
-            LOGI("supportOperateDevices = %{public}s", str);
         }
         request.SetDevicesSupportOperate(devices);
         return true;
