@@ -95,7 +95,7 @@ void AdvancedNotificationService::RecoverLiveViewFromDb(int32_t userId)
                 continue;
             }
             UpdateRecentNotification(record->notification, false, 0);
-            if (requestObj.request->IsCommonLiveView() || requestObj.request->IsSystemLiveView()) {
+            if (requestObj.request->IsCommonLiveView()) {
                 CancelTimer(record->notification->GetFinishTimer());
                 CancelTimer(record->notification->GetUpdateTimer());
                 StartFinishTimer(record, requestObj.request->GetFinishDeadLine(),
@@ -108,7 +108,7 @@ void AdvancedNotificationService::RecoverLiveViewFromDb(int32_t userId)
                     StartGeofenceTriggerTimer(record, triggerDeadLine,
                         NotificationConstant::TRIGGER_GEOFENCE_REASON_DELETE);
                 }
-            } else if (requestObj.request->GetAutoDeletedTime() > GetCurrentTime()) {
+            } else {
                 StartAutoDeletedTimer(record);
             }
         }
