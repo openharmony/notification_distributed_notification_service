@@ -2945,5 +2945,438 @@ HWTEST_F(AdvancedNotificationServiceTest, Dump_0100, Level1)
     std::string targetStr = "10.000000 11.000000 12.000000 11 2 2";
     ASSERT_EQ(str, targetStr);
 }
+
+/**
+ * @tc.name: PublishNotificationBySa_00001
+ * @tc.desc: Test PublishNotificationBySa with invalid uid (uid <= 0)
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceTest, PublishNotificationBySa_00001, Function | SmallTest | Level1)
+{
+    TestAddSlot(NotificationConstant::SlotType::OTHER);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE);
+    MockIsSystemApp(true);
+
+    ASSERT_EQ(advancedNotificationService_->SetNotificationsEnabledForSpecialBundle(std::string(),
+        new NotificationBundleOption(TEST_DEFUALT_BUNDLE, SYSTEM_APP_UID), true), (int)ERR_OK);
+
+    sptr<NotificationRequest> req = new NotificationRequest(1);
+    EXPECT_NE(req, nullptr);
+    req->SetSlotType(NotificationConstant::SlotType::OTHER);
+    req->SetLabel("req's label");
+    req->SetCreatorUid(0);
+
+    std::shared_ptr<NotificationNormalContent> normalContent = std::make_shared<NotificationNormalContent>();
+    EXPECT_NE(normalContent, nullptr);
+    normalContent->SetText("normalContent's text");
+    normalContent->SetTitle("normalContent's title");
+    std::shared_ptr<NotificationContent> content = std::make_shared<NotificationContent>(normalContent);
+    EXPECT_NE(content, nullptr);
+    req->SetContent(content);
+
+    AnsStatus result = advancedNotificationService_->PublishNotificationBySa(req);
+    EXPECT_FALSE(result.Ok());
+}
+
+/**
+ * @tc.name: PublishNotificationBySa_00002
+ * @tc.desc: Test PublishNotificationBySa with valid uid and system app
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceTest, PublishNotificationBySa_00002, Function | SmallTest | Level1)
+{
+    TestAddSlot(NotificationConstant::SlotType::OTHER);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE);
+    MockIsSystemApp(true);
+
+    ASSERT_EQ(advancedNotificationService_->SetNotificationsEnabledForSpecialBundle(std::string(),
+        new NotificationBundleOption(TEST_DEFUALT_BUNDLE, SYSTEM_APP_UID), true), (int)ERR_OK);
+
+    sptr<NotificationRequest> req = new NotificationRequest(1);
+    EXPECT_NE(req, nullptr);
+    req->SetSlotType(NotificationConstant::SlotType::OTHER);
+    req->SetLabel("req's label");
+    req->SetCreatorUid(SYSTEM_APP_UID);
+
+    std::shared_ptr<NotificationNormalContent> normalContent = std::make_shared<NotificationNormalContent>();
+    EXPECT_NE(normalContent, nullptr);
+    normalContent->SetText("normalContent's text");
+    normalContent->SetTitle("normalContent's title");
+    std::shared_ptr<NotificationContent> content = std::make_shared<NotificationContent>(normalContent);
+    EXPECT_NE(content, nullptr);
+    req->SetContent(content);
+
+    AnsStatus result = advancedNotificationService_->PublishNotificationBySa(req);
+    EXPECT_TRUE(result.Ok());
+    SleepForFC();
+}
+
+/**
+ * @tc.name: PublishNotificationBySa_00003
+ * @tc.desc: Test PublishNotificationBySa with agent notification
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceTest, PublishNotificationBySa_00003, Function | SmallTest | Level1)
+{
+    TestAddSlot(NotificationConstant::SlotType::OTHER);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE);
+    MockIsSystemApp(true);
+
+    ASSERT_EQ(advancedNotificationService_->SetNotificationsEnabledForSpecialBundle(std::string(),
+        new NotificationBundleOption(TEST_DEFUALT_BUNDLE, SYSTEM_APP_UID), true), (int)ERR_OK);
+
+    sptr<NotificationRequest> req = new NotificationRequest(1);
+    EXPECT_NE(req, nullptr);
+    req->SetSlotType(NotificationConstant::SlotType::OTHER);
+    req->SetLabel("req's label");
+    req->SetCreatorUid(SYSTEM_APP_UID);
+    req->SetOwnerUid(SYSTEM_APP_UID);
+    req->SetIsAgentNotification(true);
+
+    std::shared_ptr<NotificationNormalContent> normalContent = std::make_shared<NotificationNormalContent>();
+    EXPECT_NE(normalContent, nullptr);
+    normalContent->SetText("normalContent's text");
+    normalContent->SetTitle("normalContent's title");
+    std::shared_ptr<NotificationContent> content = std::make_shared<NotificationContent>(normalContent);
+    EXPECT_NE(content, nullptr);
+    req->SetContent(content);
+
+    AnsStatus result = advancedNotificationService_->PublishNotificationBySa(req);
+    EXPECT_TRUE(result.Ok());
+    SleepForFC();
+}
+
+/**
+ * @tc.name: PublishNotificationBySa_00004
+ * @tc.desc: Test PublishNotificationBySa with owner uid set (should set agent bundle)
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceTest, PublishNotificationBySa_00004, Function | SmallTest | Level1)
+{
+    TestAddSlot(NotificationConstant::SlotType::OTHER);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE);
+    MockIsSystemApp(true);
+
+    ASSERT_EQ(advancedNotificationService_->SetNotificationsEnabledForSpecialBundle(std::string(),
+        new NotificationBundleOption(TEST_DEFUALT_BUNDLE, SYSTEM_APP_UID), true), (int)ERR_OK);
+
+    sptr<NotificationRequest> req = new NotificationRequest(1);
+    EXPECT_NE(req, nullptr);
+    req->SetSlotType(NotificationConstant::SlotType::OTHER);
+    req->SetLabel("req's label");
+    req->SetCreatorUid(SYSTEM_APP_UID);
+    req->SetOwnerUid(1000);
+
+    std::shared_ptr<NotificationNormalContent> normalContent = std::make_shared<NotificationNormalContent>();
+    EXPECT_NE(normalContent, nullptr);
+    normalContent->SetText("normalContent's text");
+    normalContent->SetTitle("normalContent's title");
+    std::shared_ptr<NotificationContent> content = std::make_shared<NotificationContent>(normalContent);
+    EXPECT_NE(content, nullptr);
+    req->SetContent(content);
+
+    AnsStatus result = advancedNotificationService_->PublishNotificationBySa(req);
+    EXPECT_TRUE(result.Ok());
+    SleepForFC();
+}
+
+/**
+ * @tc.name: PublishNotificationBySa_00005
+ * @tc.desc: Test PublishNotificationBySa with sound (should clear sound as SA doesn't support sound)
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceTest, PublishNotificationBySa_00005, Function | SmallTest | Level1)
+{
+    TestAddSlot(NotificationConstant::SlotType::OTHER);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE);
+    MockIsSystemApp(true);
+
+    ASSERT_EQ(advancedNotificationService_->SetNotificationsEnabledForSpecialBundle(std::string(),
+        new NotificationBundleOption(TEST_DEFUALT_BUNDLE, SYSTEM_APP_UID), true), (int)ERR_OK);
+
+    sptr<NotificationRequest> req = new NotificationRequest(1);
+    EXPECT_NE(req, nullptr);
+    req->SetSlotType(NotificationConstant::SlotType::OTHER);
+    req->SetLabel("req's label");
+    req->SetCreatorUid(SYSTEM_APP_UID);
+    req->SetSound("/system/test/sound.mp3");
+
+    std::shared_ptr<NotificationNormalContent> normalContent = std::make_shared<NotificationNormalContent>();
+    EXPECT_NE(normalContent, nullptr);
+    normalContent->SetText("normalContent's text");
+    normalContent->SetTitle("normalContent's title");
+    std::shared_ptr<NotificationContent> content = std::make_shared<NotificationContent>(normalContent);
+    EXPECT_NE(content, nullptr);
+    req->SetContent(content);
+
+    AnsStatus result = advancedNotificationService_->PublishNotificationBySa(req);
+    EXPECT_TRUE(result.Ok());
+    EXPECT_TRUE(req->GetSound().empty());
+    SleepForFC();
+}
+
+/**
+ * @tc.name: PublishNotificationBySa_00006
+ * @tc.desc: Test PublishNotificationBySa with third party app
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceTest, PublishNotificationBySa_00006, Function | SmallTest | Level1)
+{
+    TestAddSlot(NotificationConstant::SlotType::OTHER);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
+    MockIsSystemApp(false);
+
+    ASSERT_EQ(advancedNotificationService_->SetNotificationsEnabledForSpecialBundle(std::string(),
+        new NotificationBundleOption(TEST_DEFUALT_BUNDLE, SYSTEM_APP_UID), true), (int)ERR_ANS_NON_SYSTEM_APP);
+
+    sptr<NotificationRequest> req = new NotificationRequest(1);
+    EXPECT_NE(req, nullptr);
+    req->SetSlotType(NotificationConstant::SlotType::OTHER);
+    req->SetLabel("req's label");
+    req->SetCreatorUid(SYSTEM_APP_UID);
+
+    std::shared_ptr<NotificationNormalContent> normalContent = std::make_shared<NotificationNormalContent>();
+    EXPECT_NE(normalContent, nullptr);
+    normalContent->SetText("normalContent's text");
+    normalContent->SetTitle("normalContent's title");
+    std::shared_ptr<NotificationContent> content = std::make_shared<NotificationContent>(normalContent);
+    EXPECT_NE(content, nullptr);
+    req->SetContent(content);
+
+    AnsStatus result = advancedNotificationService_->PublishNotificationBySa(req);
+    EXPECT_EQ(result.GetErrCode(), ERR_ANS_NOT_ALLOWED);
+    SleepForFC();
+}
+
+/**
+ * @tc.name: PublishNotificationBySa_00007
+ * @tc.desc: Test PublishNotificationBySa with negative uid
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceTest, PublishNotificationBySa_00007, Function | SmallTest | Level1)
+{
+    TestAddSlot(NotificationConstant::SlotType::OTHER);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE);
+    MockIsSystemApp(true);
+
+    sptr<NotificationRequest> req = new NotificationRequest(1);
+    EXPECT_NE(req, nullptr);
+    req->SetSlotType(NotificationConstant::SlotType::OTHER);
+    req->SetLabel("req's label");
+    req->SetCreatorUid(-1);
+
+    std::shared_ptr<NotificationNormalContent> normalContent = std::make_shared<NotificationNormalContent>();
+    EXPECT_NE(normalContent, nullptr);
+    normalContent->SetText("normalContent's text");
+    normalContent->SetTitle("normalContent's title");
+    std::shared_ptr<NotificationContent> content = std::make_shared<NotificationContent>(normalContent);
+    EXPECT_NE(content, nullptr);
+    req->SetContent(content);
+
+    AnsStatus result = advancedNotificationService_->PublishNotificationBySa(req);
+    EXPECT_FALSE(result.Ok());
+}
+
+/**
+ * @tc.name: PublishNotificationBySa_00008
+ * @tc.desc: Test PublishNotificationBySa with different slot types
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceTest, PublishNotificationBySa_00008, Function | SmallTest | Level1)
+{
+    TestAddSlot(NotificationConstant::SlotType::SOCIAL_COMMUNICATION);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE);
+    MockIsSystemApp(true);
+
+    ASSERT_EQ(advancedNotificationService_->SetNotificationsEnabledForSpecialBundle(std::string(),
+        new NotificationBundleOption(TEST_DEFUALT_BUNDLE, SYSTEM_APP_UID), true), (int)ERR_OK);
+
+    sptr<NotificationRequest> req = new NotificationRequest(1);
+    EXPECT_NE(req, nullptr);
+    req->SetSlotType(NotificationConstant::SlotType::SOCIAL_COMMUNICATION);
+    req->SetLabel("req's label");
+    req->SetCreatorUid(SYSTEM_APP_UID);
+
+    std::shared_ptr<NotificationNormalContent> normalContent = std::make_shared<NotificationNormalContent>();
+    EXPECT_NE(normalContent, nullptr);
+    normalContent->SetText("normalContent's text");
+    normalContent->SetTitle("normalContent's title");
+    std::shared_ptr<NotificationContent> content = std::make_shared<NotificationContent>(normalContent);
+    EXPECT_NE(content, nullptr);
+    req->SetContent(content);
+
+    AnsStatus result = advancedNotificationService_->PublishNotificationBySa(req);
+    EXPECT_TRUE(result.Ok());
+    SleepForFC();
+}
+
+/**
+ * @tc.name: PublishNotificationBySa_00009
+ * @tc.desc: Test PublishNotificationBySa with CONTENT_INFORMATION slot type
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceTest, PublishNotificationBySa_00009, Function | SmallTest | Level1)
+{
+    TestAddSlot(NotificationConstant::SlotType::CONTENT_INFORMATION);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE);
+    MockIsSystemApp(true);
+
+    ASSERT_EQ(advancedNotificationService_->SetNotificationsEnabledForSpecialBundle(std::string(),
+        new NotificationBundleOption(TEST_DEFUALT_BUNDLE, SYSTEM_APP_UID), true), (int)ERR_OK);
+
+    sptr<NotificationRequest> req = new NotificationRequest(1);
+    EXPECT_NE(req, nullptr);
+    req->SetSlotType(NotificationConstant::SlotType::CONTENT_INFORMATION);
+    req->SetLabel("req's label");
+    req->SetCreatorUid(SYSTEM_APP_UID);
+
+    std::shared_ptr<NotificationNormalContent> normalContent = std::make_shared<NotificationNormalContent>();
+    EXPECT_NE(normalContent, nullptr);
+    normalContent->SetText("normalContent's text");
+    normalContent->SetTitle("normalContent's title");
+    std::shared_ptr<NotificationContent> content = std::make_shared<NotificationContent>(normalContent);
+    EXPECT_NE(content, nullptr);
+    req->SetContent(content);
+
+    AnsStatus result = advancedNotificationService_->PublishNotificationBySa(req);
+    EXPECT_TRUE(result.Ok());
+    SleepForFC();
+}
+
+/**
+ * @tc.name: PublishNotificationBySa_00010
+ * @tc.desc: Test PublishNotificationBySa with SERVICE_REMINDER slot type
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceTest, PublishNotificationBySa_00010, Function | SmallTest | Level1)
+{
+    TestAddSlot(NotificationConstant::SlotType::SERVICE_REMINDER);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE);
+    MockIsSystemApp(true);
+
+    ASSERT_EQ(advancedNotificationService_->SetNotificationsEnabledForSpecialBundle(std::string(),
+        new NotificationBundleOption(TEST_DEFUALT_BUNDLE, SYSTEM_APP_UID), true), (int)ERR_OK);
+
+    sptr<NotificationRequest> req = new NotificationRequest(1);
+    EXPECT_NE(req, nullptr);
+    req->SetSlotType(NotificationConstant::SlotType::SERVICE_REMINDER);
+    req->SetLabel("req's label");
+    req->SetCreatorUid(SYSTEM_APP_UID);
+
+    std::shared_ptr<NotificationNormalContent> normalContent = std::make_shared<NotificationNormalContent>();
+    EXPECT_NE(normalContent, nullptr);
+    normalContent->SetText("normalContent's text");
+    normalContent->SetTitle("normalContent's title");
+    std::shared_ptr<NotificationContent> content = std::make_shared<NotificationContent>(normalContent);
+    EXPECT_NE(content, nullptr);
+    req->SetContent(content);
+
+    AnsStatus result = advancedNotificationService_->PublishNotificationBySa(req);
+    EXPECT_TRUE(result.Ok());
+    SleepForFC();
+}
+
+/**
+ * @tc.name: PublishNotificationBySa_00011
+ * @tc.desc: Test PublishNotificationBySa with large uid value
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceTest, PublishNotificationBySa_00011, Function | SmallTest | Level1)
+{
+    TestAddSlot(NotificationConstant::SlotType::OTHER);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE);
+    MockIsSystemApp(true);
+
+    ASSERT_EQ(advancedNotificationService_->SetNotificationsEnabledForSpecialBundle(std::string(),
+        new NotificationBundleOption(TEST_DEFUALT_BUNDLE, SYSTEM_APP_UID), true), (int)ERR_OK);
+
+    sptr<NotificationRequest> req = new NotificationRequest(1);
+    EXPECT_NE(req, nullptr);
+    req->SetSlotType(NotificationConstant::SlotType::OTHER);
+    req->SetLabel("req's label");
+    req->SetCreatorUid(99999);
+
+    std::shared_ptr<NotificationNormalContent> normalContent = std::make_shared<NotificationNormalContent>();
+    EXPECT_NE(normalContent, nullptr);
+    normalContent->SetText("normalContent's text");
+    normalContent->SetTitle("normalContent's title");
+    std::shared_ptr<NotificationContent> content = std::make_shared<NotificationContent>(normalContent);
+    EXPECT_NE(content, nullptr);
+    req->SetContent(content);
+
+    AnsStatus result = advancedNotificationService_->PublishNotificationBySa(req);
+    EXPECT_EQ(result.GetErrCode(), ERR_ANS_NOT_ALLOWED);
+    SleepForFC();
+}
+
+/**
+ * @tc.name: PublishNotificationBySa_00012
+ * @tc.desc: Test PublishNotificationBySa with agent notification and owner uid
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceTest, PublishNotificationBySa_00012, Function | SmallTest | Level1)
+{
+    TestAddSlot(NotificationConstant::SlotType::OTHER);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE);
+    MockIsSystemApp(true);
+
+    ASSERT_EQ(advancedNotificationService_->SetNotificationsEnabledForSpecialBundle(std::string(),
+        new NotificationBundleOption(TEST_DEFUALT_BUNDLE, SYSTEM_APP_UID), true), (int)ERR_OK);
+
+    sptr<NotificationRequest> req = new NotificationRequest(1);
+    EXPECT_NE(req, nullptr);
+    req->SetSlotType(NotificationConstant::SlotType::OTHER);
+    req->SetLabel("req's label");
+    req->SetCreatorUid(SYSTEM_APP_UID);
+    req->SetOwnerUid(2000);
+    req->SetIsAgentNotification(true);
+
+    std::shared_ptr<NotificationNormalContent> normalContent = std::make_shared<NotificationNormalContent>();
+    EXPECT_NE(normalContent, nullptr);
+    normalContent->SetText("normalContent's text");
+    normalContent->SetTitle("normalContent's title");
+    std::shared_ptr<NotificationContent> content = std::make_shared<NotificationContent>(normalContent);
+    EXPECT_NE(content, nullptr);
+    req->SetContent(content);
+
+    AnsStatus result = advancedNotificationService_->PublishNotificationBySa(req);
+    EXPECT_TRUE(result.Ok());
+    SleepForFC();
+}
+
+/**
+ * @tc.name: PublishNotificationBySa_00013
+ * @tc.desc: Test PublishNotificationBySa with empty sound path
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceTest, PublishNotificationBySa_00013, Function | SmallTest | Level1)
+{
+    TestAddSlot(NotificationConstant::SlotType::OTHER);
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE);
+    MockIsSystemApp(true);
+
+    ASSERT_EQ(advancedNotificationService_->SetNotificationsEnabledForSpecialBundle(std::string(),
+        new NotificationBundleOption(TEST_DEFUALT_BUNDLE, SYSTEM_APP_UID), true), (int)ERR_OK);
+
+    sptr<NotificationRequest> req = new NotificationRequest(1);
+    EXPECT_NE(req, nullptr);
+    req->SetSlotType(NotificationConstant::SlotType::OTHER);
+    req->SetLabel("req's label");
+    req->SetCreatorUid(SYSTEM_APP_UID);
+    req->SetSound("");
+
+    std::shared_ptr<NotificationNormalContent> normalContent = std::make_shared<NotificationNormalContent>();
+    EXPECT_NE(normalContent, nullptr);
+    normalContent->SetText("normalContent's text");
+    normalContent->SetTitle("normalContent's title");
+    std::shared_ptr<NotificationContent> content = std::make_shared<NotificationContent>(normalContent);
+    EXPECT_NE(content, nullptr);
+    req->SetContent(content);
+
+    AnsStatus result = advancedNotificationService_->PublishNotificationBySa(req);
+    EXPECT_TRUE(result.Ok());
+    EXPECT_TRUE(req->GetSound().empty());
+    SleepForFC();
+}
 }  // namespace Notification
 }  // namespace OHOS
