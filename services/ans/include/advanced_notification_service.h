@@ -2546,15 +2546,6 @@ private:
     void SetNotificationStatisticsToDB(const std::shared_ptr<NotificationRecord> &record,
         const sptr<NotificationBundleOption> bundleOption, const bool isExists);
 #endif
-    /**
-     * @brief Add observer of application state
-     */
-    void AddAppStateObserver();
-
-    /**
-     * @brief Remove observer of application state
-     */
-    void RemoveAppStateObserver();
 
     /**
      * @brief Get list of common live view
@@ -2565,27 +2556,26 @@ private:
     void GetCommonLiveViewRecordList(const int32_t pid, std::vector<std::shared_ptr<NotificationRecord>>& recordList);
 
     /**
-     * @brief Add observer set
+     * @brief Add observer
      *
-     * @param pid Process id.
      * @param request NotificationRequest.
      */
-    void AddAppObserverSet(const int32_t pid, const sptr<NotificationRequest> &request);
+    void AddAppObserver(const sptr<NotificationRequest> &request);
 
     /**
-     * @brief Remove observer set
+     * @brief Remove observer
      *
      * @param pid Process id.
      */
-    void RemoveAppObserverSet(const int32_t pid);
+    void RemoveAppObserver(const int32_t pid);
 
     /**
-     * @brief Check pid is exists in observer set
+     * @brief Check pid is exists in observer map
      *
      * @param pid Process id.
-     * @return Returns is exists pid in observerSet
+     * @return Returns is exists pid in observer map
      */
-    bool IsExistsPidInObserverSet(const int32_t pid);
+    bool IsExistsPidInObservers(const int32_t pid);
 private:
     static sptr<AdvancedNotificationService> instance_;
     static ffrt::mutex instanceMutex_;
@@ -2636,8 +2626,7 @@ private:
     std::string soundWhiteListString_ = "";
     std::atomic<bool> hasRegisterNotDisturbEnableListener_ = false;
     std::mutex appObserverLock_;
-    std::set<int32_t> appObserverSet_;
-    sptr<AppExecFwk::IApplicationStateObserver> notificationAppObserver_ = nullptr;
+    std::map<int32_t, sptr<AppExecFwk::IApplicationStateObserver>> appObserverMap_;
 };
 
 /**

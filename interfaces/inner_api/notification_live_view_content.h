@@ -170,6 +170,10 @@ public:
      */
     LiveViewRemoveStatus GetRemoveOnProcessExitState() const;
 
+    void SetCreatePid(int32_t pid);
+
+    int32_t GetCreatePid() const;
+
     void SetExtensionWantAgent(const std::shared_ptr<AbilityRuntime::WantAgent::WantAgent> &wantAgent);
 
     const std::shared_ptr<AbilityRuntime::WantAgent::WantAgent> GetExtensionWantAgent() const;
@@ -180,6 +184,7 @@ public:
 
     bool MarshallingExtensionWantAgent(Parcel &parcel) const;
 
+    bool MarshallingCreatePid(Parcel &parcel) const;
 protected:
     /**
      * @brief Read a NotificationLiveViewContent object from a Parcel.
@@ -199,6 +204,7 @@ private:
     int32_t uid_ = -1;
     std::shared_ptr<AbilityRuntime::WantAgent::WantAgent> extensionWantAgent_ {};
     LiveViewRemoveStatus removeOnProcessExitState_ = LiveViewRemoveStatus::LIVE_VIEW_INVAILD;
+    int32_t createPid_ = -1;
 };
 }  // namespace Notification
 }  // namespace OHOS
