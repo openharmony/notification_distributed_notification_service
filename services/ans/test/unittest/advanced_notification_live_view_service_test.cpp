@@ -908,7 +908,7 @@ HWTEST_F(AnsLiveViewServiceTest, AddAppObserverSet_00001, Function | SmallTest |
 {
     auto service = AdvancedNotificationService::GetInstance();
     ASSERT_NE(service, nullptr);
-    service->AddAppObserverSet(5, nullptr);
+    service->AddAppObserver(nullptr);
 }
 
 /**
@@ -922,7 +922,7 @@ HWTEST_F(AnsLiveViewServiceTest, AddAppObserverSet_00002, Function | SmallTest |
     auto service = AdvancedNotificationService::GetInstance();
     ASSERT_NE(service, nullptr);
     auto newRequest = sptr<NotificationRequest>(new NotificationRequest(1));
-    service->AddAppObserverSet(5, newRequest);
+    service->AddAppObserver(newRequest);
 }
 
 /**
@@ -941,7 +941,7 @@ HWTEST_F(AnsLiveViewServiceTest, AddAppObserverSet_00003, Function | SmallTest |
         NotificationLiveViewContent::LiveViewRemoveStatus::LIVE_VIEW_INVAILD);
     auto newContent = std::make_shared<NotificationContent>(newLiveViewContent);
     newRequest->SetContent(newContent);
-    service->AddAppObserverSet(5, newRequest);
+    service->AddAppObserver(newRequest);
 }
 
 /**
@@ -961,8 +961,8 @@ HWTEST_F(AnsLiveViewServiceTest, AddAppObserverSet_00004, Function | SmallTest |
         NotificationLiveViewContent::LiveViewRemoveStatus::LIVE_VIEW_INVAILD);
     auto newContent = std::make_shared<NotificationContent>(newLiveViewContent);
     newRequest->SetContent(newContent);
-    service->AddAppObserverSet(5, newRequest);
-    service->RemoveAppObserverSet(5);
+    service->AddAppObserver(newRequest);
+    service->RemoveAppObserver(5);
 }
 
 /**
@@ -980,39 +980,41 @@ HWTEST_F(AnsLiveViewServiceTest, AddAppObserverSet_00005, Function | SmallTest |
     auto newLiveViewContent = std::make_shared<NotificationLiveViewContent>();
     newLiveViewContent->SetRemoveOnProcessExitState(
         NotificationLiveViewContent::LiveViewRemoveStatus::LIVE_VIEW_REMOVE);
+    newRequest->SetCreatorPid(5);
+    newRequest->SetOwnerBundleName("xc");
     auto newContent = std::make_shared<NotificationContent>(newLiveViewContent);
     newRequest->SetContent(newContent);
-    service->AddAppObserverSet(5, newRequest);
-    service->IsExistsPidInObserverSet(5);
-    service->RemoveAppObserverSet(5);
-    service->IsExistsPidInObserverSet(5);
+    service->AddAppObserver(newRequest);
+    service->IsExistsPidInObservers(5);
+    service->RemoveAppObserver(5);
+    service->IsExistsPidInObservers(5);
 }
 
 /**
- * @tc.name: AddAppStateObserver_00001
- * @tc.desc: Test AddAppStateObserver
+ * @tc.name: AddAppObserverSet_00006
+ * @tc.desc: Test AddAppObserverSet
  * @tc.type: FUNC
  * @tc.require: issue
  */
-HWTEST_F(AnsLiveViewServiceTest, AddAppStateObserver_00001, Function | SmallTest | Level1)
+HWTEST_F(AnsLiveViewServiceTest, AddAppObserverSet_00006, Function | SmallTest | Level1)
 {
-    auto service = AdvancedNotificationService::GetInstance();
-    ASSERT_NE(service, nullptr);
-    service->AddAppStateObserver();
-}
+    auto newRequest = sptr<NotificationRequest>(new NotificationRequest(1));
+    ASSERT_NE(newRequest, nullptr);
+    newRequest->SetSlotType(NotificationConstant::SlotType::LIVE_VIEW);
+    auto newLiveViewContent = std::make_shared<NotificationLiveViewContent>();
+    newLiveViewContent->SetRemoveOnProcessExitState(
+        NotificationLiveViewContent::LiveViewRemoveStatus::LIVE_VIEW_REMOVE);
+    newRequest->SetCreatorPid(100);
+    newRequest->SetOwnerBundleName("xc");
+    auto newContent = std::make_shared<NotificationContent>(newLiveViewContent);
+    newRequest->SetContent(newContent);
 
-/**
- * @tc.name: AddAppStateObserver_00002
- * @tc.desc: Test AddAppStateObserver
- * @tc.type: FUNC
- * @tc.require: issue
- */
-HWTEST_F(AnsLiveViewServiceTest, AddAppStateObserver_00002, Function | SmallTest | Level1)
-{
-    auto service = AdvancedNotificationService::GetInstance();
-    ASSERT_NE(service, nullptr);
-    service->AddAppStateObserver();
-    service->RemoveAppStateObserver();
+    auto notificationAppObserver = sptr<NotificationAppStateObserver>::MakeSptr();
+    advancedNotificationService_->appObserverMap_.insert(std::make_pair(100, notificationAppObserver));
+    advancedNotificationService_->AddAppObserver(newRequest);
+    advancedNotificationService_->RemoveAppObserver(100);
+    advancedNotificationService_->appObserverMap_.insert(std::make_pair(101, nullptr));
+    advancedNotificationService_->RemoveAppObserver(101);
 }
 
 /**
@@ -1097,7 +1099,7 @@ HWTEST_F(AnsLiveViewServiceTest, RemoveCommonLiveViewNotification_0003, Function
         NotificationLiveViewContent::LiveViewRemoveStatus::LIVE_VIEW_REMOVE);
     auto newContent = std::make_shared<NotificationContent>(newLiveViewContent);
     newRequest->SetContent(newContent);
-    advancedNotificationService_->AddAppObserverSet(100, newRequest);
+    advancedNotificationService_->AddAppObserver(newRequest);
     advancedNotificationService_->RemoveCommonLiveViewNotification(100);
 }
 
@@ -1135,7 +1137,7 @@ HWTEST_F(AnsLiveViewServiceTest, RemoveCommonLiveViewNotification_0004, Function
         NotificationLiveViewContent::LiveViewRemoveStatus::LIVE_VIEW_REMOVE);
     auto newContent = std::make_shared<NotificationContent>(newLiveViewContent);
     newRequest->SetContent(newContent);
-    advancedNotificationService_->AddAppObserverSet(100, newRequest);
+    advancedNotificationService_->AddAppObserver(newRequest);
     advancedNotificationService_->RemoveCommonLiveViewNotification(100);
 }
 
@@ -1174,7 +1176,7 @@ HWTEST_F(AnsLiveViewServiceTest, RemoveCommonLiveViewNotification_0005, Function
         NotificationLiveViewContent::LiveViewRemoveStatus::LIVE_VIEW_REMOVE);
     auto newContent = std::make_shared<NotificationContent>(newLiveViewContent);
     newRequest->SetContent(newContent);
-    advancedNotificationService_->AddAppObserverSet(200, newRequest);
+    advancedNotificationService_->AddAppObserver(newRequest);
     advancedNotificationService_->RemoveCommonLiveViewNotification(200);
 }
 
@@ -1213,7 +1215,7 @@ HWTEST_F(AnsLiveViewServiceTest, RemoveCommonLiveViewNotification_0006, Function
         NotificationLiveViewContent::LiveViewRemoveStatus::LIVE_VIEW_REMOVE);
     auto newContent = std::make_shared<NotificationContent>(newLiveViewContent);
     newRequest->SetContent(newContent);
-    advancedNotificationService_->AddAppObserverSet(100, newRequest);
+    advancedNotificationService_->AddAppObserver(newRequest);
     advancedNotificationService_->RemoveCommonLiveViewNotification(100);
 }
 
@@ -1252,7 +1254,7 @@ HWTEST_F(AnsLiveViewServiceTest, RemoveCommonLiveViewNotification_0007, Function
         NotificationLiveViewContent::LiveViewRemoveStatus::LIVE_VIEW_REMOVE);
     auto newContent = std::make_shared<NotificationContent>(newLiveViewContent);
     newRequest->SetContent(newContent);
-    advancedNotificationService_->AddAppObserverSet(100, newRequest);
+    advancedNotificationService_->AddAppObserver(newRequest);
     advancedNotificationService_->RemoveCommonLiveViewNotification(100);
 }
 
@@ -1304,7 +1306,7 @@ HWTEST_F(AnsLiveViewServiceTest, RemoveCommonLiveViewNotification_0008, Function
         NotificationLiveViewContent::LiveViewRemoveStatus::LIVE_VIEW_REMOVE);
     auto newContent = std::make_shared<NotificationContent>(newLiveViewContent);
     newRequest->SetContent(newContent);
-    advancedNotificationService_->AddAppObserverSet(100, newRequest);
+    advancedNotificationService_->AddAppObserver(newRequest);
     advancedNotificationService_->RemoveCommonLiveViewNotification(100);
 }
 
@@ -1357,7 +1359,7 @@ HWTEST_F(AnsLiveViewServiceTest, RemoveCommonLiveViewNotification_0009, Function
         NotificationLiveViewContent::LiveViewRemoveStatus::LIVE_VIEW_REMOVE);
     auto newContent = std::make_shared<NotificationContent>(newLiveViewContent);
     newRequest->SetContent(newContent);
-    advancedNotificationService_->AddAppObserverSet(100, newRequest);
+    advancedNotificationService_->AddAppObserver(newRequest);
     advancedNotificationService_->RemoveCommonLiveViewNotification(100);
 }
 
@@ -1406,7 +1408,7 @@ HWTEST_F(AnsLiveViewServiceTest, RemoveCommonLiveViewNotification_00010, Functio
         NotificationLiveViewContent::LiveViewRemoveStatus::LIVE_VIEW_REMOVE);
     auto newContent = std::make_shared<NotificationContent>(newLiveViewContent);
     newRequest->SetContent(newContent);
-    advancedNotificationService_->AddAppObserverSet(100, newRequest);
+    advancedNotificationService_->AddAppObserver(newRequest);
     advancedNotificationService_->RemoveCommonLiveViewNotification(100);
 }
 }  // namespace Notification

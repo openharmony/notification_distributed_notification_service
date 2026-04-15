@@ -32,6 +32,10 @@ public:
      * @param processData Process data.
      */
     void OnProcessDied(const ProcessData &processData) override;
+
+    std::vector<std::string> GetAppObservers();
+private:
+    std::vector<std::string> appObservers;
 };
 }  // namespace Notification
 }  // namespace OHOS
