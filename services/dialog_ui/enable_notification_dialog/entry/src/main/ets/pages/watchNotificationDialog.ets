@@ -264,34 +264,6 @@ struct PermissionDialog {
             top: '84px',
             right: '4px'
           })
-          .responseRegion({
-            x: '-42px',
-            y: '0px',
-            width: '400%',
-            height: '200%'
-          })
-          .onTouch((event: TouchEvent) => {
-            if (event.type === TouchType.Down) {
-              this.scrollBarIndexWidth = '40px';
-              this.scrollBarIndexHeight = '58px';
-              this.scrollBarIndexMargin = '3px';
-              this.scrollBarWidth = '48px';
-              this.scrollBarHeight = '240px';
-              this.scrollBarRadius = '32px';
-              this.lastTouchY = event.touches[0].y;
-            } else if (event.type === TouchType.Up || event.type === TouchType.Cancel) {
-              this.scrollBarIndexWidth = '11px';
-              this.scrollBarIndexHeight = '16px';
-              this.scrollBarIndexMargin = '1px';
-              this.scrollBarWidth = '12px';
-              this.scrollBarHeight = '74px';
-              this.scrollBarRadius = '8px';
-            } else if (event.type === TouchType.Move) {
-              const currentY: number = event.touches[0].y;
-              const deltaY: number = currentY - this.lastTouchY;
-              this.drpScroller.scrollBy(0, deltaY);
-            }
-          })
         } 
       }
     }
