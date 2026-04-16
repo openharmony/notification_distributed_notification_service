@@ -4227,7 +4227,8 @@ HWTEST_F(AdvancedNotificationServiceTest, RecoverLiveViewFromDb_0005, Function |
     advancedNotificationService_->RecoverLiveViewFromDb();
     SleepForFC();
     ASSERT_EQ(advancedNotificationService_->notificationList_.size(), 1);
-    result = advancedNotificationService_->DoubleDeleteNotificationFromDb(request->GetKey(), request->GetSecureKey(), 100);
+    result =
+        advancedNotificationService_->DoubleDeleteNotificationFromDb(request->GetKey(), request->GetSecureKey(), 100);
     ASSERT_EQ(result, ERR_OK);
 
     GTEST_LOG_(INFO) << "RecoverLiveViewFromDb_0005 test end";
@@ -4243,7 +4244,8 @@ HWTEST_F(AdvancedNotificationServiceTest, SetNotificationRequestToDb_0001, Funct
     advancedNotificationService_->notificationList_.clear();
     int32_t uid = 100;
     sptr<NotificationRequest> request = new NotificationRequest(1);
-    std::shared_ptr<NotificationLocalLiveViewContent> liveViewContent = std::make_shared<NotificationLocalLiveViewContent>();
+    std::shared_ptr<NotificationLocalLiveViewContent> liveViewContent =
+        std::make_shared<NotificationLocalLiveViewContent>();
     liveViewContent->SetContentType(8);
     std::shared_ptr<NotificationContent> content = std::make_shared<NotificationContent>(liveViewContent);
     request->SetContent(content);
@@ -4283,7 +4285,8 @@ HWTEST_F(AdvancedNotificationServiceTest, IsCanRecoverCommonTest_001, Function |
 HWTEST_F(AdvancedNotificationServiceTest, IsCanRecoverCommonTest_002, Function | SmallTest | Level1)
 {
     sptr<NotificationRequest> request = new NotificationRequest(1);
-    std::shared_ptr<NotificationLocalLiveViewContent> liveViewContent = std::make_shared<NotificationLocalLiveViewContent>();
+    std::shared_ptr<NotificationLocalLiveViewContent> liveViewContent =
+        std::make_shared<NotificationLocalLiveViewContent>();
     liveViewContent->SetContentType(8);
     std::shared_ptr<NotificationContent> content = std::make_shared<NotificationContent>(liveViewContent);
     request->SetContent(content);

@@ -14,6 +14,16 @@
  */
 
 #include "notification_helper.h"
+#include "aes_gcm_helper.h"
+
+namespace {
+    bool g_mocEncrypt = true;
+}
+
+void MockEncrypt(bool mockRet)
+{
+    g_mocEncrypt = mockRet;
+}
 
 namespace OHOS::Notification {
 namespace {}
@@ -26,6 +36,15 @@ ErrCode NotificationHelper::SubscribeNotification(const std::shared_ptr<Notifica
 
 ErrCode NotificationHelper::UnSubscribeNotification(const std::shared_ptr<NotificationSubscriber> &subscriber)
 {
+    return ERR_OK;
+}
+
+ErrCode AesGcmHelper::Encrypt(const std::string &plainText, std::string &cipherText)
+{
+    if (!g_mocEncrypt) {
+        return ERR_ANS_ENCRYPT_FAIL;
+    }
+    cipherText = plainText;
     return ERR_OK;
 }
 } // namespace OHOS::Notification
