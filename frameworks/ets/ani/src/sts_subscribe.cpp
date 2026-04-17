@@ -507,13 +507,19 @@ bool StsSubscriberInstance::HasOnBatchCancelCallback()
     aniResult = etsEnv->Object_GetPropertyByName_Ref(static_cast<ani_object>(ref_), "onBatchCancel", &fn_ref);
     if (ANI_OK != aniResult) {
         ANS_LOGD("Object_GetFieldByName_Ref 'onBatchCancel' error. result: %{public}d.", aniResult);
-        vm_->DetachCurrentThread();
+        ani_status status = vm_->DetachCurrentThread();
+        if (status != ANI_OK) {
+            ANS_LOGW("DetachCurrentThread failed, status: %{public}d", status);
+        }
         return false;
     }
     ani_boolean isUndefined = true;
     if (ANI_OK != etsEnv->Reference_IsUndefined(fn_ref, &isUndefined)) {
         ANS_LOGD("Reference_IsUndefined  faild");
-        vm_->DetachCurrentThread();
+        ani_status status = vm_->DetachCurrentThread();
+        if (status != ANI_OK) {
+            ANS_LOGW("DetachCurrentThread failed, status: %{public}d", status);
+        }
         return false;
     }
     aniResult = vm_->DetachCurrentThread();
@@ -561,8 +567,14 @@ bool StsSubscriberInstance::Compare(ani_env *env, ani_object obj)
         return false;
     }
     ani_boolean result = ANI_FALSE;
-    env->Reference_StrictEquals(ref, ref_, &result);
-    env->GlobalReference_Delete(ref);
+    ani_status status = env->Reference_StrictEquals(ref, ref_, &result);
+    if (status != ANI_OK) {
+        ANS_LOGW("Reference_StrictEquals failed, status: %{public}d", status);
+    }
+    status = env->GlobalReference_Delete(ref);
+    if (status != ANI_OK) {
+        ANS_LOGW("GlobalReference_Delete failed, status: %{public}d", status);
+    }
     return (result == ANI_TRUE) ? true : false;
 }
 bool StsSubscriberInstance::Compare(ani_env *env, ani_ref ref)
@@ -575,7 +587,10 @@ bool StsSubscriberInstance::Compare(ani_env *env, ani_ref ref)
         return false;
     }
     ani_boolean result = ANI_FALSE;
-    env->Reference_StrictEquals(ref, ref_, &result);
+    ani_status status = env->Reference_StrictEquals(ref, ref_, &result);
+    if (status != ANI_OK) {
+        ANS_LOGW("Reference_StrictEquals failed, status: %{public}d", status);
+    }
     return (result == ANI_TRUE) ? true : false;
 }
 bool StsSubscriberInstance::CallFunction(ani_env *env, const char *func, std::vector<ani_ref> &parm)
