@@ -2251,7 +2251,6 @@ HWTEST_F(AdvancedNotificationServiceUnitTest, SetNotificationRequestToDbCommon_1
  */
 HWTEST_F(AdvancedNotificationServiceUnitTest, SetNotificationRequestToDbCommon_200, Function | SmallTest | Level1)
 {
-    GTEST_LOG_(INFO) << "SetNotificationRequestToDb_100 test start";
     advancedNotificationService_->notificationList_.clear();
     sptr<NotificationRequest> request = new NotificationRequest(1);
     std::shared_ptr<NotificationNormalContent> normalContent = std::make_shared<NotificationNormalContent>();
@@ -2285,7 +2284,6 @@ HWTEST_F(AdvancedNotificationServiceUnitTest, SetNotificationRequestToDbCommon_2
  */
 HWTEST_F(AdvancedNotificationServiceUnitTest, SetNotificationRequestToDbCommon_300, Function | SmallTest | Level1)
 {
-    GTEST_LOG_(INFO) << "SetNotificationRequestToDb_100 test start";
     advancedNotificationService_->notificationList_.clear();
     sptr<NotificationRequest> request = new NotificationRequest(1);
     std::shared_ptr<NotificationNormalContent> normalContent = std::make_shared<NotificationNormalContent>();
@@ -2321,7 +2319,6 @@ HWTEST_F(AdvancedNotificationServiceUnitTest, SetNotificationRequestToDbCommon_3
  */
 HWTEST_F(AdvancedNotificationServiceUnitTest, SetNotificationRequestToDbCommon_400, Function | SmallTest | Level1)
 {
-    GTEST_LOG_(INFO) << "SetNotificationRequestToDb_100 test start";
     advancedNotificationService_->notificationList_.clear();
     sptr<NotificationRequest> request = new NotificationRequest(1);
     std::shared_ptr<NotificationNormalContent> normalContent = std::make_shared<NotificationNormalContent>();
@@ -2343,6 +2340,59 @@ HWTEST_F(AdvancedNotificationServiceUnitTest, SetNotificationRequestToDbCommon_4
     auto result = advancedNotificationService_->SetNotificationRequestToDbCommon(requestDbObj);
     ASSERT_NE(result, ERR_OK);
 }
+
+/**
+ * @tc.name: SetNotificationRequestToDbCommon_500
+ * @tc.desc: Test SetNotificationRequestToDbCommon when VerifyNativeToken true.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceUnitTest, SetNotificationRequestToDbCommon_500, Function | SmallTest | Level1)
+{
+    advancedNotificationService_->notificationList_.clear();
+    sptr<NotificationRequest> request = new NotificationRequest(1);
+    std::shared_ptr<NotificationNormalContent> normalContent = std::make_shared<NotificationNormalContent>();
+    normalContent->SetTitle("title_1");
+    std::shared_ptr<NotificationContent> content = std::make_shared<NotificationContent>(normalContent);
+    request->SetContent(content);
+    request->SetCreatorUid(100);
+    request->SetCreatorUserId(100);
+    request->SetLabel("test_4");
+    request->SetSlotType(NotificationConstant::SlotType::SOCIAL_COMMUNICATION);
+    MockInsertData(false);
+    auto result = advancedNotificationService_->PublishNotificationForIndirectProxy(request);
+    ASSERT_NE(result, ERR_OK);
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    MockInsertData(true);
+}
+
+/**
+ * @tc.name: SetNotificationRequestToDbCommon_600
+ * @tc.desc: Test SetNotificationRequestToDbCommon when VerifyNativeToken true.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceUnitTest, SetNotificationRequestToDbCommon_600, Function | SmallTest | Level1)
+{
+    advancedNotificationService_->notificationList_.clear();
+    sptr<NotificationRequest> request = new NotificationRequest(1);
+    std::shared_ptr<NotificationNormalContent> normalContent = std::make_shared<NotificationNormalContent>();
+    normalContent->SetTitle("title_1");
+    std::shared_ptr<NotificationContent> content = std::make_shared<NotificationContent>(normalContent);
+    std::string bundleName = "BundleName_04";
+    request->SetContent(content);
+    request->SetCreatorUid(100);
+    request->SetCreatorUserId(100);
+    request->SetOwnerBundleName(bundleName);
+    request->SetOwnerUid(100);
+    request->SetLabel("test_4");
+    request->SetSlotType(NotificationConstant::SlotType::SOCIAL_COMMUNICATION);
+    request->SetIsAgentNotification(true);
+    MockInsertData(false);
+    auto result = advancedNotificationService_->PublishNotificationBySa(request);
+    ASSERT_EQ(result.Ok(), false);
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    MockInsertData(true);
+}
+
 #ifdef ANS_FEATURE_NOTIFICATION_STATISTICS
 /**
  * @tc.name: SetNotificationStatisticsToDB_100
