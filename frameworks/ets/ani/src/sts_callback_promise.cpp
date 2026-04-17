@@ -54,7 +54,10 @@ std::vector<ani_ref> GetCallBackData(
     if (errorCode != ERR_OK) {
         ani_object errorObj = CreateError(env, errorCode, FindAnsErrMsg(errorCode));
         ani_ref undefRef;
-        env->GetUndefined(&undefRef);
+        ani_status status = env->GetUndefined(&undefRef);
+        if (status != ANI_OK) {
+            ANS_LOGE("GetUndefined failed, status: %{public}d", status);
+        }
         args.push_back(errorObj);
         args.push_back(undefRef);
     } else {

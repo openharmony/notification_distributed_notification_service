@@ -32,7 +32,10 @@ void DeleteCallBackInfoWithoutPromise(ani_env *env, AsyncCallbackInfoNotificatio
     }
     if (asyncCallbackInfo->info.callback != nullptr) {
         ANS_LOGD("Delete callback reference");
-        env->GlobalReference_Delete(asyncCallbackInfo->info.callback);
+        ani_status status = env->GlobalReference_Delete(asyncCallbackInfo->info.callback);
+        if (status != ANI_OK) {
+            ANS_LOGW("GlobalReference_Delete failed, status: %{public}d", status);
+        }
     }
     if (asyncCallbackInfo->asyncWork != nullptr) {
         ANS_LOGD("DeleteAsyncWork");
@@ -51,7 +54,10 @@ void DeleteCallBackInfo(ani_env *env, AsyncCallbackInfoNotificationExtension *as
     }
     if (asyncCallbackInfo->info.resolve != nullptr) {
         ANS_LOGD("Delete resolve reference");
-        env->GlobalReference_Delete(reinterpret_cast<ani_ref>(asyncCallbackInfo->info.resolve));
+        ani_status status = env->GlobalReference_Delete(reinterpret_cast<ani_ref>(asyncCallbackInfo->info.resolve));
+        if (status != ANI_OK) {
+            ANS_LOGW("GlobalReference_Delete failed, status: %{public}d", status);
+        }
     }
     DeleteCallBackInfoWithoutPromise(env, asyncCallbackInfo);
 }
@@ -96,7 +102,13 @@ ani_object AniSubscribe(ani_env *env, ani_object notificationInfoArrayobj)
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
 
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status aniStatus = env->GetVM(&asyncCallbackInfo->vm);
+    if (aniStatus != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", aniStatus);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
 
     asyncCallbackInfo->funcType = NotificationExtensionFunctionType::SUBSCRIBE;
     WorkStatus status = CreateAsyncWork(env,
@@ -132,7 +144,13 @@ ani_object AniUnsubscribe(ani_env *env)
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
 
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status aniStatus = env->GetVM(&asyncCallbackInfo->vm);
+    if (aniStatus != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", aniStatus);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
 
     asyncCallbackInfo->funcType = NotificationExtensionFunctionType::UNSUBSCRIBE;
     WorkStatus status = CreateAsyncWork(env,
@@ -168,7 +186,13 @@ ani_object AniGetSubscribeInfo(ani_env *env)
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
 
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status aniStatus = env->GetVM(&asyncCallbackInfo->vm);
+    if (aniStatus != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", aniStatus);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
 
     asyncCallbackInfo->funcType = NotificationExtensionFunctionType::GET_SUBSCRIBE_INFO;
     WorkStatus status = CreateAsyncWork(env,
@@ -204,7 +228,13 @@ ani_object AniGetAllSubscriptionBundles(ani_env *env)
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
 
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status aniStatus = env->GetVM(&asyncCallbackInfo->vm);
+    if (aniStatus != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", aniStatus);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
 
     asyncCallbackInfo->funcType = NotificationExtensionFunctionType::GET_ALL_SUBSCRIPTION_BUNDLES;
     WorkStatus status = CreateAsyncWork(env,
@@ -240,7 +270,13 @@ ani_object AniIsUserGranted(ani_env *env)
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
 
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status aniStatus = env->GetVM(&asyncCallbackInfo->vm);
+    if (aniStatus != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", aniStatus);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
 
     asyncCallbackInfo->funcType = NotificationExtensionFunctionType::IS_USER_GRANTED;
     WorkStatus status = CreateAsyncWork(env,
@@ -283,7 +319,13 @@ ani_object AniGetUserGrantedState(ani_env *env, ani_object bundleOption)
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
 
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status aniStatus = env->GetVM(&asyncCallbackInfo->vm);
+    if (aniStatus != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", aniStatus);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
 
     asyncCallbackInfo->funcType = NotificationExtensionFunctionType::GET_USER_GRANTED_STATE;
     WorkStatus status = CreateAsyncWork(env,
@@ -327,7 +369,13 @@ ani_object AniSetUserGrantedState(ani_env *env, ani_object bundleOption, ani_boo
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
 
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status aniStatus = env->GetVM(&asyncCallbackInfo->vm);
+    if (aniStatus != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", aniStatus);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
 
     asyncCallbackInfo->funcType = NotificationExtensionFunctionType::SET_USER_GRANTED_STATE;
     WorkStatus status = CreateAsyncWork(env,
@@ -370,7 +418,13 @@ ani_object AniGetUserGrantedEnabledBundles(ani_env *env, ani_object bundleOption
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
 
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status aniStatus = env->GetVM(&asyncCallbackInfo->vm);
+    if (aniStatus != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", aniStatus);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
 
     asyncCallbackInfo->funcType = NotificationExtensionFunctionType::GET_USER_GRANTED_ENABLED_BUNDLES;
     WorkStatus status = CreateAsyncWork(env,
@@ -406,7 +460,13 @@ ani_object AniGetUserGrantedEnabledBundlesForSelf(ani_env *env)
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
 
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status aniStatus = env->GetVM(&asyncCallbackInfo->vm);
+    if (aniStatus != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", aniStatus);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
 
     asyncCallbackInfo->funcType = NotificationExtensionFunctionType::GET_USER_GRANTED_ENABLED_BUNDLES_FOR_SELF;
     WorkStatus status = CreateAsyncWork(env,
@@ -460,7 +520,13 @@ ani_object AniSetUserGrantedBundleState(ani_env *env, ani_object bundleOption, a
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
 
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status aniStatus = env->GetVM(&asyncCallbackInfo->vm);
+    if (aniStatus != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", aniStatus);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
 
     asyncCallbackInfo->funcType = NotificationExtensionFunctionType::SET_USER_GRANTED_BUNDLE_STATE;
     WorkStatus status = CreateAsyncWork(env,
