@@ -126,6 +126,25 @@ bool SetVibrationValues(ani_env *env, const std::shared_ptr<NotificationSts> &re
     return true;
 }
 
+bool SetVoiceContent(ani_env *env, const std::shared_ptr<NotificationSts> &request, ani_object &outObj)
+{
+    ani_status status = ANI_OK;
+    auto voiceContent = request->GetVoiceContent();
+    if (voiceContent != nullptr) {
+        ani_string textContentObj;
+        std::string textContent = voiceContent->GetTextContent();
+        if (ANI_OK != GetAniStringByString(env, textContent, textContentObj) || textContentObj == nullptr) {
+            ANS_LOGE("textContent create faild");
+            return false;
+        }
+        if (ANI_OK != (status = env->Object_SetPropertyByName_Ref(outObj, "textContent", textContentObj))) {
+            ANS_LOGE("set textContent faild. status %{public}d", status);
+            return false;
+        }
+    }
+    return true;
+}
+
 bool WarpSubscribeCallbackData(
     ani_env *env,
     const std::shared_ptr<NotificationSts> &request,
@@ -168,6 +187,10 @@ bool WarpSubscribeCallbackData(
     // vibrationValues?: Array<long>
     if (!SetVibrationValues(env, request, outObj)) {
         ANS_LOGE("SetSound faild");
+    }
+    // voiceContent?: {textContent: string}
+    if (!SetVoiceContent(env, request, outObj)) {
+        ANS_LOGE("SetVoiceContent faild");
     }
     return true;
 }

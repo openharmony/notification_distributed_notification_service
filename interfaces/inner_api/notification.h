@@ -17,6 +17,7 @@
 #define BASE_NOTIFICATION_DISTRIBUTED_NOTIFICATION_SERVICE_INTERFACES_INNER_API_NOTIFICATION_H
 
 #include "notification_request.h"
+#include "notification_voice_content.h"
 #include "parcel.h"
 #include "uri.h"
 
@@ -337,6 +338,20 @@ public:
      */
     void SetAutoDeletedTimer(uint64_t autoDeletedTimerId);
 
+    /**
+     * @brief Sets the voice content of the notification.
+     *
+     * @param voiceContent Indicates the voice content object.
+     */
+    void SetVoiceContent(const std::shared_ptr<NotificationVoiceContent> &voiceContent);
+
+    /**
+     * @brief Obtains the voice content of the notification.
+     *
+     * @return Returns the voice content object.
+     */
+    std::shared_ptr<NotificationVoiceContent> GetVoiceContent() const;
+
 private:
     Notification();
     void SetEnableSound(const bool &enable);
@@ -384,6 +399,7 @@ private:
     std::shared_ptr<Uri> sound_ {nullptr};
     std::vector<int64_t> vibrationStyle_ {};
     uint64_t autoDeletedTimerId_ {0};
+    std::shared_ptr<NotificationVoiceContent> voiceContent_ {nullptr};
 
     friend class AdvancedNotificationService;
     friend class NotificationSlotFilter;

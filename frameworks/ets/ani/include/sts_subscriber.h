@@ -52,6 +52,7 @@ bool WrapEnabledPriorityNotificationByBundleCallbackData(ani_env *env,
     const std::shared_ptr<EnabledPriorityNotificationByBundleCallbackData> &callbackData, ani_object &outObj);
 bool WarpBadgeNumberCallbackData(
     ani_env *env, const std::shared_ptr<BadgeNumberCallbackData> &badgeData, ani_object &outObj);
+bool SetVoiceContent(ani_env *env, const std::shared_ptr<NotificationSts> &request, ani_object &outObj);
 } // namespace NotificationSts
 } // OHOS
 #endif
