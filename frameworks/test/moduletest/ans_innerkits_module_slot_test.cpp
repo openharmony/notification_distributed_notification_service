@@ -62,6 +62,7 @@ void AnsInnerKitsModuleSlotTest::SetUpTestCase()
 
 void AnsInnerKitsModuleSlotTest::TearDownTestCase()
 {
+    NotificationHelper::RemoveAllSlots();
     if (service_ != nullptr) {
         service_->SelfClean();
     }

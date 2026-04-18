@@ -438,8 +438,14 @@ private:
     {
         std::shared_ptr<NotificationFlags> notiFlags = notificationRequest.GetFlags();
         if (notiFlags != nullptr) {
-            EXPECT_EQ(NotificationConstant::FlagStatus::CLOSE, notiFlags->IsSoundEnabled());
-            EXPECT_EQ(NotificationConstant::FlagStatus::CLOSE, notiFlags->IsVibrationEnabled());
+            if (notificationRequest.GetSlotType() == NotificationConstant::SERVICE_REMINDER) {
+                EXPECT_EQ(NotificationConstant::FlagStatus::OPEN, notiFlags->IsSoundEnabled());
+                EXPECT_EQ(NotificationConstant::FlagStatus::OPEN, notiFlags->IsVibrationEnabled());
+            }
+            if (notificationRequest.GetSlotType() == NotificationConstant::CONTENT_INFORMATION) {
+                EXPECT_EQ(NotificationConstant::FlagStatus::CLOSE, notiFlags->IsSoundEnabled());
+                EXPECT_EQ(NotificationConstant::FlagStatus::CLOSE, notiFlags->IsVibrationEnabled());
+            }
         }
     }
 
