@@ -447,6 +447,19 @@ napi_value Common::SetNotificationLiveViewContent(
     return NapiGetBoolean(env, true);
 }
 
+napi_value Common::SetNotificationVoiceContent(
+    const napi_env &env, const NotificationVoiceContent &voiceContent, napi_value &result)
+{
+    ANS_LOGD("called");
+
+    napi_value textContent = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, voiceContent.GetTextContent().c_str(),
+        voiceContent.GetTextContent().length(), &textContent));
+    NAPI_CALL(env, napi_set_named_property(env, result, "textContent", textContent));
+
+    return NapiGetBoolean(env, true);
+}
+
 napi_value Common::SetLiveViewPictureInfo(
     const napi_env &env, const std::map<std::string, std::vector<std::shared_ptr<Media::PixelMap>>> &pictureMap)
 {

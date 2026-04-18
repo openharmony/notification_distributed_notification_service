@@ -517,6 +517,17 @@ public:
         const napi_env &env, NotificationBasicContent *basicContent, napi_value &result);
 
     /**
+     * @brief Sets a js NotificationVoiceContent object by specified NotificationVoiceContent object
+     *
+     * @param env Indicates the environment that the API is invoked under
+     * @param voiceContent Indicates a NotificationVoiceContent object to be converted
+     * @param result Indicates a js object to be set
+     * @return Returns the null object if successful; returns the null value otherwise
+     */
+    static napi_value SetNotificationVoiceContent(
+        const napi_env &env, const NotificationVoiceContent &voiceContent, napi_value &result);
+
+    /**
      * @brief Sets a js liveview picturemap object by specified liveview picturemap
      *
      * @param env Indicates the environment that the API is invoked under
