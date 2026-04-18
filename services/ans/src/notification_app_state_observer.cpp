@@ -21,10 +21,15 @@ namespace Notification {
 
 void NotificationAppStateObserver::OnProcessDied(const AppExecFwk::ProcessData &processData)
 {
-    ANS_LOGD("ans OnProcessDied, bundleName=%{public}s, pid=%{public}d, processName=%{public}s.",
+    ANS_LOGD("appObserver OnProcessDied, bundleName=%{public}s, pid=%{public}d, processName=%{public}s.",
         (processData.bundleName).c_str(), processData.pid, (processData.processName).c_str());
     auto notificationService = AdvancedNotificationService::GetInstance();
     notificationService->RemoveCommonLiveViewNotification(processData.pid);
+}
+
+std::vector<std::string> NotificationAppStateObserver::GetAppObservers()
+{
+    return appObservers;
 }
 }  // namespace Notification
 }  // namespace OHOS

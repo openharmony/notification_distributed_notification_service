@@ -75,6 +75,16 @@ bool NotificationLiveViewContent::GetIsOnlyLocalUpdate() const
     return isOnlyLocalUpdate_;
 }
 
+void NotificationLiveViewContent::SetCreatePid(int32_t pid)
+{
+    createPid_ = pid;
+}
+
+int32_t NotificationLiveViewContent::GetCreatePid() const
+{
+    return createPid_;
+}
+
 void NotificationLiveViewContent::SetRemoveOnProcessExitState(const LiveViewRemoveStatus &removeOnProcessExitState)
 {
     removeOnProcessExitState_ = removeOnProcessExitState;
@@ -130,6 +140,7 @@ std::string NotificationLiveViewContent::Dump()
         ", isOnlyLocalUpdate_ = " + (GetIsOnlyLocalUpdate()?"true":"false") + pictureStr +
         ", extensionWantAgent_ = " + (extensionWantAgent_ ? "not null" : "null") +
         ", removeOnProcessExitState_ = " + std::to_string(static_cast<uint32_t>(removeOnProcessExitState_)) +
+        ", createPid_ = " + std::to_string(createPid_) +
         "}";
 }
 
@@ -172,6 +183,7 @@ bool NotificationLiveViewContent::ToJson(nlohmann::json &jsonObject) const
         jsonObject["uid"] = uid_;
     }
     jsonObject["removeState"] = static_cast<uint32_t>(removeOnProcessExitState_);
+    jsonObject["createPid"] = createPid_;
     return PictureToJson(jsonObject);
 }
 
@@ -205,18 +217,15 @@ NotificationLiveViewContent *NotificationLiveViewContent::FromJson(const nlohman
         ANS_LOGE("null pContent");
         return nullptr;
     }
-
     pContent->ReadFromJson(jsonObject);
     const auto &jsonEnd = jsonObject.cend();
     if (jsonObject.find("status") != jsonEnd && jsonObject.at("status").is_number_integer()) {
         auto statusValue = jsonObject.at("status").get<int32_t>();
         pContent->liveViewStatus_ = static_cast<NotificationLiveViewContent::LiveViewStatus>(statusValue);
     }
-
     if (jsonObject.find("version") != jsonEnd && jsonObject.at("version").is_number_integer()) {
         pContent->version_ = jsonObject.at("version").get<uint32_t>();
     }
-
     if (jsonObject.find("extraInfo") != jsonEnd && jsonObject.at("extraInfo").is_string()) {
         std::string extraInfoStr = jsonObject.at("extraInfo").get<std::string>();
         if (!extraInfoStr.empty()) {
@@ -241,6 +250,9 @@ NotificationLiveViewContent *NotificationLiveViewContent::FromJson(const nlohman
     if (jsonObject.find("removeState") != jsonEnd && jsonObject.at("removeState").is_number_integer()) {
         auto res = jsonObject.at("removeState").get<uint32_t>();
         pContent->removeOnProcessExitState_ = static_cast<NotificationLiveViewContent::LiveViewRemoveStatus>(res);
+    }
+    if (jsonObject.find("createPid") != jsonEnd && jsonObject.at("createPid").is_number_integer()) {
+        pContent->createPid_ = jsonObject.at("createPid").get<int32_t>();
     }
     return pContent;
 }
@@ -293,6 +305,15 @@ bool NotificationLiveViewContent::Marshalling(Parcel &parcel) const
     }
     if (!parcel.WriteUint32(static_cast<uint32_t>(removeOnProcessExitState_))) {
         ANS_LOGE("Failed to write the remove on process exis state");
+        return false;
+    }
+    return MarshallingCreatePid(parcel);
+}
+
+bool NotificationLiveViewContent::MarshallingCreatePid(Parcel &parcel) const
+{
+    if (!parcel.WriteInt32(createPid_)) {
+        ANS_LOGE("Failed to write the flag which indicate whether createPid is null");
         return false;
     }
     return true;
@@ -374,6 +395,7 @@ bool NotificationLiveViewContent::ReadFromParcel(Parcel &parcel)
         }
     }
     removeOnProcessExitState_ = static_cast<NotificationLiveViewContent::LiveViewRemoveStatus>(parcel.ReadUint32());
+    createPid_ = parcel.ReadInt32();
     return true;
 }
 

@@ -276,6 +276,11 @@ int32_t AdvancedNotificationService::SetNotificationRequestToDb(const Notificati
         ANS_LOGI("Not saving notification request to db for common live view with isOnlyLocalUpdate set to true.");
         return ERR_OK;
     }
+    if (content->GetRemoveOnProcessExitState() ==
+            NotificationLiveViewContent::LiveViewRemoveStatus::LIVE_VIEW_REMOVE) {
+        ANS_LOGI("Not saving notification request to db for common live view with RemoveOnProcessExit set to true.");
+        return ERR_OK;
+    }
     HaMetaMessage message = HaMetaMessage(EventSceneId::SCENE_6, EventBranchId::BRANCH_3).
         BundleName(request->GetCreatorBundleName()).NotificationId(request->GetNotificationId());
     nlohmann::json jsonObject;

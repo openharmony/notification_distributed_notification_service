@@ -3192,6 +3192,7 @@ void NotificationRequest::IncrementalUpdateLiveview(const sptr<NotificationReque
     if (oldRemoveOnProcessExitState != newLiveViewContent->GetRemoveOnProcessExitState()) {
         newLiveViewContent->SetRemoveOnProcessExitState(oldRemoveOnProcessExitState);
     }
+    newLiveViewContent->SetCreatePid(oldLiveViewContent->GetCreatePid());
     
     auto newPicture = newLiveViewContent->GetPicture();
     bool isSet = false;

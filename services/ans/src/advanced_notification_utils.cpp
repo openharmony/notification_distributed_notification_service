@@ -59,6 +59,7 @@
 #ifdef ALL_SCENARIO_COLLABORATION
 #include "distributed_bundle_service.h"
 #endif
+#include "app_mgr_client.h"
 
 #define CHECK_BUNDLE_OPTION_IS_INVALID(option)                              \
     if (option == nullptr || option->GetBundleName().empty()) {             \
@@ -97,6 +98,7 @@ constexpr int32_t KEYWORD_SIZE = 4;
 constexpr int32_t MIN_VERSION = 1;
 constexpr int32_t OPERATION_TYPE_COMMON_EVENT = 4;
 constexpr size_t MIN_NOTIFICATION_LIST_SIZE = 0;
+constexpr int32_t INVAILD_PROCESS_ID = -1;
 #ifdef ANM_SUPPORT_DUMP
 const std::unordered_map<std::string, std::string> HIDUMPER_CMD_MAP = {
     { "--help", HELP_NOTIFICATION_OPTION },
@@ -2480,11 +2482,11 @@ void AdvancedNotificationService::CheckRemovalWantAgent(const sptr<NotificationR
 
 void AdvancedNotificationService::RemoveCommonLiveViewNotification(const int32_t pid)
 {
-    if (!IsExistsPidInObserverSet(pid)) {
+    if (!IsExistsPidInObservers(pid)) {
         return;
     }
 
-    ANS_LOGD("ans OnProcessDied RemoveCommonLiveViewNotification enter");
+    ANS_LOGD("appObserver OnProcessDied RemoveCommonLiveViewNotification enter");
     //remove notification by send sync ffrt task
     auto submitResult = notificationSvrQueue_.SyncSubmit(std::bind([&]() {
         std::vector<std::shared_ptr<NotificationRecord>> recordList;
@@ -2497,13 +2499,13 @@ void AdvancedNotificationService::RemoveCommonLiveViewNotification(const int32_t
         //Remove common live view notification
         ErrCode result = RemoveNotificationFromRecordList(recordList);
         if (result != ERR_OK) {
-            ANS_LOGW("OnProcessDied Remove Error: %{public}d", result);
+            ANS_LOGW("appObserver OnProcessDied Remove Error: %{public}d", result);
         }
     }));
     if (submitResult != ERR_OK) {
-        ANS_LOGW("OnProcessDied ffrt task send failed: %{public}d", submitResult);
+        ANS_LOGW("appObserver OnProcessDied ffrt task send failed: %{public}d", submitResult);
     }
-    RemoveAppObserverSet(pid);
+    RemoveAppObserver(pid);
 }
 
 void AdvancedNotificationService::GetCommonLiveViewRecordList(const int32_t pid,
@@ -2516,44 +2518,96 @@ void AdvancedNotificationService::GetCommonLiveViewRecordList(const int32_t pid,
         }
         auto liveViewContent = std::static_pointer_cast<NotificationLiveViewContent>(
             notification->request->GetContent()->GetNotificationContent());
-        if (static_cast<int32_t>(notification->request->GetCreatorPid()) == pid &&
-            liveViewContent->GetRemoveOnProcessExitState() ==
+        if (liveViewContent->GetCreatePid() == pid && liveViewContent->GetRemoveOnProcessExitState() ==
             NotificationLiveViewContent::LiveViewRemoveStatus::LIVE_VIEW_REMOVE) {
                 recordList.emplace_back(notification);
         }
     }
 }
 
-void AdvancedNotificationService::AddAppObserverSet(const int32_t pid, const sptr<NotificationRequest> &request)
+void AdvancedNotificationService::AddAppObserver(const sptr<NotificationRequest> &request)
 {
+    ANS_LOGD("appObserver AddAppObserver enter");
     if (request == nullptr || request->GetContent() == nullptr || !request->IsCommonLiveView()) {
         return;
     }
 
     auto liveViewContent = std::static_pointer_cast<NotificationLiveViewContent>(
         request->GetContent()->GetNotificationContent());
+    int32_t pid = static_cast<int32_t>(request->GetCreatorPid());
+    
+    if (liveViewContent->GetCreatePid() == INVAILD_PROCESS_ID) {
+        liveViewContent->SetCreatePid(pid);
+    }
+    pid = liveViewContent->GetCreatePid();
+    ANS_LOGD("appObserver resoure pid=%{public}d newpid=%{public}d",
+        static_cast<int32_t>(request->GetCreatorPid()), liveViewContent->GetCreatePid());
     if (liveViewContent->GetRemoveOnProcessExitState() !=
         NotificationLiveViewContent::LiveViewRemoveStatus::LIVE_VIEW_REMOVE) {
             return;
     }
+    ANS_LOGD("appObserver check pid");
+    if (IsExistsPidInObservers(pid)) {
+        return;
+    }
 
+    auto notificationAppObserver = sptr<NotificationAppStateObserver>::MakeSptr();
+    if (notificationAppObserver == nullptr) {
+        ANS_LOGE("NotificationAppStateObserver create failed");
+        return;
+    }
+
+    auto observers = notificationAppObserver->GetAppObservers();
+    observers.push_back(request->GetOwnerBundleName());
+    ANS_LOGD("appObserver pid=%{public}d, BundleName=%{public}s", pid, request->GetOwnerBundleName().c_str());
+
+    //Register notificationAppObserver
+    int32_t ret = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()
+        ->RegisterApplicationStateObserver(notificationAppObserver, observers);
+    if (ret != ERR_OK) {
+        notificationAppObserver = nullptr;
+        ANS_LOGE("appObserver RegisterApplicationStateObserver failed, ret=%{public}d.", ret);
+        return;
+    }
+    
     std::lock_guard<std::mutex> lock(appObserverLock_);
-    appObserverSet_.insert(pid);
+    appObserverMap_.insert(std::pair<int32_t, sptr<AppExecFwk::IApplicationStateObserver>>(pid,
+        notificationAppObserver));
 }
 
 
-void AdvancedNotificationService::RemoveAppObserverSet(const int32_t pid)
+void AdvancedNotificationService::RemoveAppObserver(const int32_t pid)
 {
+    ANS_LOGD("appObserver RemoveAppObserver enter pid=%{public}d", pid);
     std::lock_guard<std::mutex> lock(appObserverLock_);
-    appObserverSet_.erase(pid);
+    auto it = appObserverMap_.find(pid);
+    if (it == appObserverMap_.end()) {
+        return;
+    }
+
+    auto notificationAppObserver = it->second;
+    if (notificationAppObserver == nullptr) {
+        appObserverMap_.erase(pid);
+        return;
+    }
+
+    ANS_LOGD("appObserver UnregisterApplicationStateObserver enter");
+    //Register notificationAppObserver
+    int32_t ret = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()
+        ->UnregisterApplicationStateObserver(notificationAppObserver);
+    if (ret != ERR_OK) {
+        ANS_LOGE("ANS UnRegisterApplicationStateObserver failed, ret=%{public}d.", ret);
+    }
+    
+    appObserverMap_.erase(pid);
 }
 
 
-bool AdvancedNotificationService::IsExistsPidInObserverSet(const int32_t pid)
+bool AdvancedNotificationService::IsExistsPidInObservers(const int32_t pid)
 {
     std::lock_guard<std::mutex> lock(appObserverLock_);
-    auto it = appObserverSet_.find(pid);
-    if (it == appObserverSet_.end()) {
+    auto it = appObserverMap_.find(pid);
+    if (it == appObserverMap_.end()) {
         return false;
     }
     return true;

@@ -247,7 +247,9 @@ ErrCode AdvancedNotificationService::Publish(const std::string &label, const spt
             NotificationAnalyticsUtil::ReportPublishFailedEvent(request, ansStatus.BuildMessage(true));
             break;
         }
-        AddAppObserverSet(static_cast<int32_t>(request->GetCreatorPid()), request);
+        std::string observerIdentity = IPCSkeleton::ResetCallingIdentity();
+        AddAppObserver(request);
+        IPCSkeleton::SetCallingIdentity(observerIdentity);
     } while (0);
 
     NotificationAnalyticsUtil::ReportAllBundlesSlotEnabled();
