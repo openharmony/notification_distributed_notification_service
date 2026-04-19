@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>代码检视报告 - OpenHarmony C++ 编码规范</title>
+    <style>
+        :root {
+            --p0-color: #dc3545;
+            --p0-bg: #f8d7da;
+            --p1-color: #fd7e14;
+            --p1-bg: #fff3cd;
+            --p2-color: #20c997;
+            --p2-bg: #d1ecf1;
+            --pass-color: #28a745;
+            --pass-bg: #d4edda;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .report-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        
+        .header {
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #007bff;
+            margin: 0;
+        }
+        
+        .header .meta {
+            color: #666;
+            margin-top: 10px;
+        }
+        
+        /* File Scope Section Styles */
+        .scope-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .scope-section h2 {
+            color: #495057;
+            margin-top: 0;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        
+        .scope-summary {
+            margin-top: 15px;
+            padding: 15px;
+            background: #007bff;
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .scope-summary .stat {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .scope-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .scope-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .scope-card.has-p0 {
+            border-left: 4px solid var(--p0-color);
+        }
+        
+        .scope-card.has-p1 {
+            border-left: 4px solid var(--p1-color);
+        }
+        
+        .scope-card.no-issue {
+            border-left: 4px solid var(--pass-color);
+        }
+        
+        .scope-card .dir-name {
+            font-weight: 600;
+            color: #007bff;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .scope-card .file-count {
+            font-size: 12px;
+            color: #6c757d;
+        }
+        
+        .scope-card .issue-badges {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .scope-card .issue-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+        }
+        
+        .scope-card .issue-badge.p0 {
+            background: var(--p0-color);
+            color: white;
+        }
+        
+        .scope-card .issue-badge.p1 {
+            background: var(--p1-color);
+            color: white;
+        }
+        
+        .scope-card .issue-badge.p2 {
+            background: var(--p2-color);
+            color: white;
+        }
+        
+        .scope-card .issue-badge.pass {
+            background: var(--pass-color);
+            color: white;
+        }
+        
+        .scope-card .file-list {
+            font-size: 12px;
+            color: #495057;
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .scope-card .file-list li {
+            padding: 3px 0;
+            list-style-type: none;
+        }
+        
+        .scope-card .file-list .file-with-p0 {
+            color: var(--p0-color);
+            font-weight: 500;
+        }
+        
+        .scope-card .file-list .file-with-p1 {
+            color: var(--p1-color);
+        }
+        
+        .scope-card .file-list .file-with-p2 {
+            color: var(--p2-color);
+        }
+        
+        .scope-card .file-list .file-pass {
+            color: var(--pass-color);
+        }
+        
+        .scope-card .toggle-btn {
+            background: #e9ecef;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            margin-bottom: 10px;
+        }
+        
+        .scope-card .toggle-btn:hover {
+            background: #dee2e6;
+        }
+        
+        /* Summary Cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .summary-card {
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .summary-card.p0 { background: var(--p0-bg); border: 2px solid var(--p0-color); }
+        .summary-card.p1 { background: var(--p1-bg); border: 2px solid var(--p1-color); }
+        .summary-card.p2 { background: var(--p2-bg); border: 2px solid var(--p2-color); }
+        .summary-card.pass { background: var(--pass-bg); border: 2px solid var(--pass-color); }
+        
+        .summary-card .count {
+            font-size: 36px;
+            font-weight: bold;
+        }
+        
+        .summary-card.p0 .count { color: var(--p0-color); }
+        .summary-card.p1 .count { color: var(--p1-color); }
+        .summary-card.p2 .count { color: var(--p2-color); }
+        .summary-card.pass .count { color: var(--pass-color); }
+        
+        .summary-card .label {
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        /* Filter Bar */
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .filter-btn.active {
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .filter-btn.all { background: #6c757d; color: white; }
+        .filter-btn.p0 { background: var(--p0-color); color: white; }
+        .filter-btn.p1 { background: var(--p1-color); color: white; }
+        .filter-btn.p2 { background: var(--p2-color); color: white; }
+        
+        /* Issue Section */
+        .issue-section {
+            margin-bottom: 30px;
+        }
+        
+        .issue-section h2 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .issue-section h2 .badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        
+        .issue-section.p0 h2 .badge { background: var(--p0-color); color: white; }
+        .issue-section.p1 h2 .badge { background: var(--p1-color); color: white; }
+        .issue-section.p2 h2 .badge { background: var(--p2-color); color: white; }
+        
+        /* Issue Card */
+        .issue-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        
+        .issue-card.p0 { border-left: 4px solid var(--p0-color); }
+        .issue-card.p1 { border-left: 4px solid var(--p1-color); }
+        .issue-card.p2 { border-left: 4px solid var(--p2-color); }
+        
+        .issue-header {
+            background: #f8f9fa;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .issue-header .file-info {
+            font-weight: 600;
+        }
+        
+        .issue-header .file-info .path {
+            color: #007bff;
+        }
+        
+        .issue-header .file-info .line {
+            color: #666;
+            font-size: 12px;
+        }
+        
+        .issue-header .category {
+            background: #e9ecef;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .issue-body {
+            padding: 15px;
+        }
+        
+        .issue-body .description {
+            margin-bottom: 15px;
+        }
+        
+        .issue-body .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+        }
+        
+        .issue-body .code-block .line-number {
+            color: #666;
+            margin-right: 10px;
+            user-select: none;
+        }
+        
+        .issue-body .code-block .highlight {
+            background: rgba(220, 53, 69, 0.3);
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+        
+        .issue-body .fix-section {
+            margin-top: 15px;
+            padding: 15px;
+            background: #e8f4f8;
+            border-radius: 4px;
+        }
+        
+        .issue-body .fix-section h4 {
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+        
+        .issue-body .fix-section .fix-code {
+            background: #28a745;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+        }
+        
+        /* Recommendation */
+        .recommendation {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .recommendation.block { background: var(--p0-bg); border: 2px solid var(--p0-color); }
+        .recommendation.warn { background: var(--p1-bg); border: 2px solid var(--p1-color); }
+        .recommendation.info { background: var(--p2-bg); border: 2px solid var(--p2-color); }
+        
+        .recommendation h3 {
+            margin-top: 0;
+        }
+        
+        .recommendation.block h3 { color: var(--p0-color); }
+        .recommendation.warn h3 { color: var(--p1-color); }
+        .recommendation.info h3 { color: var(--p2-color); }
+        
+        /* Compliance Section */
+        .compliance-section {
+            margin-top: 30px;
+        }
+        
+        .compliance-section h2 {
+            color: var(--pass-color);
+        }
+        
+        .compliance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+        }
+        
+        .compliance-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: var(--pass-bg);
+            border-radius: 4px;
+        }
+        
+        .compliance-item .check {
+            color: var(--pass-color);
+            font-size: 20px;
+        }
+        
+        /* Footer */
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            color: #666;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+    <script>
+        function filterIssues(level) {
+            const sections = document.querySelectorAll('.issue-section');
+            const cards = document.querySelectorAll('.issue-card');
+            
+            if (level === 'all') {
+                sections.forEach(s => s.classList.remove('hidden'));
+                cards.forEach(c => c.classList.remove('hidden'));
+            } else {
+                sections.forEach(s => {
+                    if (s.classList.contains(level)) {
+                        s.classList.remove('hidden');
+                    } else {
+                        s.classList.add('hidden');
+                    }
+                });
+                cards.forEach(c => {
+                    if (c.classList.contains(level)) {
+                        c.classList.remove('hidden');
+                    } else {
+                        c.classList.add('hidden');
+                    }
+                });
+            }
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector('.filter-btn.' + level).classList.add('active');
+        }
+        
+        function toggleFileList(dirId) {
+            const list = document.getElementById(dirId);
+            const btn = document.getElementById('btn-' + dirId);
+            if (list.classList.contains('hidden')) {
+                list.classList.remove('hidden');
+                btn.textContent = '收起';
+            } else {
+                list.classList.add('hidden');
+                btn.textContent = '展开';
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="report-container">
+        <div class="header">
+            <h1>🔍 代码检视报告</h1>
+            <div class="meta">
+                <strong>项目:</strong> ${PROJECT_NAME}<br>
+                <strong>检查日期:</strong> ${CHECK_DATE}<br>
+                <strong>规范依据:</strong> OpenHarmony C++编码规范 v1.0
+            </div>
+        </div>
+        
+        <!-- File Scope Section - REQUIRED -->
+        ${FILE_SCOPE_SECTION}
+        
+        <div class="summary-grid">
+            <div class="summary-card p0">
+                <div class="count">${P0_COUNT}</div>
+                <div class="label">🔴 P0 严重问题</div>
+                <div class="label">阻止提交</div>
+            </div>
+            <div class="summary-card p1">
+                <div class="count">${P1_COUNT}</div>
+                <div class="label">🟠 P1 重要问题</div>
+                <div class="label">修复后合并</div>
+            </div>
+            <div class="summary-card p2">
+                <div class="count">${P2_COUNT}</div>
+                <div class="label">🟢 P2 风格问题</div>
+                <div class="label">建议修复</div>
+            </div>
+            <div class="summary-card pass">
+                <div class="count">${FILES_PASSED}</div>
+                <div class="label">✅ 无问题文件</div>
+                <div class="label">已通过检查</div>
+            </div>
+        </div>
+        
+        <div class="filter-bar">
+            <button class="filter-btn all active" onclick="filterIssues('all')">全部显示 (${TOTAL_ISSUES})</button>
+            <button class="filter-btn p0" onclick="filterIssues('p0')">🔴 P0 严重 (${P0_COUNT})</button>
+            <button class="filter-btn p1" onclick="filterIssues('p1')">🟠 P1 重要 (${P1_COUNT})</button>
+            <button class="filter-btn p2" onclick="filterIssues('p2')">🟢 P2 风格 (${P2_COUNT})</button>
+        </div>
+        
+        ${P0_ISSUES_SECTION}
+        ${P1_ISSUES_SECTION}
+        ${P2_ISSUES_SECTION}
+        
+        <div class="recommendation ${RECOMMENDATION_CLASS}">
+            <h3>${RECOMMENDATION_TITLE}</h3>
+            <p>${RECOMMENDATION_TEXT}</p>
+        </div>
+        
+        <div class="compliance-section">
+            <h2>✅ 符合规范的方面</h2>
+            <div class="compliance-grid">
+                ${COMPLIANCE_ITEMS}
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>报告生成时间: ${CHECK_DATE} | 检查范围: ${TOTAL_FILES} 个文件</p>
+            <p>规范版本: OpenHarmony C++ Style Guide v1.0 | 工具: pre-commit-review skill</p>
+        </div>
+    </div>
+</body>
+</html>
