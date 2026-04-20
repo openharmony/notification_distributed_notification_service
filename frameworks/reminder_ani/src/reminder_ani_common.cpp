@@ -632,7 +632,27 @@ bool Common::CreateReminderTimer(const reminderAgentManager::manager::ReminderRe
         lastErrorMsg_ = " Param[triggerTimeInSeconds] out of range.";
         return false;
     }
+    int64_t repeatInterval = 0;
+    if (timerReq.repeatInterval.has_value()) {
+        repeatInterval = timerReq.repeatInterval.value();
+        if (repeatInterval < Notification::ReminderRequestTimer::MIN_REPEAT_INTERVAL ||
+            static_cast<uint64_t>(repeatInterval) >= (UINT64_MAX / Notification::ReminderRequest::MILLI_SECONDS)) {
+            ANSR_LOGE("Param[repeatInterval] out of range.");
+            lastErrorMsg_ = " Param[repeatInterval] out of range.";
+            return false;
+        }
+    }
+    int32_t repeatCount = 0;
+    if (timerReq.repeatCount.has_value()) {
+        repeatCount = timerReq.repeatCount.value();
+        if (repeatCount < 0) {
+            ANSR_LOGE("Param[repeatCount] out of range.");
+            lastErrorMsg_ = " Param[repeatCount] out of range.";
+            return false;
+        }
+    }
     auto timer = std::make_shared<Notification::ReminderRequestTimer>(triggerTimeInSeconds);
+    timer->SetRepeatInfo(static_cast<uint64_t>(repeatInterval), repeatCount);
     reminder = timer;
     if (!CreateReminderBase(timerReq.base, reminder)) {
         reminder = nullptr;
@@ -852,6 +872,8 @@ void Common::GenAniReminderTimer(const sptr<Notification::ReminderRequest>& remi
     Notification::ReminderRequestTimer* timerReq =
         static_cast<Notification::ReminderRequestTimer*>(reminder.GetRefPtr());
     timer.triggerTimeInSeconds = static_cast<int64_t>(timerReq->GetInitInfo());
+    timer.repeatInterval = ::taihe::optional<int64_t>::make(static_cast<int64_t>(timerReq->GetRepeatInterval()));
+    timer.repeatCount = ::taihe::optional<int32_t>::make(timerReq->GetRepeatCount());
 }
 
 void Common::GenAniReminderAlarm(const sptr<Notification::ReminderRequest>& reminder,

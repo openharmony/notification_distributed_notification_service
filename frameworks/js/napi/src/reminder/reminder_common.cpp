@@ -797,7 +797,25 @@ napi_value ReminderCommon::CreateReminderTimer(
         return nullptr;
     }
 
-    reminder = std::make_shared<ReminderRequestTimer>(countDownTimeInSeconds);
+    int64_t repeatInterval = 0;
+    if (GetInt64(env, value, ReminderAgentNapi::TIMER_REPEAT_INTERVAL, repeatInterval)) {
+        if (repeatInterval < ReminderRequestTimer::MIN_REPEAT_INTERVAL ||
+            static_cast<uint64_t>(repeatInterval) >= (UINT64_MAX / ReminderRequest::MILLI_SECONDS)) {
+            ANSR_LOGE("Create timer reminder failed: repeatInterval is illegal.");
+            return nullptr;
+        }
+    }
+
+    int32_t repeatCount = 0;
+    if (GetInt32(env, value, ReminderAgentNapi::TIMER_REPEAT_COUNT, repeatCount, false)) {
+        if (repeatCount < 0) {
+            ANSR_LOGE("Create timer reminder failed: repeatCount is illegal.");
+            return nullptr;
+        }
+    }
+    auto timer = std::make_shared<ReminderRequestTimer>(countDownTimeInSeconds);
+    timer->SetRepeatInfo(static_cast<uint64_t>(repeatInterval), repeatCount);
+    reminder = timer;
     return NotificationNapi::Common::NapiGetNull(env);
 }
 

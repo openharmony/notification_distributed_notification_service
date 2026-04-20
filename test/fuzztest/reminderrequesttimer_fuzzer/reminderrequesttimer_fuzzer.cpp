@@ -29,7 +29,6 @@ namespace OHOS {
         reminderRequestTimer.OnDateTimeChange();
         reminderRequestTimer.OnTimeZoneChange();
         reminderRequestTimer.UpdateNextReminder();
-        reminderRequestTimer.CheckParamsValid(countDownTimeInSeconds);
         reminderRequestTimer.UpdateTimeInfo(stringData);
         Parcel parcel;
         reminderRequestTimer.Unmarshalling(parcel);

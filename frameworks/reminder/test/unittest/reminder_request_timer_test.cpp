@@ -140,6 +140,12 @@ HWTEST_F(ReminderRequestTimerTest, UpdateNextReminder_001, Function | SmallTest 
 {
     ReminderRequestTimer timer(1);
     EXPECT_EQ(timer.UpdateNextReminder(), false);
+    timer.SetRepeatInfo(500, 0);
+    EXPECT_EQ(timer.UpdateNextReminder(), true);
+    timer.SetRepeatInfo(500, 10);
+    EXPECT_EQ(timer.UpdateNextReminder(), true);
+    timer.SetRepeatInfo(500, 10, 0);
+    EXPECT_EQ(timer.UpdateNextReminder(), false);
 }
 
 /**
@@ -152,28 +158,11 @@ HWTEST_F(ReminderRequestTimerTest, PreGetNextTriggerTimeIgnoreSnooze_001, Functi
 {
     ReminderRequestTimer timer(1);
     EXPECT_EQ(timer.PreGetNextTriggerTimeIgnoreSnooze(true, true), ReminderRequest::INVALID_LONG_LONG_VALUE);
-}
-
-/**
- * @tc.name: CheckParamsValid_001
- * @tc.desc: Test CheckParamsValid parameters.
- * @tc.type: FUNC
- * @tc.require:I9BM6I
- */
-HWTEST_F(ReminderRequestTimerTest, CheckParamsValid_001, Function | SmallTest | Level1)
-{
-    ReminderRequestTimer timer(1);
-    timer.SetInitInfo(0);
-    timer.CheckParamsValid(0);
-    EXPECT_EQ(timer.GetInitInfo(), 0);
-
-    timer.SetInitInfo(UINT64_MAX);
-    timer.CheckParamsValid(UINT64_MAX);
-    EXPECT_EQ(timer.GetInitInfo(), UINT64_MAX);
-
-    timer.SetInitInfo(5555);
-    timer.CheckParamsValid(5555);
-    EXPECT_EQ(timer.GetInitInfo(), 5555);
+    timer.SetRepeatInfo(500, 10, 0);
+    EXPECT_EQ(timer.PreGetNextTriggerTimeIgnoreSnooze(true, true), ReminderRequest::INVALID_LONG_LONG_VALUE);
+    timer.SetRepeatInfo(500, 10, 1);
+    timer.SetTriggerTimeInMilli(5000);
+    EXPECT_EQ(timer.PreGetNextTriggerTimeIgnoreSnooze(true, true), 5000);
 }
 
 /**
@@ -195,21 +184,6 @@ HWTEST_F(ReminderRequestTimerTest, Construct_001, Function | SmallTest | Level1)
 
     ReminderRequestTimer timer4;
     EXPECT_EQ(timer4.GetReminderId(), -1);
-}
-
-/**
- * @tc.name: ReminderRequestTimerTest_001
- * @tc.desc: Test CheckParamsValid parameters.
- * @tc.type: FUNC
- * @tc.require:I9BM6I
- */
-HWTEST_F(ReminderRequestTimerTest, ReminderRequestTimerTest_001, Function | SmallTest | Level1)
-{
-    ReminderRequestTimer timer1(35);
-    timer1.CheckParamsValid(0);
-    timer1.CheckParamsValid(UINT64_MAX);
-    timer1.CheckParamsValid(100);
-    EXPECT_EQ(timer1.GetReminderId(), 35);
 }
 
 /**

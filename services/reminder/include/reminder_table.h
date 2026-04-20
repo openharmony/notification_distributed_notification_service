@@ -262,10 +262,13 @@ public:
     /*
      * reminder timer table field
      */
-    static const std::string REMINDER_ID;
-    static const std::string TRIGGER_SECOND;
-    static const std::string START_DATE_TIME;
-    static const std::string END_DATE_TIME;
+    static constexpr const char* REMINDER_ID = "reminder_id";
+    static constexpr const char* TRIGGER_SECOND = "trigger_second";
+    static constexpr const char* START_DATE_TIME = "start_date_time";
+    static constexpr const char* END_DATE_TIME = "end_date_time";
+    static constexpr const char* REPEAT_INTERVAL = "repeat_interval";
+    static constexpr const char* REPEAT_COUNT = "repeat_count";
+    static constexpr const char* REMAINED_REPEAT_COUNT = "remained_repeat_count";
 
 public:
     static void InitDbColumns();

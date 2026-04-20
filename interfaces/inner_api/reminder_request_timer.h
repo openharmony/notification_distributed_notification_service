@@ -55,6 +55,11 @@ public:
 
     uint64_t GetInitInfo() const;
     void SetInitInfo(const uint64_t countDownTimeInSeconds);
+    uint64_t GetRepeatInterval() const;
+    int32_t GetRepeatCount() const;
+    int32_t GetRemainedRepeatCount() const;
+    void SetRepeatInfo(const uint64_t repeatInterval, const int32_t repeatCount,
+        const int32_t remainedRepeatCount = -1);
 
     virtual bool OnDateTimeChange() override;
     virtual bool OnTimeZoneChange() override;
@@ -77,15 +82,17 @@ public:
 
     ReminderRequestTimer() : ReminderRequest(ReminderType::TIMER) {};
 
+    static constexpr int64_t MIN_REPEAT_INTERVAL = 60;  // 60s
+
 protected:
     virtual uint64_t PreGetNextTriggerTimeIgnoreSnooze(bool ignoreRepeat, bool forceToGetNext) override;
 
 private:
-    void CheckParamsValid(const uint64_t countDownTimeInSeconds) const;
     void UpdateTimeInfo(const std::string &description);
     uint64_t countDownTimeInSeconds_ {0};
-    uint64_t firstRealTimeInMilliSeconds_ {0};
-    uint64_t whenToChangeSysTime_ {0};
+    uint64_t repeatIntervalInSeconds_ {0};
+    int32_t repeatCount_ {0};
+    int32_t remainedRepeatCount_ {0};
 };
 }  // namespace Reminder
 }  // namespace OHOS

@@ -79,10 +79,6 @@ const std::string ReminderCalendarTable::CALENDAR_LAST_DATE_TIME = "calendar_las
 
 // reminder timer table
 const std::string ReminderTimerTable::TABLE_NAME = "reminder_timer";
-const std::string ReminderTimerTable::REMINDER_ID = "reminder_id";
-const std::string ReminderTimerTable::TRIGGER_SECOND = "trigger_second";
-const std::string ReminderTimerTable::START_DATE_TIME = "start_date_time";
-const std::string ReminderTimerTable::END_DATE_TIME = "end_date_time";
 
 std::string ReminderBaseTable::ADD_COLUMNS = "";
 std::string ReminderBaseTable::SELECT_COLUMNS = "";
@@ -182,6 +178,9 @@ void ReminderTimerTable::InitDbColumns()
 {
     AddColumn(REMINDER_ID, "INTEGER PRIMARY KEY", ADD_COLUMNS, SELECT_COLUMNS);
     AddColumn(TRIGGER_SECOND, "BIGINT NOT NULL", ADD_COLUMNS, SELECT_COLUMNS);
+    AddColumn(REPEAT_INTERVAL, "BIGINT NOT NULL", ADD_COLUMNS, SELECT_COLUMNS);
+    AddColumn(REPEAT_COUNT, "INTEGER NOT NULL", ADD_COLUMNS, SELECT_COLUMNS);
+    AddColumn(REMAINED_REPEAT_COUNT, "INTEGER NOT NULL", ADD_COLUMNS, SELECT_COLUMNS);
     AddColumn(START_DATE_TIME, "BIGINT NOT NULL", ADD_COLUMNS, SELECT_COLUMNS);
     AddColumnEnd(END_DATE_TIME, "BIGINT NOT NULL", ADD_COLUMNS, SELECT_COLUMNS);
 }
