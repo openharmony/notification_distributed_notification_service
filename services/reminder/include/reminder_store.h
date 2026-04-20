@@ -108,6 +108,10 @@ public:
     int32_t OnDowngrade(NativeRdb::RdbStore& store, int32_t currentVersion, int32_t targetVersion) override;
 
 private:
+    void UpgradeV7(NativeRdb::RdbStore& store);
+    void UpgradeV11(NativeRdb::RdbStore& store);
+
+private:
     int32_t CreateTable(NativeRdb::RdbStore& store);
     int32_t CreateStateTable(NativeRdb::RdbStore& store);
     int32_t CopyData(NativeRdb::RdbStore& store);

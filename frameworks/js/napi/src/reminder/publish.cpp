@@ -421,6 +421,10 @@ void ParseReminderTimer(const napi_env &env, const ReminderRequest &reminder, na
     ReminderRequestTimer& timer = (ReminderRequestTimer&)reminder;
     napi_create_uint32(env, timer.GetInitInfo(), &value);
     napi_set_named_property(env, result, TIMER_COUNT_DOWN_TIME, value);
+    napi_create_int64(env, static_cast<int64_t>(timer.GetRepeatInterval()), &value);
+    napi_set_named_property(env, result, TIMER_REPEAT_INTERVAL, value);
+    napi_create_int32(env, timer.GetRepeatCount(), &value);
+    napi_set_named_property(env, result, TIMER_REPEAT_COUNT, value);
 }
 
 void ParseReminderAlarm(const napi_env &env, const ReminderRequest &reminder, napi_value &result)

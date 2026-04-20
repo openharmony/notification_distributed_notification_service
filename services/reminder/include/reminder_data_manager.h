@@ -348,6 +348,7 @@ private:
         int32_t totalCount {0};
         // Whether to play custom ringtones.
         bool isAlerting {false};
+        bool checkIsShowing {true};
     };
 
     static std::shared_ptr<ffrt::queue> serviceQueue_;
