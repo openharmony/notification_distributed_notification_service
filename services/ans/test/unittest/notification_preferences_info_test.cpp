@@ -938,5 +938,68 @@ HWTEST_F(NotificationPreferencesInfoTest, GetNotificationStatisticsAll_0100, Tes
     std::vector<NotificationStatistics> statisticsVec = preferencesInfo->GetNotificationStatisticsAll();
     EXPECT_EQ(statisticsVec.size(), 1);
 }
+
+HWTEST_F(NotificationPreferencesInfoTest, SetBundleInfo_UpdatesMeta_00001, Function | SmallTest | Level1)
+{
+    std::shared_ptr<NotificationPreferencesInfo> preferencesInfo = std::make_shared<NotificationPreferencesInfo>();
+    NotificationPreferencesInfo::BundleInfo bundleInfo;
+    bundleInfo.SetBundleName("testBundle");
+    bundleInfo.SetBundleUid(100);
+    
+    preferencesInfo->SetBundleInfo(bundleInfo);
+    
+    std::string bundleKey = "testBundle100";
+    auto metaMap = preferencesInfo->GetInfosMeta();
+    ASSERT_TRUE(metaMap.find(bundleKey) != metaMap.end());
+}
+
+HWTEST_F(NotificationPreferencesInfoTest, GetBundleInfo_UpdatesMeta_00001, Function | SmallTest | Level1)
+{
+    std::shared_ptr<NotificationPreferencesInfo> preferencesInfo = std::make_shared<NotificationPreferencesInfo>();
+    NotificationPreferencesInfo::BundleInfo bundleInfo;
+    bundleInfo.SetBundleName("testBundle");
+    bundleInfo.SetBundleUid(100);
+    preferencesInfo->SetBundleInfoFromDb(bundleInfo, "testBundle100");
+    
+    sptr<NotificationBundleOption> bundleOption = new NotificationBundleOption("testBundle", 100);
+    NotificationPreferencesInfo::BundleInfo retrievedInfo;
+    bool result = preferencesInfo->GetBundleInfo(bundleOption, retrievedInfo);
+    
+    ASSERT_TRUE(result);
+    auto metaMap = preferencesInfo->GetInfosMeta();
+    ASSERT_TRUE(metaMap.find("testBundle100") != metaMap.end());
+}
+
+HWTEST_F(NotificationPreferencesInfoTest, RemoveBundleInfoByKey_00001, Function | SmallTest | Level1)
+{
+    std::shared_ptr<NotificationPreferencesInfo> preferencesInfo = std::make_shared<NotificationPreferencesInfo>();
+    NotificationPreferencesInfo::BundleInfo bundleInfo;
+    preferencesInfo->SetBundleInfoFromDb(bundleInfo, "testBundle100");
+    
+    preferencesInfo->RemoveBundleInfoByKey("testBundle100");
+    
+    auto metaMap = preferencesInfo->GetInfosMeta();
+    ASSERT_TRUE(metaMap.find("testBundle100") == metaMap.end());
+}
+
+HWTEST_F(NotificationPreferencesInfoTest, ClearBundleInfo_ClearsMeta_00001, Function | SmallTest | Level1)
+{
+    std::shared_ptr<NotificationPreferencesInfo> preferencesInfo = std::make_shared<NotificationPreferencesInfo>();
+    NotificationPreferencesInfo::BundleInfo bundleInfo;
+    preferencesInfo->SetBundleInfoFromDb(bundleInfo, "testBundle100");
+    preferencesInfo->SetBundleInfoFromDb(bundleInfo, "testBundle200");
+    
+    preferencesInfo->ClearBundleInfo();
+    
+    auto metaMap = preferencesInfo->GetInfosMeta();
+    ASSERT_TRUE(metaMap.empty());
+}
+
+HWTEST_F(NotificationPreferencesInfoTest, GetCacheExpiryDuration_00001, Function | SmallTest | Level1)
+{
+    std::shared_ptr<NotificationPreferencesInfo> preferencesInfo = std::make_shared<NotificationPreferencesInfo>();
+    auto duration = preferencesInfo->GetCacheExpiryDuration();
+    ASSERT_EQ(duration.count(), 1);
+}
 }
 }
