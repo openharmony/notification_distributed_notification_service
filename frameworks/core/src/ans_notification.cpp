@@ -3893,5 +3893,23 @@ ErrCode AnsNotification::GetStatisticsByBundle(const std::vector<NotificationBun
     }
     return proxy->GetStatisticsByBundle(bundlesSptr, statistics);
 }
+
+ErrCode AnsNotification::SnoozeNotification(const std::string &hashCode, const int64_t delayTime)
+{
+    if (hashCode.empty()) {
+        ANS_LOGE("Invalid hashCode.");
+        return ERR_ANS_INVALID_PARAM;
+    }
+    if (delayTime <= 0 || delayTime > NotificationConstant::MAX_DELAY_TIME_S) {
+        ANS_LOGE("Invalid delayTime.");
+        return ERR_ANS_INVALID_PARAM;
+    }
+    sptr<IAnsManager> proxy = GetAnsManagerProxy();
+    if (!proxy) {
+        ANS_LOGE("GetAnsManagerProxy fail.");
+        return ERR_ANS_SERVICE_NOT_CONNECTED;
+    }
+    return proxy->SnoozeNotification(hashCode, delayTime);
+}
 }  // namespace Notification
 }  // namespace OHOS

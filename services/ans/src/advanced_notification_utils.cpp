@@ -1315,6 +1315,7 @@ void AdvancedNotificationService::DeleteAllByUserStopped(int32_t userId)
         GetDistributedInfo(key, deviceId, bundleName);
 #endif
         DeleteAllByUserStoppedFromTriggerNotificationList(key, userId);
+        DeleteAllByUserStoppedFromSnoozeDelayList(key, userId);
         sptr<Notification> notification = nullptr;
         for (auto record : notificationList_) {
             if ((record->notification->GetKey() == key) &&

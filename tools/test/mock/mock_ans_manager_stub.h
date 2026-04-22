@@ -1146,6 +1146,11 @@ public:
         return ERR_ANS_INVALID_PARAM;
     }
 
+    ErrCode SnoozeNotification(const std::string &hashCode, const int64_t delayTime) override
+    {
+        return ERR_ANS_INVALID_PARAM;
+    }
+
 private:
     std::string cmd_;
     std::string bundle_;
