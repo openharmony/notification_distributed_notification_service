@@ -1891,6 +1891,7 @@ ohos_unittest("advanced_notification_service_unit_test") {
     "/${services_path}/ans/include",
     "/${services_path}/ans/include/utils/",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
+    "${services_path}/infrastructure/external_adapter/rdb/include",
   ]
 
   sources = [
@@ -1908,6 +1909,7 @@ ohos_unittest("advanced_notification_service_unit_test") {
     "mock/mock_push_callback_stub.cpp",
     "mock/mock_time_service_client.cpp",
     "notification_dialog_test/mock_os_account_manager_annex.cpp",
+    "notification_preferences_database_branch_test/mock_notification_rdb_data_mgr.cpp",
   ]
 
   defines = []
@@ -1946,6 +1948,7 @@ ohos_unittest("advanced_notification_service_unit_test") {
     "data_share:datashare_common",
     "data_share:datashare_consumer",
     "ffrt:libffrt",
+    "googletest:gmock_main",
     "hilog:libhilog",
     "ipc:ipc_core",
     "kv_store:distributeddata_inner",

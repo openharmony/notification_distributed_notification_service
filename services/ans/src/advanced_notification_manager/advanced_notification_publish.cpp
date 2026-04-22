@@ -423,6 +423,12 @@ ErrCode AdvancedNotificationService::PublishNotificationForIndirectProxy(const s
             message.BranchId(EventBranchId::BRANCH_5).ErrorCode(result).Message("Failed to assign notification list");
             return;
         }
+        NotificationRequestDb requestDb = { .request = record->request, .bundleOption = bundleOption};
+        result = SetNotificationRequestToDbCommon(requestDb);
+        if (result != ERR_OK) {
+            ansStatus = AnsStatus(result, "SetNotificationRequestToDb fail.");
+            return;
+        }
 #ifdef ANS_FEATURE_NOTIFICATION_STATISTICS
         SetNotificationStatisticsToDB(record, bundleOption, isNotificationExists);
 #endif

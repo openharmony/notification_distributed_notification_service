@@ -1320,7 +1320,7 @@ void AdvancedNotificationService::DeleteAllByUserStopped(int32_t userId)
             if ((record->notification->GetKey() == key) &&
                 ((record->notification->GetRecvUserId() == userId) ||
                 (record->notification->GetRecvUserId() == ZERO_USER_ID))) {
-                ProcForDeleteLiveView(record);
+                ProcForDeleteNotificationFromDb(record);
                 notification = record->notification;
                 notificationList_.remove(record);
                 break;
