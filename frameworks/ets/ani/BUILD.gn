@@ -57,6 +57,7 @@ ohos_shared_library("notification_manager_ani") {
     "./src/manager/ani_ringtone_info_by_bundle.cpp",
     "./src/manager/ani_silent_reminder_enable.cpp",
     "./src/manager/ani_slot.cpp",
+    "./src/manager/ani_snooze_notification.cpp",
     "./src/manager/ani_statistics.cpp",
     "./src/manager/ani_support_template.cpp",
     "./src/manager/ani_sync_config.cpp",

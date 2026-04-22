@@ -20,6 +20,7 @@ config("ans_base_config") {
     "${services_path}/infrastructure/external_adapter/bms/include",
     "${services_path}/infrastructure/external_adapter/extension/include",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
     "${services_path}/infrastructure/interfaces",
     "${services_path}/infrastructure/interfaces/adapter",
   ]
@@ -42,6 +43,7 @@ ohos_shared_library("ans_base") {
     "external_adapter/bms/src/bundle_manager_repository_impl.cpp",
     "external_adapter/bms/src/bundle_service_connector.cpp",
     "external_adapter/ffrt/src/ffrt_queue_impl.cpp",
+    "external_adapter/timer/src/timer_impl.cpp",
   ]
 
   defines = []
@@ -73,6 +75,7 @@ ohos_shared_library("ans_base") {
     "hilog:libhilog",
     "os_account:os_account_innerkits",
     "samgr:samgr_proxy",
+    "time_service:time_client",
   ]
 
   subsystem_name = "${subsystem_name}"

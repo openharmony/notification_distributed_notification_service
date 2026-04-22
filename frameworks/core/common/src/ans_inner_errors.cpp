@@ -60,6 +60,7 @@ static const std::unordered_map<int32_t, std::string> ANS_ERROR_CODE_MESSAGE_MAP
     {ERROR_NOT_IMPL_EXTENSIONABILITY,
         "The application does not implement the NotificationSubscriberExtensionAbility"},
     {ERROR_AWARNESS_SUGGESTIONS_CLOSED, "The \"Awareness & suggestions\" switch of the location-based service is off"},
+    {ERR_NOTIFICATION_NOT_SUPPORT, "The notification is not supported"},
 };
 
 static std::vector<std::pair<uint32_t, int32_t>> errorsConvert = {
@@ -114,6 +115,7 @@ static std::vector<std::pair<uint32_t, int32_t>> errorsConvert = {
     {ERR_ANS_GEOFENCING_OPERATION_TIMEOUT, ERROR_SERVICE_CONNECT_ERROR},
     {ERR_ANS_ERROR_LOCATION_CLOSED, ERROR_LOCATION_CLOSED},
     {ERR_ANS_AWARNESS_SUGGESTIONS_CLOSED, ERROR_AWARNESS_SUGGESTIONS_CLOSED},
+    {ERR_ANS_NOTIFICATION_SNOOZE_NOTALLOWED, ERR_NOTIFICATION_NOT_SUPPORT},
 };
 
 int32_t ErrorToExternal(uint32_t errCode)

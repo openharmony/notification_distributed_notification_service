@@ -51,6 +51,7 @@ ohos_moduletest("ans_innerkits_module_publish_test") {
     "${frameworks_path}/test/moduletest/mock/include",
     "${component_path}/services/ans/include/utils",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
   ]
 
   sources = [
@@ -86,6 +87,7 @@ ohos_moduletest("ans_innerkits_module_publish_test") {
     "access_token:libaccesstoken_sdk",
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
+    "bluetooth:btframework",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -102,7 +104,7 @@ ohos_moduletest("ans_innerkits_module_publish_test") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "selinux_adapter:librestorecon",
-    "bluetooth:btframework",
+    "time_service:time_client",
   ]
 
   subsystem_name = "${subsystem_name}"
@@ -125,6 +127,7 @@ ohos_moduletest("ans_innerkits_module_slot_test") {
     "${frameworks_path}/test/moduletest/mock/include",
     "${component_path}/services/ans/include/utils",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
   ]
 
   sources = [
@@ -158,6 +161,7 @@ ohos_moduletest("ans_innerkits_module_slot_test") {
     "access_token:libaccesstoken_sdk",
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
+    "bluetooth:btframework",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -174,7 +178,7 @@ ohos_moduletest("ans_innerkits_module_slot_test") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "selinux_adapter:librestorecon",
-    "bluetooth:btframework",
+    "time_service:time_client",
   ]
 
   subsystem_name = "${subsystem_name}"
@@ -206,6 +210,7 @@ ohos_moduletest("ans_innerkits_module_setting_test") {
     "${frameworks_path}/test/moduletest/mock/include",
     "${component_path}/services/ans/include/utils",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
   ]
 
   sources = [
@@ -236,6 +241,7 @@ ohos_moduletest("ans_innerkits_module_setting_test") {
     "access_token:libaccesstoken_sdk",
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
+    "bluetooth:btframework",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -252,7 +258,7 @@ ohos_moduletest("ans_innerkits_module_setting_test") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "selinux_adapter:librestorecon",
-    "bluetooth:btframework",
+    "time_service:time_client",
   ]
 
   subsystem_name = "${subsystem_name}"

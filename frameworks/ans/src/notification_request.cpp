@@ -1081,9 +1081,7 @@ bool NotificationRequest::ToJson(nlohmann::json &jsonObject) const
     jsonObject["updateDeadLine"]     = updateDeadLine_;
     jsonObject["finishDeadLine"]     = finishDeadLine_;
     jsonObject["triggerDeadLine"]     = triggerDeadLine_;
-    jsonObject["hashCodeGenerateType"]    = hashCodeGenerateType_;
-    jsonObject["collaboratedReminderFlag"]    = collaboratedReminderFlag_;
-    jsonObject["distributedHashCode"]    = distributedHashCode_;
+    ToJsonExt(jsonObject);
 
     if (!ConvertObjectsToJson(jsonObject)) {
         ANS_LOGE("Cannot convert objects to JSON");
@@ -1091,6 +1089,15 @@ bool NotificationRequest::ToJson(nlohmann::json &jsonObject) const
     }
 
     return true;
+}
+
+void NotificationRequest::ToJsonExt(nlohmann::json &jsonObject) const
+{
+    jsonObject["hashCodeGenerateType"]    = hashCodeGenerateType_;
+    jsonObject["collaboratedReminderFlag"]    = collaboratedReminderFlag_;
+    jsonObject["distributedHashCode"]    = distributedHashCode_;
+    jsonObject["snoozeDelayTime"]    = snoozeDelayTime_;
+    jsonObject["isSnoozeTrigger"]    = isSnoozeTrigger_;
 }
 
 NotificationRequest *NotificationRequest::FromJson(const nlohmann::json &jsonObject)
@@ -2567,6 +2574,11 @@ void NotificationRequest::ConvertJsonToNumExt(
         jsonObject.at("notificationControlFlags").is_number_integer()) {
         target->notificationControlFlags_ = jsonObject.at("notificationControlFlags").get<uint32_t>();
     }
+
+    if (jsonObject.find("snoozeDelayTime") != jsonEnd &&
+        jsonObject.at("snoozeDelayTime").is_number_integer()) {
+        target->snoozeDelayTime_ = jsonObject.at("snoozeDelayTime").get<int64_t>();
+    }
 }
 
 void NotificationRequest::ConvertJsonToNum(NotificationRequest *target, const nlohmann::json &jsonObject)
@@ -2782,6 +2794,10 @@ void NotificationRequest::ConvertJsonToBoolExt(NotificationRequest *target, cons
 
     if (jsonObject.find("isAgent") != jsonEnd && jsonObject.at("isAgent").is_boolean()) {
         target->isAgent_ = jsonObject.at("isAgent").get<bool>();
+    }
+
+    if (jsonObject.find("isSnoozeTrigger") != jsonEnd && jsonObject.at("isSnoozeTrigger").is_boolean()) {
+        target->isSnoozeTrigger_ = jsonObject.at("isSnoozeTrigger").get<bool>();
     }
 }
 
@@ -3238,6 +3254,9 @@ std::string NotificationRequest::GetBaseKey(const std::string &deviceId)
                 creatorUserId_ << keySpliter << creatorUid_ << keySpliter <<
                 creatorBundleName_ << keySpliter << label_ << keySpliter << notificationId_;
         }
+    }
+    if (snoozeDelayTime_ > 0) {
+        stream << keySpliter << snoozeDelayTime_;
     }
     return stream.str();
 }
@@ -3758,6 +3777,26 @@ void NotificationRequest::SetInnerPriorityNotificationType(const std::string &pr
 std::string NotificationRequest::GetPriorityNotificationType() const
 {
     return priorityNotificationType_;
+}
+
+void NotificationRequest::SetSnoozeDelayTime(const int64_t snoozeDelayTime)
+{
+    snoozeDelayTime_ = snoozeDelayTime;
+}
+
+int64_t NotificationRequest::GetSnoozeDelayTime()
+{
+    return snoozeDelayTime_;
+}
+
+void NotificationRequest::SetIsSnoozeTrigger(bool isSnoozeTrigger)
+{
+    isSnoozeTrigger_ = isSnoozeTrigger;
+}
+
+bool NotificationRequest::GetIsSnoozeTrigger()
+{
+    return isSnoozeTrigger_;
 }
 }  // namespace Notification
 }  // namespace OHOS

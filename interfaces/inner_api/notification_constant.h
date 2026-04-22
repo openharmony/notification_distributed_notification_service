@@ -506,6 +506,11 @@ public:
     static const int32_t DISTRIBUTED_APPLICATION_ENABLE_REASON_DELETE = 39;
 
     /**
+     * Indicates that notification is deleted because set snooze.
+     */
+    static const int32_t SNOOZE_REASON_DELETE = 40;
+
+    /**
      * Indicates that a notification is deleted for other reasons.
      */
     static const int32_t APP_CANCEL_REASON_OTHER = 100;
@@ -559,6 +564,8 @@ public:
     static const int32_t DISTRIBUTE_JUMP_BY_LIVE_VIEW = 32;
 
     static const int64_t MAX_CLONE_TIME = 7 * 24 * HOUR_TO_MS;
+
+    static const int64_t MAX_DELAY_TIME_S = 24 * 3600;
 
     // live view max size is 512KB(extra size) + 8KB(base size) = 520KB
     static constexpr uint64_t NOTIFICATION_MAX_LIVE_VIEW_SIZE = 520ULL * 1024ULL;

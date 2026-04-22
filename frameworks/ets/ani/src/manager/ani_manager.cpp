@@ -34,6 +34,7 @@
 #include "ani_reminder_info.h"
 #include "ani_ringtone_info_by_bundle.h"
 #include "ani_silent_reminder_enable.h"
+#include "ani_snooze_notification.h"
 #include "ani_statistics.h"
 #include "ani_support_template.h"
 #include "ani_sync_config.h"
@@ -117,6 +118,8 @@ static std::array kitManagerFunctions = {
         reinterpret_cast<void *>(AniSetSilentReminderEnabled)},
     ani_native_function {"nativeIsSilentReminderEnabled", nullptr,
         reinterpret_cast<void *>(AniIsSilentReminderEnabled)},
+    ani_native_function {"nativeSetNotificationSnooze", nullptr,
+        reinterpret_cast<void *>(AniSetNotificationSnooze)},
 #ifdef ANS_FEATURE_NOTIFICATION_STATISTICS
     ani_native_function {"nativeGetNotificationStatisticsByBundle", nullptr,
         reinterpret_cast<void *>(AniGetNotificationStatisticsByBundle)},

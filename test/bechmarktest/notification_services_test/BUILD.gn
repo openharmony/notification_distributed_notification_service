@@ -25,6 +25,7 @@ ohos_benchmarktest("Benchmark_Notification_Servece_Test") {
     "${services_path}/ans/include",
     "${services_path}/ans/include/utils",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
   ]
 
   sources = [
@@ -59,6 +60,7 @@ ohos_benchmarktest("Benchmark_Notification_Servece_Test") {
     "relational_store:native_rdb",
     "selinux_adapter:librestorecon",
     "bluetooth:btframework",
+    "time_service:time_client",
   ]
 
   subsystem_name = "${subsystem_name}"

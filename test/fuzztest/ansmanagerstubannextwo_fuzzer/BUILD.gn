@@ -28,6 +28,7 @@ ohos_fuzztest("AnsManagerStubAnnexTwoFuzzTest") {
     "${core_path}/include",
     "${services_path}/ans/include/utils",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
   ]
 
   cflags = [
@@ -59,6 +60,7 @@ ohos_fuzztest("AnsManagerStubAnnexTwoFuzzTest") {
     "ipc:ipc_single",
     "relational_store:native_rdb",
     "bluetooth:btframework",
+    "time_service:time_client",
   ]
 
     defines = []

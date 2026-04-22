@@ -477,4 +477,6 @@ interface OHOS.Notification.IAnsManager {
     [macrodef NOTIFICATION_SMART_REMINDER_SUPPORTED] void RegisterSwingCallback([in] IRemoteObject swingCallback);
 
     void GetStatisticsByBundle([in] sptr<NotificationBundleOption>[] bundleOptions, [out] NotificationStatistics[] statistics);
+
+    void SnoozeNotification([in] String hashCode, [in] long delayTime);
 }

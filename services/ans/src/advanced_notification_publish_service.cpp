@@ -528,6 +528,7 @@ ErrCode AdvancedNotificationService::ExcuteCancelGroupCancel(
     auto submitResult = notificationSvrQueue_.Submit(std::bind([=]() {
         ANS_LOGD("ffrt enter!");
         ExecuteCancelGroupCancelFromTriggerNotificationList(bundleOption, groupName);
+        ExecuteCancelGroupCancelFromSnoozeDelayList(bundleOption, groupName);
         std::vector<std::shared_ptr<NotificationRecord>> removeList;
         for (auto record : notificationList_) {
             ANS_LOGD("ExcuteCancelGroupCancel instanceKey(%{public}s, %{public}s).",
@@ -622,6 +623,7 @@ ErrCode AdvancedNotificationService::RemoveGroupByBundle(
         std::vector<std::shared_ptr<NotificationRecord>> removeList;
         int32_t reason = NotificationConstant::CANCEL_REASON_DELETE;
         RemoveGroupByBundleFromTriggerNotificationList(bundle, groupName);
+        ExecuteCancelGroupCancelFromSnoozeDelayList(bundle, groupName);
         for (auto record : notificationList_) {
             if (!record->notification->IsRemoveAllowed()) {
                 continue;
@@ -1365,7 +1367,7 @@ ErrCode AdvancedNotificationService::RemoveAllNotificationsByBundleName(
         std::vector<std::shared_ptr<NotificationRecord>> removeList;
         ANS_LOGD("ffrt enter!");
         RemoveAllNotificationsByBundleNameFromTriggerNotificationList(bundleName);
-
+        RemoveAllNotificationsByBundleNameFromSnoozeDelayList(bundleName);
         for (auto record : notificationList_) {
             if (record == nullptr) {
                 ANS_LOGE("record is nullptr");
