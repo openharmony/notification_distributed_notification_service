@@ -409,6 +409,7 @@ void NotificationPreferencesInfo::SetBundleInfo(BundleInfo &info)
 {
     std::string bundleKey = info.GetBundleName().append(std::to_string(info.GetBundleUid()));
     infos_.insert_or_assign(bundleKey, info);
+    infosMeta_[bundleKey].lastAccessTime = std::chrono::steady_clock::now();
 }
 
 bool NotificationPreferencesInfo::GetBundleInfo(
@@ -418,6 +419,7 @@ bool NotificationPreferencesInfo::GetBundleInfo(
     auto iter = infos_.find(bundleKey);
     if (iter != infos_.end()) {
         info = iter->second;
+        infosMeta_[bundleKey].lastAccessTime = std::chrono::steady_clock::now();
         return true;
     }
     return false;
@@ -458,6 +460,7 @@ bool NotificationPreferencesInfo::RemoveBundleInfo(const sptr<NotificationBundle
     auto iter = infos_.find(bundleKey);
     if (iter != infos_.end()) {
         infos_.erase(iter);
+        infosMeta_.erase(bundleKey);
         return true;
     }
     return false;
@@ -476,6 +479,7 @@ bool NotificationPreferencesInfo::IsExsitBundleInfo(const sptr<NotificationBundl
 void NotificationPreferencesInfo::ClearBundleInfo()
 {
     infos_.clear();
+    infosMeta_.clear();
 }
 
 void NotificationPreferencesInfo::SetDoNotDisturbDate(const int32_t &userId,
@@ -652,6 +656,7 @@ void NotificationPreferencesInfo::RemoveDoNotDisturbDate(const int32_t userId)
 void NotificationPreferencesInfo::SetBundleInfoFromDb(BundleInfo &info, std::string bundleKey)
 {
     infos_.insert_or_assign(bundleKey, info);
+    infosMeta_[bundleKey].lastAccessTime = std::chrono::steady_clock::now();
 }
 
 void NotificationPreferencesInfo::SetSilentReminderInfoFromDb(
@@ -857,6 +862,35 @@ std::vector<NotificationStatistics> NotificationPreferencesInfo::GetNotification
     }
 
     return statistics;
+}
+
+void NotificationPreferencesInfo::UpdateInfosMetaAccessTime(const std::string &bundleKey)
+{
+    infosMeta_[bundleKey].lastAccessTime = std::chrono::steady_clock::now();
+}
+
+const std::unordered_map<std::string, NotificationPreferencesInfo::CacheEntryMeta>& NotificationPreferencesInfo::GetInfosMeta() const
+{
+    return infosMeta_;
+}
+
+void NotificationPreferencesInfo::RemoveInfosMetaByKey(const std::string &bundleKey)
+{
+    infosMeta_.erase(bundleKey);
+}
+
+void NotificationPreferencesInfo::RemoveBundleInfoByKey(const std::string &bundleKey)
+{
+    auto iter = infos_.find(bundleKey);
+    if (iter != infos_.end()) {
+        infos_.erase(iter);
+    }
+    infosMeta_.erase(bundleKey);
+}
+
+std::chrono::minutes NotificationPreferencesInfo::GetCacheExpiryDuration() const
+{
+    return CACHE_EXPIRY_DURATION;
 }
 }  // namespace Notification
 }  // namespace OHOS

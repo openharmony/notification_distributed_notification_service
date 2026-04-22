@@ -15,6 +15,7 @@
 
 #include "notification_preferences.h"
 
+#include <chrono>
 #include <fstream>
 #include <memory>
 #include <mutex>
@@ -61,6 +62,7 @@ NotificationPreferences::NotificationPreferences()
         NotificationAnalyticsUtil::ReportModifyEvent(message);
     }
     InitSettingFromDisturbDB();
+    StartCacheExpiryTask();
 }
 
 std::shared_ptr<NotificationPreferences> NotificationPreferences::GetInstance()
@@ -3164,5 +3166,38 @@ int32_t NotificationPreferences::GetKvFromDb(
     return preferncesDB_->GetKvFromDb(key, value, userId, retCode);
 }
 #endif
+
+void NotificationPreferences::StartCacheExpiryTask()
+{
+    constexpr uint64_t HEARTBEAT_INTERVAL_US = 60 * 1000 * 1000;
+    
+    cacheExpiryTask_ = ffrt::submit_h([this]() {
+        std::lock_guard<ffrt::mutex> lock(preferenceMutex_);
+        auto now = std::chrono::steady_clock::now();
+        auto expiryDuration = preferencesInfo_.GetCacheExpiryDuration();
+        
+        std::vector<std::string> expiredKeys;
+        for (const auto& [key, meta] : preferencesInfo_.GetInfosMeta()) {
+            auto elapsed = std::chrono::duration_cast<std::chrono::minutes>(now - meta.lastAccessTime);
+            if (elapsed >= expiryDuration) {
+                expiredKeys.push_back(key);
+            }
+        }
+        
+        for (const auto& key : expiredKeys) {
+            preferencesInfo_.RemoveBundleInfoByKey(key);
+        }
+        
+        StartCacheExpiryTask();
+    }, {}, {}, ffrt::task_attr().delay(HEARTBEAT_INTERVAL_US));
+}
+
+void NotificationPreferences::StopCacheExpiryTask()
+{
+    if (cacheExpiryTask_) {
+        ffrt::skip(cacheExpiryTask_);
+        cacheExpiryTask_ = nullptr;
+    }
+}
 }  // namespace Notification
 }  // namespace OHOS

@@ -19,6 +19,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <chrono>
 
 #include "notification_bundle_option.h"
 #include "notification_do_not_disturb_date.h"
@@ -41,6 +42,9 @@ public:
         std::string bundleName;
         int32_t uid;
         NotificationConstant::SWITCH_STATE enableStatus {NotificationConstant::SWITCH_STATE::SYSTEM_DEFAULT_OFF};
+    };
+    struct CacheEntryMeta {
+        std::chrono::steady_clock::time_point lastAccessTime;
     };
     class BundleInfo final {
     public:
@@ -331,6 +335,11 @@ public:
      * clear bundle info in the of preferences info.
      */
     void ClearBundleInfo();
+    void UpdateInfosMetaAccessTime(const std::string &bundleKey);
+    const std::unordered_map<std::string, CacheEntryMeta>& GetInfosMeta() const;
+    void RemoveInfosMetaByKey(const std::string &bundleKey);
+    void RemoveBundleInfoByKey(const std::string &bundleKey);
+    std::chrono::minutes GetCacheExpiryDuration() const;
 
     /**
      * set do not disturb date into preferences info.
@@ -398,6 +407,8 @@ private:
     std::map<int32_t, sptr<NotificationDoNotDisturbDate>> doNotDisturbDate_;
     std::map<std::string, sptr<NotificationDoNotDisturbProfile>> doNotDisturbProfiles_;
     std::map<std::string, BundleInfo> infos_;
+    mutable std::unordered_map<std::string, CacheEntryMeta> infosMeta_;
+    static constexpr std::chrono::minutes CACHE_EXPIRY_DURATION{1};
     std::vector<std::string> kioskAppTrustList_;
     std::unordered_map<int32_t, std::vector<std::string>> restrictedModeTrustList_;
     std::unordered_map<std::string, SilentReminderInfo> silentReminderInfos_;
