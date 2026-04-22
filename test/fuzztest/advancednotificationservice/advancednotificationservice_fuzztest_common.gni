@@ -83,6 +83,7 @@ template("advancednotificationservice_fuzztest_target") {
       "i18n:intl_util",
       "image_framework:image_native",
       "init:libbegetutil",
+      "ipc:ipc_single",
       "kv_store:distributeddata_inner",
       "openssl:libcrypto_shared",
       "os_account:os_account_innerkits",
