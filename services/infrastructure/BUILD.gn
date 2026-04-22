@@ -71,6 +71,7 @@ ohos_shared_library("ans_base") {
     "c_utils:utils",
     "ffrt:libffrt",
     "hilog:libhilog",
+    "ipc:ipc_single",
     "os_account:os_account_innerkits",
     "samgr:samgr_proxy",
   ]
