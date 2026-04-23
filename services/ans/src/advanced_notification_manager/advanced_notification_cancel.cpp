@@ -627,6 +627,11 @@ ErrCode AdvancedNotificationService::ExcuteRemoveNotification(const sptr<Notific
 
             if (!IsReasonClickDelete(removeReason)) {
                 ProcForDeleteNotificationFromDb(record);
+            } else if(record->request->IsCommonLiveView() || record->request->IsSystemLiveView()) {
+                ANS_LOGD("is LiveView, no need to remove from db.");
+            } else {
+                DoubleDeleteNotificationFromDb(record->request->GetKey(), 
+                    record->request->GetSecureKey(), record->request->GetReceiverUserId());
             }
 
             notificationList_.remove(record);
