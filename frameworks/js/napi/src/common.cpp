@@ -456,8 +456,7 @@ napi_value Common::GetSubscriberInfoDeviceType(
     }
     NAPI_CALL(env, napi_get_value_string_utf8(env, value, str, STR_MAX_SIZE - 1, &strLen));
     if (std::strlen(str) == 0) {
-        ANS_LOGE("Property deviceType is empty");
-        return nullptr;
+        return NapiGetNull(env);
     }
     subscriberInfo.deviceType = str;
     subscriberInfo.hasSubscribeInfo = true;
