@@ -2646,7 +2646,7 @@ private:
     std::list<std::pair<std::shared_ptr<NotificationRecord>, uint64_t>> delayNotificationList_;
     ffrt::mutex delayNotificationMutext_;
     ffrt::mutex triggerNotificationMutex_;
-    ffrt::mutex snoozeNotificationMutext_;
+    ffrt::mutex snoozeNotificationMutex_;
     static ffrt::mutex doNotDisturbMutex_;
     std::map<int32_t, std::string> doNotDisturbEnableRecord_;
     bool isCachedAppAndDeviceRelationMap_ = false;
