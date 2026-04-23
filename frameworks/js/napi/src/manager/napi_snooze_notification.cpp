@@ -65,7 +65,7 @@ static napi_value ParseSnoozeParameters(const napi_env &env, const napi_callback
         Common::NapiThrow(env, ERROR_PARAM_INVALID, msg);
         return nullptr;
     }
-    napi_get_value_int64(env, argv[1], &delayTime);
+    NAPI_CALL(env, napi_get_value_int64(env, argv[1], &delayTime));
     if (delayTime <= 0 || delayTime > MAX_DELAY_TIME_S) {
         ANS_LOGE("delayTime is invalid.");
         Common::NapiThrow(env, ERROR_PARAM_INVALID);
