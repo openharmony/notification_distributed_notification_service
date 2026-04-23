@@ -28,19 +28,17 @@ bool GetSlotTypes(ani_env *env, ani_object value, NotificationSubscribeInfo &inf
         ANS_LOGE("GetPropertyEnumItemArray fail or undefined");
         return false;
     }
-    if (isUndefined == ANI_TRUE) {
-        return true;
-    }
-    if (slotTypesEnum.empty()) {
-        ANS_LOGD("slotTypes is empty");
+    if (isUndefined == ANI_TRUE || slotTypesEnum.empty()) {
         return true;
     }
     std::vector<SlotType> slotTypes = {};
     for (auto slotTypeEnum : slotTypesEnum) {
         SlotType slotType = SlotType::OTHER;
-        if (SlotTypeEtsToC(env, slotTypeEnum, slotType)) {
-            slotTypes.push_back(slotType);
+        if (!SlotTypeEtsToC(env, slotTypeEnum, slotType)) {
+            ANS_LOGE("SlotTypeEtsToC failed");
+            return false;
         }
+        slotTypes.push_back(slotType);
     }
     info.SetSlotTypes(slotTypes);
     return true;
