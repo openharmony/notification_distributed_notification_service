@@ -2054,6 +2054,16 @@ public:
         napi_value &result);
     static int32_t GetOsAccountLocalIdFromUid(const int32_t uid, int32_t &id);
     static napi_value SetNotificationSettings(const napi_env &env, uint32_t slotFlags, napi_value &result);
+    static napi_value GetSubscriberInfoBundleNames(const napi_env &env,
+        const napi_value &value, NotificationSubscribeInfo &subscriberInfo);
+    static napi_value GetSubscriberInfoUserId(const napi_env &env,
+        const napi_value &value, NotificationSubscribeInfo &subscriberInfo);
+    static napi_value GetSubscriberInfoDeviceType(const napi_env &env,
+        const napi_value &value, NotificationSubscribeInfo &subscriberInfo);
+    static napi_value GetSubscriberInfoFilterLimit(const napi_env &env,
+        const napi_value &value, NotificationSubscribeInfo &subscriberInfo);
+    static napi_value GetSubscriberInfoSlotTypes(const napi_env &env,
+        const napi_value &value, NotificationSubscribeInfo &subscriberInfo);
 private:
     static const int32_t ARGS_ONE = 1;
     static const int32_t ARGS_TWO = 2;
