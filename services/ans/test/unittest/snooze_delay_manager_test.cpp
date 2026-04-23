@@ -443,7 +443,104 @@ HWTEST_F(AnsSnoozeDelayTest, StartSnoozeTimer_00001, Function | SmallTest | Leve
 
     advancedNotificationService_->snoozeDelayTimerList_.clear();
     ASSERT_EQ(advancedNotificationService_->StartSnoozeTimer(), false);
+}
 
+/**
+ * @tc.name: RemoveAllFromSnoozeDelayList_00001
+ * @tc.desc: Test RemoveAllFromSnoozeDelayList
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(AnsSnoozeDelayTest, RemoveAllFromSnoozeDelayList_00001, Function | SmallTest | Level1)
+{
+    sptr<NotificationRequest> request(new (std::nothrow) NotificationRequest());
+    auto record1 = std::make_shared<NotificationRecord>();
+    record1->request = request;
+    record1->bundleOption = nullptr;
+    advancedNotificationService_->snoozeDelayTimerList_.push_back(record1);
+
+    auto record2 = std::make_shared<NotificationRecord>();
+    sptr<NotificationBundleOption> bundleOption = new NotificationBundleOption();
+    bundleOption->SetBundleName("testBundle");
+    bundleOption->SetUid(100);
+    record2->request = request;
+    record2->bundleOption = bundleOption;
+    advancedNotificationService_->snoozeDelayTimerList_.push_back(record2);
+    advancedNotificationService_->RemoveAllFromSnoozeDelayList(nullptr);
+    advancedNotificationService_->RemoveAllFromSnoozeDelayList(bundleOption);
+
+    ASSERT_EQ(advancedNotificationService_->snoozeDelayTimerList_.size(), 1);
+}
+
+/**
+ * @tc.name: RemoveAllFromSnoozeDelayList_00002
+ * @tc.desc: Test RemoveAllFromSnoozeDelayList
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(AnsSnoozeDelayTest, RemoveAllFromSnoozeDelayList_00002, Function | SmallTest | Level1)
+{
+    sptr<NotificationRequest> request(new (std::nothrow) NotificationRequest());
+    auto record = std::make_shared<NotificationRecord>();
+    sptr<NotificationBundleOption> bundleOption = new NotificationBundleOption();
+    bundleOption->SetBundleName("testBundle");
+    bundleOption->SetUid(100);
+    sptr<NotificationBundleOption> bundleOption1 = new NotificationBundleOption();
+    bundleOption1->SetBundleName("testBundle1");
+    bundleOption1->SetUid(100);
+    record->request = request;
+    record->bundleOption = bundleOption;
+    advancedNotificationService_->snoozeDelayTimerList_.push_back(record);
+    advancedNotificationService_->RemoveAllFromSnoozeDelayList(bundleOption1);
+    ASSERT_EQ(advancedNotificationService_->snoozeDelayTimerList_.size(), 1);
+}
+
+/**
+ * @tc.name: RemoveAllFromSnoozeDelayList_00003
+ * @tc.desc: Test RemoveAllFromSnoozeDelayList
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(AnsSnoozeDelayTest, RemoveAllFromSnoozeDelayList_00003, Function | SmallTest | Level1)
+{
+    sptr<NotificationRequest> request(new (std::nothrow) NotificationRequest());
+    auto record = std::make_shared<NotificationRecord>();
+    sptr<NotificationBundleOption> bundleOption = new NotificationBundleOption();
+    bundleOption->SetBundleName("testBundle");
+    bundleOption->SetUid(101);
+    sptr<NotificationBundleOption> bundleOption1 = new NotificationBundleOption();
+    bundleOption1->SetBundleName("testBundle");
+    bundleOption1->SetUid(100);
+    record->request = request;
+    record->bundleOption = bundleOption;
+    advancedNotificationService_->snoozeDelayTimerList_.push_back(record);
+    advancedNotificationService_->RemoveAllFromSnoozeDelayList(bundleOption1);
+    ASSERT_EQ(advancedNotificationService_->snoozeDelayTimerList_.size(), 1);
+}
+
+/**
+ * @tc.name: RemoveAllFromSnoozeDelayListByUser_00001
+ * @tc.desc: Test RemoveAllFromSnoozeDelayListByUser
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(AnsSnoozeDelayTest, RemoveAllFromSnoozeDelayListByUser_00001, Function | SmallTest | Level1)
+{
+    sptr<NotificationRequest> request(new (std::nothrow) NotificationRequest());
+    request->SetCreatorUserId(100);
+    sptr<Notification> notification(new (std::nothrow) Notification(request));
+    auto record2 = std::make_shared<NotificationRecord>();
+    sptr<NotificationBundleOption> bundleOption = new NotificationBundleOption();
+    bundleOption->SetBundleName("testBundle");
+    bundleOption->SetUid(100);
+    record2->request = request;
+    record2->bundleOption = bundleOption;
+    record2->notification = notification;
+    advancedNotificationService_->snoozeDelayTimerList_.push_back(record2);
+    advancedNotificationService_->RemoveAllFromSnoozeDelayListByUser(100);
+    advancedNotificationService_->RemoveAllFromSnoozeDelayListByUser(101);
+
+    ASSERT_EQ(advancedNotificationService_->snoozeDelayTimerList_.size(), 0);
 }
 }  // namespace Notification
 }  // namespace OHOS

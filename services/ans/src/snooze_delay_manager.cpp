@@ -311,108 +311,6 @@ void AdvancedNotificationService::SetNextSnoozeTimer(int64_t currentTime)
     CheckSnoozeTimer();
 }
 
-void AdvancedNotificationService::RemoveForDeleteAllSnoozeDelayRecord(
-    const std::string &key, int32_t userId)
-{
-    {
-        std::lock_guard<ffrt::mutex> locker(snoozeNotificationMutex_);
-        for (auto it = snoozeDelayTimerList_.begin(); it != snoozeDelayTimerList_.end();) {
-            if ((*it) == nullptr || (*it)->notification == nullptr) {
-                ++it;
-                continue;
-            }
-            if (((*it)->notification->GetKey() == key) &&
-                ((*it)->notification->GetUserId() == userId)) {
-                DeleteSnoozeNotificationFromDB(*it);
-                it = snoozeDelayTimerList_.erase(it);
-            } else {
-                ++it;
-            }
-        }
-    }
-    CheckSnoozeTimer();
-}
-
-void AdvancedNotificationService::RemoveFromRemoveSnoozeDelayList(
-    const std::string &key)
-{
-    {
-        std::lock_guard<ffrt::mutex> locker(snoozeNotificationMutex_);
-        for (auto it = snoozeDelayTimerList_.begin(); it != snoozeDelayTimerList_.end();) {
-            if ((*it) == nullptr || (*it)->notification == nullptr) {
-                ++it;
-                continue;
-            }
-            if ((*it)->notification->GetKey() == key) {
-                AdvancedNotificationService::GetInstance()->DeleteSnoozeNotificationFromDB(*it);
-                it = snoozeDelayTimerList_.erase(it);
-            } else {
-                ++it;
-            }
-        }
-    }
-    CheckSnoozeTimer();
-}
-
-void AdvancedNotificationService::ExecuteCancelGroupCancelFromSnoozeDelayList(
-    const sptr<NotificationBundleOption>& bundleOption, const std::string &groupName)
-{
-    {
-        std::lock_guard<ffrt::mutex> locker(snoozeNotificationMutex_);
-        for (auto it = snoozeDelayTimerList_.begin(); it != snoozeDelayTimerList_.end();) {
-            if (((*it)->bundleOption->GetBundleName() == bundleOption->GetBundleName()) &&
-                ((*it)->bundleOption->GetUid() == bundleOption->GetUid()) &&
-                ((*it)->notification->GetInstanceKey() == bundleOption->GetAppInstanceKey()) &&
-                ((*it)->request->GetGroupName() == groupName)) {
-                AdvancedNotificationService::GetInstance()->DeleteSnoozeNotificationFromDB(*it);
-                it = snoozeDelayTimerList_.erase(it);
-            } else {
-                ++it;
-            }
-        }
-    }
-    CheckSnoozeTimer();
-}
-
-void AdvancedNotificationService::RemoveAllNotificationsByBundleNameFromSnoozeDelayList(
-    const std::string &bundleName)
-{
-    {
-        std::lock_guard<ffrt::mutex> locker(snoozeNotificationMutex_);
-        for (auto it = snoozeDelayTimerList_.begin(); it != snoozeDelayTimerList_.end();) {
-            if ((*it) == nullptr || (*it)->bundleOption == nullptr) {
-                ++it;
-                continue;
-            }
-            if (((*it)->bundleOption->GetBundleName() == bundleName)) {
-                AdvancedNotificationService::GetInstance()->DeleteSnoozeNotificationFromDB(*it);
-                it = snoozeDelayTimerList_.erase(it);
-            } else {
-                ++it;
-            }
-        }
-    }
-    CheckSnoozeTimer();
-}
-
-void AdvancedNotificationService::DeleteAllByUserStoppedFromSnoozeDelayList(std::string key, int32_t userId)
-{
-    {
-        std::lock_guard<ffrt::mutex> locker(snoozeNotificationMutex_);
-        for (auto it = snoozeDelayTimerList_.begin(); it != snoozeDelayTimerList_.end();) {
-            if (((*it)->notification->GetKey() == key) &&
-                (((*it)->notification->GetRecvUserId() == userId) ||
-                ((*it)->notification->GetRecvUserId() == ZERO_USERID))) {
-                AdvancedNotificationService::GetInstance()->DeleteSnoozeNotificationFromDB(*it);
-                it = snoozeDelayTimerList_.erase(it);
-            } else {
-                ++it;
-            }
-        }
-    }
-    CheckSnoozeTimer();
-}
-
 void AdvancedNotificationService::RemoveAllFromSnoozeDelayList(const sptr<NotificationBundleOption> &bundle)
 {
     if (bundle == nullptr) {
@@ -425,9 +323,25 @@ void AdvancedNotificationService::RemoveAllFromSnoozeDelayList(const sptr<Notifi
                 ++it;
                 continue;
             }
-            if ((*it)->bundleOption->GetBundleName() != bundle->GetBundleName() ||
-                (*it)->bundleOption->GetUid() != bundle->GetUid()) {
-                AdvancedNotificationService::GetInstance()->DeleteSnoozeNotificationFromDB(*it);
+            if ((*it)->bundleOption->GetBundleName() == bundle->GetBundleName() &&
+                (*it)->bundleOption->GetUid() == bundle->GetUid()) {
+                DeleteSnoozeNotificationFromDB(*it);
+                it = snoozeDelayTimerList_.erase(it);
+            } else {
+                ++it;
+            }
+        }
+    }
+    CheckSnoozeTimer();
+}
+
+void AdvancedNotificationService::RemoveAllFromSnoozeDelayListByUser(int32_t userId)
+{
+    {
+        std::lock_guard<ffrt::mutex> locker(snoozeNotificationMutex_);
+        for (auto it = snoozeDelayTimerList_.begin(); it != snoozeDelayTimerList_.end();) {
+            if (((*it)->notification->GetUserId() == userId)) {
+                DeleteSnoozeNotificationFromDB(*it);
                 it = snoozeDelayTimerList_.erase(it);
             } else {
                 ++it;

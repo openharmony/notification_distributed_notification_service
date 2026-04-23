@@ -1775,7 +1775,6 @@ ErrCode AdvancedNotificationService::RemoveFromNotificationList(
     const std::string &key, sptr<Notification> &notification, bool isCancel, int32_t removeReason)
 {
     RemoveFromTriggerNotificationList(key);
-    RemoveFromRemoveSnoozeDelayList(key);
     for (auto record : notificationList_) {
         if (record->notification->GetKey() != key) {
             continue;
@@ -1808,7 +1807,6 @@ ErrCode AdvancedNotificationService::RemoveFromNotificationListForDeleteAll(
     const std::string &key, const int32_t &userId, sptr<Notification> &notification, bool removeAll)
 {
     RemoveForDeleteAllFromTriggerNotificationList(key, userId);
-    RemoveForDeleteAllSnoozeDelayRecord(key, userId);
     for (auto record : notificationList_) {
         if ((record->notification->GetKey() == key) &&
             (record->notification->GetUserId() == userId)) {
@@ -2518,6 +2516,7 @@ ErrCode AdvancedNotificationService::DisableNotificationFeature(const sptr<Notif
             RemoveAllNotificationsByBundleName(
                 bundle, NotificationConstant::DISABLE_NOTIFICATION_FEATURE_REASON_DELETE, userId);
         }
+        RemoveAllFromSnoozeDelayListByUser(userId);
     }
     return ERR_OK;
 }

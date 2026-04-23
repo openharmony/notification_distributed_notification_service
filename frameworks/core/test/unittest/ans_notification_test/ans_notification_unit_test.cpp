@@ -3314,5 +3314,65 @@ HWTEST_F(AnsNotificationUnitTest, SubscribeNotificationv26_0900, Function | Medi
     ErrCode ret2 = ans_->UnSubscribeNotification(subscriberPtr, nullptr);
     EXPECT_EQ(ret2, ERR_OK);
 }
+
+/*
+ * @tc.name: SnoozeNotification_0100
+ * @tc.desc: test SnoozeNotification when hashCode error.
+ * @tc.type: FUNC
+ * @tc.require: #I62SME
+ */
+HWTEST_F(AnsNotificationUnitTest, SnoozeNotification_0100, Function | MediumTest | Level1)
+{
+    sptr<MockAnsManagerProxy> proxy = new (std::nothrow) MockAnsManagerProxy();
+    MockGetAnsManagerProxy(proxy);
+    std::string hashCode = "";
+    int64_t delayTime = 10;
+    ErrCode ret1 = ans_->SnoozeNotification(hashCode, delayTime);
+    EXPECT_EQ(ret1, ERR_ANS_INVALID_PARAM);
+}
+
+/*
+ * @tc.name: SnoozeNotification_0200
+ * @tc.desc: test SnoozeNotification when delayTime error.
+ * @tc.type: FUNC
+ * @tc.require: #I62SME
+ */
+HWTEST_F(AnsNotificationUnitTest, SnoozeNotification_0200, Function | MediumTest | Level1)
+{
+    sptr<MockAnsManagerProxy> proxy = new (std::nothrow) MockAnsManagerProxy();
+    MockGetAnsManagerProxy(proxy);
+    std::string hashCode = "test123";
+    int64_t delayTime = 0;
+    ErrCode ret1 = ans_->SnoozeNotification(hashCode, delayTime);
+    EXPECT_EQ(ret1, ERR_ANS_INVALID_PARAM);
+
+    hashCode = "test123";
+    delayTime = 24 * 3600 + 100;
+    ret1 = ans_->SnoozeNotification(hashCode, delayTime);
+    EXPECT_EQ(ret1, ERR_ANS_INVALID_PARAM);
+}
+
+/*
+ * @tc.name: SnoozeNotification_0300
+ * @tc.desc: test SnoozeNotification return false.
+ * @tc.type: FUNC
+ * @tc.require: #I62SME
+ */
+HWTEST_F(AnsNotificationUnitTest, SnoozeNotification_0300, Function | MediumTest | Level1)
+{
+    MockWriteInterfaceToken(false);
+    sptr<MockIRemoteObject> iremoteObject_ = new (std::nothrow) MockIRemoteObject();
+    ASSERT_NE(nullptr, iremoteObject_);
+    std::shared_ptr<AnsManagerProxy> proxy = std::make_shared<AnsManagerProxy>(iremoteObject_);
+    ASSERT_NE(nullptr, proxy);
+    MockGetAnsManagerProxy(nullptr);
+    bool res = ans_->GetAnsManagerProxy();
+    EXPECT_EQ(res, false);
+
+    std::string hashCode = "test123";
+    int64_t delayTime = 10;
+    ErrCode ret1 = ans_->SnoozeNotification(hashCode, delayTime);
+    EXPECT_EQ(ret1, ERR_ANS_SERVICE_NOT_CONNECTED);
+}
 }  // namespace Notification
 }  // namespace OHOS
