@@ -31,6 +31,7 @@ template("advancednotificationservice_infra_test_target") {
       "/${services_path}/infrastructure/interfaces",
       "/${services_path}/infrastructure/interfaces/adapter",
       "/${services_path}/infrastructure/external_adapter/bms/include",
+      "/${services_path}/infrastructure/external_adapter/timer/include",
     ]
 
     defines = []
@@ -60,6 +61,7 @@ template("advancednotificationservice_infra_test_target") {
       "hilog:libhilog",
       "os_account:os_account_innerkits",
       "samgr:samgr_proxy",
+      "time_service:time_client",
     ]
 
     if (defined(invoker.external_deps)) {

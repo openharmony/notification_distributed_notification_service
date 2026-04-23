@@ -1783,5 +1783,29 @@ HWTEST_F(NotificationHelperTest, GetStatisticsByBundle_0100, Function | SmallTes
     ErrCode ret = notificationHelper.GetStatisticsByBundle(bundleOptions, statistics);
     EXPECT_EQ(ret, ERR_ANS_PERMISSION_DENIED);
 }
+
+/**
+ * @tc.name: SnoozeNotification_0100
+ * @tc.desc: Test SnoozeNotification.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationHelperTest, SnoozeNotification_0100, Function | SmallTest | Level1)
+{
+    NotificationHelper notificationHelper;
+    std::string hashCode = "";
+    int64_t delayTime = 10;
+    ErrCode ret = notificationHelper.SnoozeNotification(hashCode, delayTime);
+    EXPECT_EQ(ret, ERR_ANS_INVALID_PARAM);
+
+    hashCode = "test123";
+    delayTime = 0;
+    ret = notificationHelper.SnoozeNotification(hashCode, delayTime);
+    EXPECT_EQ(ret, ERR_ANS_INVALID_PARAM);
+
+    hashCode = "test123";
+    delayTime = 24 * 3600 + 100;
+    ret = notificationHelper.SnoozeNotification(hashCode, delayTime);
+    EXPECT_EQ(ret, ERR_ANS_INVALID_PARAM);
+}
 }
 }

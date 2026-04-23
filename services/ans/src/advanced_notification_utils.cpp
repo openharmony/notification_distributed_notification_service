@@ -1315,7 +1315,6 @@ void AdvancedNotificationService::DeleteAllByUserStopped(int32_t userId)
         GetDistributedInfo(key, deviceId, bundleName);
 #endif
         DeleteAllByUserStoppedFromTriggerNotificationList(key, userId);
-        DeleteAllByUserStoppedFromSnoozeDelayList(key, userId);
         sptr<Notification> notification = nullptr;
         for (auto record : notificationList_) {
             if ((record->notification->GetKey() == key) &&
@@ -1343,7 +1342,7 @@ void AdvancedNotificationService::DeleteAllByUserStopped(int32_t userId)
             SendNotificationsOnCanceled(notifications, nullptr, NotificationConstant::USER_LOGOUT_REASON_DELETE);
         }
     }
-
+    RemoveAllFromSnoozeDelayListByUser(userId);
     if (!notifications.empty()) {
         NotificationSubscriberManager::GetInstance()->BatchNotifyCanceled(
             notifications, nullptr, NotificationConstant::USER_LOGOUT_REASON_DELETE);
@@ -1414,7 +1413,7 @@ ErrCode AdvancedNotificationService::DeleteAllByUserInner(const int32_t &userId,
                 SendNotificationsOnCanceled(notifications, nullptr, deleteReason);
             }
         }
-
+        RemoveAllFromSnoozeDelayListByUser(userId);
         if (!notifications.empty()) {
             NotificationSubscriberManager::GetInstance()->BatchNotifyCanceled(
                 notifications, nullptr, deleteReason);

@@ -1996,13 +1996,8 @@ public:
     int64_t GetEarliestTriggerTime();
     void CheckSnoozeTimer();
     void SetNextSnoozeTimer(int64_t currentTime);
-    void RemoveForDeleteAllSnoozeDelayRecord(const std::string &key, int32_t userId);
-    void RemoveFromRemoveSnoozeDelayList(const std::string &key);
-    void ExecuteCancelGroupCancelFromSnoozeDelayList(
-        const sptr<NotificationBundleOption>& bundleOption, const std::string &groupName);
-    void RemoveAllNotificationsByBundleNameFromSnoozeDelayList(const std::string &bundleName);
-    void DeleteAllByUserStoppedFromSnoozeDelayList(std::string key, int32_t userId);
     void RemoveAllFromSnoozeDelayList(const sptr<NotificationBundleOption> &bundle);
+    void RemoveAllFromSnoozeDelayListByUser(int32_t userId);
 protected:
     /**
      * @brief Query whether there is a agent relationship between the two apps.
