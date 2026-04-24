@@ -83,7 +83,6 @@ ErrCode AdvancedNotificationService::ExcuteSnoozeNotification(const std::string 
             message.ErrorCode(ERR_ANS_NOTIFICATION_NOT_EXISTS).BranchId(BRANCH_3));
         return ERR_ANS_NOTIFICATION_NOT_EXISTS;
     }
-    // 不支持的通知类型
     if (outRecord->request->IsCommonLiveView() || outRecord->request->IsSystemLiveView()) {
         ANS_LOGE("notification is not supported to snooze");
         message.Message(hashCode + " is not supported to snooze");
@@ -92,7 +91,6 @@ ErrCode AdvancedNotificationService::ExcuteSnoozeNotification(const std::string 
         return ERR_ANS_NOTIFICATION_SNOOZE_NOTALLOWED;
     }
 
-    // 删除原来的通知
     ErrCode result = ERR_OK;
     int32_t reason = NotificationConstant::SNOOZE_REASON_DELETE;
     result = RemoveFromNotificationList(hashCode, notification, false, reason);
@@ -103,9 +101,10 @@ ErrCode AdvancedNotificationService::ExcuteSnoozeNotification(const std::string 
         CancelTimer(notification->GetAutoDeletedTimer());
         NotificationSubscriberManager::GetInstance()->NotifyCanceled(notification, nullptr, reason);
     }
-    SetSnoozeDelayTimeToDB(delayTime, outRecord);
+    if (!SetSnoozeDelayTimeToDB(delayTime, outRecord)) {
+        return ERR_ANS_PREFERENCES_NOTIFICATION_DB_OPERATION_FAILED;
+    }
     
-    // 创建定时器
     StartSnoozeTimer();
     return ERR_OK;
 }
@@ -125,7 +124,10 @@ bool AdvancedNotificationService::SetSnoozeDelayTimeToDB(const int64_t delayTime
     SetNotificationRemindType(snoozeRecord->notification, true);
     snoozeRecord->request->SetAutoDeletedTime(NotificationConstant::INVALID_AUTO_DELETE_TIME);
     NotificationRequestDb requestDb = { .request = snoozeRecord->request, .bundleOption = snoozeRecord->bundleOption};
-    SetEncryptToDB(requestDb);
+    if (!SetEncryptToDB(requestDb)) {
+        ANS_LOGE("SetEncryptToDB failed");
+        return false;
+    }
 
     InsertsnoozeDelayTimer(snoozeRecord);
     return true;
@@ -219,7 +221,6 @@ void AdvancedNotificationService::TriggerSnoozeDelay()
         }
     }
 
-    // 设置下一个定时器
     SetNextSnoozeTimer(current);
 }
 
@@ -263,8 +264,10 @@ bool AdvancedNotificationService::StartSnoozeTimer()
     if (triggerTime == 0) {
         return false;
     }
-    CreateSnoozeTimer();
+
     timerImpl_.StopTimer();
+    timerImpl_.DestroyTimer();
+    CreateSnoozeTimer();
     timerImpl_.StartTimer(triggerTime);
     
     return true;
@@ -284,7 +287,6 @@ int64_t AdvancedNotificationService::GetEarliestTriggerTime()
 void AdvancedNotificationService::CheckSnoozeTimer()
 {
     if (snoozeDelayTimerList_.empty()) {
-        // 删除定时器
         timerImpl_.StopTimer();
         timerImpl_.DestroyTimer();
         return;

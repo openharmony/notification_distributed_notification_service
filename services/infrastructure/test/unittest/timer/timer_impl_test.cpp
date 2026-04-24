@@ -38,33 +38,33 @@ public:
     /**
      * Indicates the timing type.
      */
-    void SetType(const int32_t &type_) override
+    void SetType(const int32_t &timerInfoType) override
     {
-        type = type_;
+        type = timerInfoType;
     }
 
     /**
      * Indicates the repeat policy.
      */
-    void SetRepeat(bool repeat_) override
+    void SetRepeat(bool timerInfoRepeat) override
     {
-        repeat = repeat_;
+        repeat = timerInfoRepeat;
     }
 
     /**
      * Indicates the interval time for repeat timing.
      */
-    void SetInterval(const uint64_t &interval_) override
+    void SetInterval(const uint64_t &timerInfoInterval) override
     {
-        interval = interval_;
+        interval = timerInfoInterval;
     }
 
     /**
      * Indicates the want agent information.
      */
-    void SetWantAgent(std::shared_ptr<OHOS::AbilityRuntime::WantAgent::WantAgent> wantAgent_) override
+    void SetWantAgent(std::shared_ptr<OHOS::AbilityRuntime::WantAgent::WantAgent> timerInfoWantAgent) override
     {
-        wantAgent = wantAgent_;
+        wantAgent = timerInfoWantAgent;
     }
 };
 
