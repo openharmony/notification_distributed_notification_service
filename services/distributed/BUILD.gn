@@ -64,7 +64,8 @@ ohos_shared_library("libans_distributed") {
     "kv_store:distributeddata_inner",
   ]
 
-  if (ans_device_manager_enable && distributed_notification_service_feature_watch) {
+  if (ans_device_manager_enable &&
+      distributed_notification_service_feature_watch) {
     external_deps += [ "device_manager:devicemanagersdk" ]
   }
 
@@ -177,7 +178,8 @@ ohos_shared_library("libdans") {
     "zlib:libz",
   ]
 
-  if (ans_device_manager_enable && distributed_notification_service_feature_watch) {
+  if (ans_device_manager_enable &&
+      distributed_notification_service_feature_watch) {
     external_deps += [ "device_manager:devicemanagersdk" ]
   }
   if (ans_soft_bus_enable && distributed_notification_service_feature_watch) {
@@ -261,9 +263,9 @@ ohos_shared_library("libans_extension_service") {
     "ability_runtime:runtime",
     "ability_runtime:uri_permission_mgr",
     "access_token:libaccesstoken_sdk",
+    "background_task_mgr:bgtaskmgr_innerkits",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
-    "background_task_mgr:bgtaskmgr_innerkits",
     "c_utils:utils",
     "ffrt:libffrt",
     "hilog:libhilog",

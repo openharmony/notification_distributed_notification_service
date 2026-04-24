@@ -39,9 +39,9 @@ ohos_shared_library("ans_base") {
 
   sources = [
     "external_adapter/account/iaccount_manager_impl.cpp",
-    "external_adapter/extension/src/all_scenarios_extension_wrapper.cpp",
     "external_adapter/bms/src/bundle_manager_repository_impl.cpp",
     "external_adapter/bms/src/bundle_service_connector.cpp",
+    "external_adapter/extension/src/all_scenarios_extension_wrapper.cpp",
     "external_adapter/ffrt/src/ffrt_queue_impl.cpp",
     "external_adapter/timer/src/timer_impl.cpp",
   ]
@@ -57,13 +57,11 @@ ohos_shared_library("ans_base") {
     "${frameworks_module_ans_path}:ans_innerkits_public_config",
   ]
 
-  public_configs = [
-    "external_adapter\rdb:ans_base_rdb_config_public"
-  ]
+  public_configs = [ "external_adapter\rdb:ans_base_rdb_config_public" ]
 
   deps = [
     "${frameworks_module_ans_path}:ans_innerkits",
-    "external_adapter\rdb:ans_base_rdb"
+    "external_adapter\rdb:ans_base_rdb",
   ]
 
   external_deps = [
@@ -84,7 +82,5 @@ ohos_shared_library("ans_base") {
 
 group("unittest") {
   testonly = true
-  deps = [
-    "external_adapter\rdb:ans_base_rdb_unittest",
-  ]
+  deps = [ "external_adapter\rdb:ans_base_rdb_unittest" ]
 }
