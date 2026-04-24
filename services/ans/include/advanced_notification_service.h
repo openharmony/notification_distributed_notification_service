@@ -2294,6 +2294,8 @@ private:
     ErrCode StartAutoDeletedTimer(const std::shared_ptr<NotificationRecord> &record);
     void ProcForDeleteLiveView(const std::shared_ptr<NotificationRecord> &record);
     void ProcForDeleteNotificationFromDb(const std::shared_ptr<NotificationRecord> &record);
+    void DeleteNotificationFromDb(const std::shared_ptr<NotificationRecord> &record,
+        const int32_t removeReason, const bool isCancel);
     void QueryDoNotDisturbProfile(const int32_t &userId, std::string &enable, std::string &profileId);
     void QueryIntelligentExperienceEnable(const int32_t &userId, std::string &enable);
     void CheckDoNotDisturbProfile(const std::shared_ptr<NotificationRecord> &record);
