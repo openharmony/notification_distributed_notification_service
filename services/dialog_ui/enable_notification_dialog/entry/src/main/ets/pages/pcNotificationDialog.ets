@@ -36,13 +36,11 @@ import { MeasureUtils } from '@ohos.arkui.UIContext';
 import common from '@ohos.app.ability.common';
 import uiextension from '@ohos.arkui.uiExtension';
 import DisplayUtils from '../common/displayUtils';
-import uiMaterial from '@ohos.arkui.uiMaterial';
 
 const TAG = 'NotificationDialog_Service ';
 const MASK_COLOR = '#33000000';
 const TRANSPARANT_COLOR = '#00000000';
 const EMPTY_PAGE_PATH = 'emptyPage';
-const defaultUiMaterial = new uiMaterial.ImmersiveMaterial({style: 0});
 
 const permission: Record<string, Resource> = {
   'label': $r('app.string.group_label_notification'),
@@ -91,7 +89,6 @@ struct NotificationDialogPage {
     alignment: DialogAlignment.Center,
     customStyle: true,
     cornerRadius: Constants.PC_RDIUS_12,
-    systemMaterial: defaultUiMaterial,
     maskColor: $r('sys.color.ohos_id_color_mask_thin'),
     onWillDismiss: (dismissDialogAction: DismissDialogAction) => {
       console.info(TAG, `dialog onWillDismiss reason= : ${JSON.stringify(dismissDialogAction.reason)}`);
@@ -211,7 +208,6 @@ struct PermissionDialog {
                     await this.enableNotification(false);
                     })
                     .customizeButton()
-                    .systemMaterial(defaultUiMaterial)
                     .fontColor($r('sys.color.ohos_id_color_warning'))
                   Divider()
                     .color(Color.Transparent)
@@ -223,7 +219,6 @@ struct PermissionDialog {
                       await this.enableNotification(true);
                     })
                     .customizeButton()
-                    .systemMaterial(defaultUiMaterial)
                     .fontColor($r('sys.color.font_emphasize'))
                 }
                 .margin({ 
@@ -236,7 +231,6 @@ struct PermissionDialog {
             }
           }
         }
-        .systemMaterial(defaultUiMaterial)
         .borderRadius(Constants.PC_RDIUS_12)
         .backgroundBlurStyle(BlurStyle.COMPONENT_ULTRA_THICK)
         .width(this.contentWidth)
