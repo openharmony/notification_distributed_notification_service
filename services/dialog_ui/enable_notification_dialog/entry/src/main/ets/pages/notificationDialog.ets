@@ -41,7 +41,7 @@ const permission: Record<string, Resource> = {
   'reason': $r('app.string.reason'),
 };
 const bottomPopoverTypes = ['default', 'phone'];
-const defaultUiMaterial = new uiMaterial.ImmersiveMaterial({style: 0});
+const defaultUiMaterial = new uiMaterial.ImmersiveMaterial({style: 4});
 
 let storage = LocalStorage.getShared();
 
@@ -206,7 +206,6 @@ struct PermissionDialog {
                     await this.enableNotification(false);
                     })
                     .customizeButton()
-                    .systemMaterial(defaultUiMaterial)
                     .fontColor($r('sys.color.ohos_id_color_warning'))
                   Divider()
                     .color($r('app.color.comp_divider'))
@@ -219,7 +218,6 @@ struct PermissionDialog {
                       await this.enableNotification(true);
                     })
                     .customizeButton()
-                    .systemMaterial(defaultUiMaterial)
                     .fontColor($r('app.color.button_text'))
                 }
                 .margin({ 
@@ -236,7 +234,6 @@ struct PermissionDialog {
                   .onClick(async (): Promise<void> => {
                     await this.enableNotification(false);
                   })
-                  .systemMaterial(defaultUiMaterial)
                   .singleRowButton()
                   .fontColor($r('sys.color.ohos_id_color_warning'))
                   .margin({ 
@@ -259,7 +256,6 @@ struct PermissionDialog {
                       await this.enableNotification(true);
                     })
                     .singleRowButton()
-                    .systemMaterial(defaultUiMaterial)
                     .fontColor($r('app.color.button_text'))
                     .margin({ 
                       left: Constants.MARGIN_ZERO, 
@@ -277,7 +273,6 @@ struct PermissionDialog {
           }
         }
         .borderRadius(Constants.DIALOG_PRIVACY_BORDER_RADIUS)
-        .backgroundBlurStyle(BlurStyle.COMPONENT_ULTRA_THICK)
         .width(Constants.FULL_WIDTH)
         .clip(true)
         .id(mainWindowId)
