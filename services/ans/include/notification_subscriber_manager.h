@@ -237,6 +237,8 @@ private:
     ErrCode RemoveSubscriberInner(
         const sptr<IAnsSubscriber> &subscriber, const sptr<NotificationSubscribeInfo> &subscribeInfo);
 
+    int32_t GetVoiceContentInfo(const sptr<Notification> &notification, std::set<std::string>& voiceFlag,
+        std::string& content);
     void NotifyConsumedInner(
         const sptr<Notification> &notification, const sptr<NotificationSortingMap> &notificationMap);
     void BatchNotifyConsumedInner(const std::vector<sptr<Notification>> &notifications,
@@ -262,8 +264,8 @@ private:
         const std::shared_ptr<SubscriberRecord> &record, const sptr<Notification> &notification);
     bool IsSubscribedByDeviceType(const std::shared_ptr<SubscriberRecord> &record,
         const sptr<Notification> &notification, bool checkConsumedDevice);
-    sptr<Notification> GenerateSubscribedNotification(
-        const std::shared_ptr<SubscriberRecord> &record, const sptr<Notification> &notification);
+    sptr<Notification> GenerateSubscribedNotification(const std::shared_ptr<SubscriberRecord> &record,
+        const sptr<Notification> &notification, const std::string& voiceContent = std::string());
     bool ConsumeRecordFilter(
         const std::shared_ptr<SubscriberRecord> &record, const sptr<Notification> &notification);
     bool IsNeedNotifySubscribers(const std::shared_ptr<SubscriberRecord> &record,
