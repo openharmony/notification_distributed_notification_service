@@ -760,6 +760,46 @@ ErrCode NotificationSubscriberManager::RemoveSubscriberInner(
     return ERR_OK;
 }
 
+int32_t NotificationSubscriberManager::GetVoiceContentInfo(const sptr<Notification> &notification,
+    std::set<std::string>& voiceFlag, std::string& content)
+{
+    std::string voiceContent;
+    sptr<NotificationRequest> request = notification->GetNotificationRequestPoint();
+    if (request == nullptr) {
+        ANS_LOGW("Get voice content invalid request.");
+        return -1;
+    }
+    auto flagsMap = request->GetDeviceFlags();
+    if (flagsMap == nullptr || flagsMap->size() <= 0) {
+        return ERR_OK;
+    }
+
+    voiceFlag.clear();
+    std::string deviceList;
+    for (auto record : subscriberRecordList_) {
+        if (record->deviceType == NotificationConstant::CURRENT_DEVICE_TYPE) {
+            continue;
+        }
+        if ((flagsMap->find(record->deviceType) != flagsMap->end()) &&
+            (record->subscribedFlags_ & NotificationConstant::SubscribedFlag::SUBSCRIBE_ON_VOICE_CONTENT)) {
+            voiceFlag.insert(record->deviceType);
+            deviceList += record->deviceType + " ";
+        }
+    }
+
+    if (voiceFlag.empty()) {
+        return ERR_OK;
+    }
+    int32_t voiceResult = NOTIFICATION_AI_EXTENSION_WRAPPER->GenerateVoiceContent(request, content);
+    ANS_LOGI("Get voice content %{public}zu, %{public}s, %{public}d, %{public}s.", flagsMap->size(),
+        deviceList.c_str(), voiceResult, content.c_str());
+    if (voiceResult != ERR_OK) {
+        content.clear();
+        voiceFlag.clear();
+    }
+    return voiceResult;
+}
+
 void NotificationSubscriberManager::NotifyConsumedInner(const sptr<Notification> &notification,
     const sptr<NotificationSortingMap> &notificationMap)
 {
@@ -771,13 +811,20 @@ void NotificationSubscriberManager::NotifyConsumedInner(const sptr<Notification>
 #ifdef ANS_FEATURE_PRIORITY_NOTIFICATION
     AdvancedNotificationPriorityHelper::GetInstance()->UpdatePriorityType(notification->GetNotificationRequestPoint());
 #endif
+    std::string content;
+    std::set<std::string> voiceFlag;
+    GetVoiceContentInfo(notification, voiceFlag, content);
     for (auto record : subscriberRecordList_) {
         ANS_LOGD("%{public}s record->userId = <%{public}d> BundleName  = <%{public}s deviceType = %{public}s",
             __FUNCTION__, record->userId, notification->GetBundleName().c_str(), record->deviceType.c_str());
         if (IsSubscribedBysubscriber(record, notification) &&  IsSubscribedByDeviceType(record, notification, false) &&
             ConsumeRecordFilter(record, notification) &&
             (record->subscribedFlags_ & NotificationConstant::SubscribedFlag::SUBSCRIBE_ON_CONSUMED)) {
-            auto notificationStub = GenerateSubscribedNotification(record, notification);
+            std::string deviceVoiceContent;
+            if (!content.empty() && voiceFlag.count(record->deviceType)) {
+                deviceVoiceContent = content;
+            }
+            auto notificationStub = GenerateSubscribedNotification(record, notification, deviceVoiceContent);
             if (notificationStub == nullptr) {
                 continue;
             }
@@ -1000,7 +1047,8 @@ bool NotificationSubscriberManager::IsSubscribedBysubscriber(
 }
 
 sptr<Notification> NotificationSubscriberManager::GenerateSubscribedNotification(
-    const std::shared_ptr<SubscriberRecord> &record, const sptr<Notification> &notification)
+    const std::shared_ptr<SubscriberRecord> &record, const sptr<Notification> &notification,
+    const std::string& voiceContent)
 {
     sptr<Notification> notificationStub = nullptr;
     if (!record->subscriber->AsObject()->IsProxyObject()) {
@@ -1044,6 +1092,13 @@ sptr<Notification> NotificationSubscriberManager::GenerateSubscribedNotification
             NotificationConstant::PriorityNotificationType::OTHER);
     }
 #endif
+    if (!voiceContent.empty()) {
+        auto content = std::make_shared<NotificationVoiceContent>();
+        if (content != nullptr) {
+            content->SetTextContent(voiceContent);
+            notificationStub->SetVoiceContent(content);
+        }
+    }
     return notificationStub;
 }
 
