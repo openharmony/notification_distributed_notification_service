@@ -82,7 +82,7 @@ public:
 
     ReminderRequestTimer() : ReminderRequest(ReminderType::TIMER) {};
 
-    static constexpr int64_t MIN_REPEAT_INTERVAL = 60;  // 60s
+    static constexpr int64_t MIN_REPEAT_INTERVAL = 24 * 60 * 60;  // 24h, unit: s
 
 protected:
     virtual uint64_t PreGetNextTriggerTimeIgnoreSnooze(bool ignoreRepeat, bool forceToGetNext) override;
