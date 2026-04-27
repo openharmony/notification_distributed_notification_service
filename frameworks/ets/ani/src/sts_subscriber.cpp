@@ -131,14 +131,28 @@ bool SetVoiceContent(ani_env *env, const std::shared_ptr<NotificationSts> &reque
     ani_status status = ANI_OK;
     auto voiceContent = request->GetVoiceContent();
     if (voiceContent != nullptr) {
+        ani_class cls;
+        ani_object voiceContentObj;
+        if (!CreateClassObjByClassName(env,
+            "notification.notificationSubscriber.VoiceContentInner", cls, voiceContentObj)) {
+            ANS_LOGE("Create voice content class faild.");
+            return false;
+        }
+
         ani_string textContentObj;
         std::string textContent = voiceContent->GetTextContent();
         if (ANI_OK != GetAniStringByString(env, textContent, textContentObj) || textContentObj == nullptr) {
             ANS_LOGE("textContent create faild");
             return false;
         }
-        if (ANI_OK != (status = env->Object_SetPropertyByName_Ref(outObj, "textContent", textContentObj))) {
+
+        if (ANI_OK != (status = env->Object_SetPropertyByName_Ref(voiceContentObj, "textContent", textContentObj))) {
             ANS_LOGE("set textContent faild. status %{public}d", status);
+            return false;
+        }
+ 
+        if (ANI_OK != (status = env->Object_SetPropertyByName_Ref(outObj, "voiceContent", voiceContentObj))) {
+            ANS_LOGE("Object set voice content sortings faild. status %{public}d", status);
             return false;
         }
     }
