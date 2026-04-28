@@ -72,23 +72,115 @@ Check against all categories defined in [references/openharmony-cpp-full-standar
 
 Use grep/regex patterns for quick scanning:
 
-| Priority | Category | Search Pattern |
-|----------|----------|----------------|
-| P0 | NULL usage | `\bNULL\b` |
-| P0 | C-style cast | `\(\w+\*\)` |
-| P0 | Raw new[] without delete[] | `new\s+\w+\[` |
-| P0 | Division without check | `/\s*\w+\s*[;)]` |
-| P0 | Buffer access without bounds | `\[\s*\w+\s*\]` |
-| P1 | Duplicate include | Check same header twice |
-| P1 | Missing header guard | No `#ifndef` in .h |
-| P1 | Uninitialized member | Class members without `{}` |
-| P1 | Missing explicit | Single-param constructor |
-| P1 | Missing override | Virtual function without override |
-| P1 | Macro constant | `#define\s+[A-Z_]+\s+[0-9]` |
-| P1 | long type | `\blong\b` |
-| P2 | const static order | `const\s+static` |
-| P2 | Magic number | Unnamed numeric literals |
-| P2 | Missing comment | Public function without doc |
+| Priority | Category | Search Pattern | Description |
+|----------|----------|----------------|-------------|
+| **P0** | **NULL usage** | `\bNULL\b` | 使用NULL而非nullptr，类型不安全 |
+| **P0** | **C-style cast** | `\(\w+\*\)` | C风格强制转换，缺乏类型安全检查 |
+| **P0** | **Raw new[] without delete[]** | `new\s+\w+\[` | 内存泄漏风险 |
+| **P0** | **Division without check** | `/\s*\w+\s*[;)]` | 除零错误风险 |
+| **P0** | **Buffer access without bounds** | `\[\s*\w+\s*\]` | 数组越界风险 |
+| **P0** | **Missing nullptr check** | Manual review | 函数参数/返回值未校验nullptr |
+| **P0** | **Missing length check** | Manual review | 缓冲区操作未校验长度 |
+| **P0** | **Unvalidated external data** | Manual review | 外部数据未进行合法性校验 |
+| **P0** | **Integer overflow risk** | Manual review | 整数运算可能导致溢出 |
+| **P0** | **Use after free** | Manual review | 内存释放后继续使用 |
+| **P0** | **Dangling pointer** | Manual review | 返回局部变量指针 |
+| **P0** | **Missing size check before alloc** | Manual review | 内存申请前未校验大小 |
+| **P0** | **strncpy/strcpy unsafe usage** | `strncpy|strcpy|sprintf` | 不安全的字符串操作 |
+| **P1** | Duplicate include | Check same header twice | 重复包含头文件 |
+| **P1** | Missing header guard | No `#ifndef` in .h | 缺少头文件保护 |
+| **P1** | Uninitialized member | Class members without `{}` | 成员变量未初始化 |
+| **P1** | Missing explicit | Single-param constructor | 单参数构造函数未声明explicit |
+| **P1** | Missing override | Virtual function without override | 虚函数重写未声明override |
+| **P1** | Macro constant | `#define\s+[A-Z_]+\s+[0-9]` | 使用宏定义常量 |
+| **P1** | long type | `\blong\b` | 使用long类型（32/64位不兼容） |
+| **P2** | const static order | `const\s+static` | const static顺序错误 |
+| **P2** | Magic number | Unnamed numeric literals | 魔鬼数字 |
+| **P2** | Missing comment | Public function without doc | 公有函数缺少注释 |
+
+**IMPORTANT**: All security-related issues (memory safety, null pointer, buffer overflow, integer overflow, use-after-free) MUST be classified as **P0** and block submission.
+
+### Security Coding Checklist (P0 - Block Submission)
+
+**来源：华为C/C++安全编码规范 + OpenHarmony安全编程指南**
+
+详细检视清单请参考：[references/security-coding-checklist.md](references/security-coding-checklist.md)
+
+#### 必须检查的P0安全编码问题（33项）
+
+| 类别 | 检视点数量 | 关键检查项 |
+|------|-----------|-----------|
+| **内存安全** | 9项 | 分配大小校验、new[]配delete[]、memcpy_s/strcpy_s |
+| **指针安全** | 6项 | nullptr校验、禁止NULL、禁止悬空指针、禁止C风格转换 |
+| **缓冲区安全** | 7项 | 边界校验、指定长度、不依赖'\0'终止符 |
+| **整数安全** | 6项 | 溢出检查、除零检查、位运算类型 |
+| **外部数据** | 4项 | 网络/文件/IPC/用户输入校验 |
+| **并发安全** | 1项 | 共享数据加锁 |
+| **密码安全** | 2项 | 禁止硬编码密钥、禁止打印敏感信息 |
+
+#### 详细检视清单
+
+1. **内存安全 (P0-01 ~ P0-09)**
+   - [ ] P0-01: 分配前是否校验大小 (size != 0 && size <= MAX)
+   - [ ] P0-02: 分配失败是否检查返回值 (ptr != nullptr)
+   - [ ] P0-03: 是否禁止new[0] (length == 0校验)
+   - [ ] P0-04: new[]是否配delete[]而非delete
+   - [ ] P0-05: 释放后是否置nullptr
+   - [ ] P0-06: 是否禁止释放后继续使用 (UAF)
+   - [ ] P0-07: 是否使用memcpy_s而非memcpy
+   - [ ] P0-08: 是否使用strcpy_s而非strcpy
+   - [ ] P0-09: 是否使用snprintf而非sprintf
+
+2. **指针安全 (P0-10 ~ P0-15)**
+   - [ ] P0-10: 是否使用nullptr而非NULL
+   - [ ] P0-11: 参数指针是否校验nullptr
+   - [ ] P0-12: 返回值指针是否校验
+   - [ ] P0-13: 成员指针是否校验
+   - [ ] P0-14: 是否禁止返回局部变量指针
+   - [ ] P0-15: 是否使用C++类型转换而非C风格
+
+3. **缓冲区安全 (P0-16 ~ P0-21)**
+   - [ ] P0-16: 数组索引是否校验边界
+   - [ ] P0-17: 缓冲区写入是否校验剩余空间
+   - [ ] P0-18: 缓冲区读取是否校验数据长度
+   - [ ] P0-19: 是否禁止依赖'\0'终止符确定边界
+   - [ ] P0-20: 创建string前是否校验指针非空
+   - [ ] P0-21: 构造string是否指定长度
+
+4. **整数安全 (P0-22 ~ P0-26)**
+   - [ ] P0-22: 加法运算是否检查溢出
+   - [ ] P0-23: 乘法运算是否检查溢出
+   - [ ] P0-24: 除法前是否检查除数不为0
+   - [ ] P0-25: 取模前是否检查模数不为0
+   - [ ] P0-26: 是否禁止有符号数位运算
+
+5. **外部数据校验 (P0-27 ~ P0-30)**
+   - [ ] P0-27: 网络数据是否校验
+   - [ ] P0-28: 文件数据是否校验
+   - [ ] P0-29: IPC数据是否校验
+   - [ ] P0-30: 用户输入是否校验
+
+6. **并发安全 (P0-31)**
+   - [ ] P0-31: 共享数据是否加锁
+
+7. **密码安全 (P0-32 ~ P0-33)**
+   - [ ] P0-32: 是否禁止硬编码密钥/密码
+   - [ ] P0-33: 是否禁止日志打印敏感信息
+
+#### 检视时必须使用以下方式
+
+```bash
+# 自动检测命令
+grep -n "\bNULL\b" *.cpp *.h              # P0-10: NULL使用
+grep -n "\(\w+\*\)" *.cpp *.h             # P0-15: C风格转换
+grep -n "memcpy\b" *.cpp *.h              # P0-07: memcpy使用
+grep -n "strcpy\b" *.cpp *.h              # P0-08: strcpy使用
+grep -n "sprintf\b" *.cpp *.h             # P0-09: sprintf使用
+grep -n "password\|secret\|key" *.cpp *.h # P0-32: 硬编码敏感信息
+
+# 人工审查项（无法自动检测）
+# P0-01~06, P0-11~21, P0-22~31, P0-33: 需要人工逐行审查代码逻辑
+```
 
 ### Step 3: Generate HTML Report
 
