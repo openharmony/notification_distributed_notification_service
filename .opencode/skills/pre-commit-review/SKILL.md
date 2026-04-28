@@ -72,23 +72,64 @@ Check against all categories defined in [references/openharmony-cpp-full-standar
 
 Use grep/regex patterns for quick scanning:
 
-| Priority | Category | Search Pattern |
-|----------|----------|----------------|
-| P0 | NULL usage | `\bNULL\b` |
-| P0 | C-style cast | `\(\w+\*\)` |
-| P0 | Raw new[] without delete[] | `new\s+\w+\[` |
-| P0 | Division without check | `/\s*\w+\s*[;)]` |
-| P0 | Buffer access without bounds | `\[\s*\w+\s*\]` |
-| P1 | Duplicate include | Check same header twice |
-| P1 | Missing header guard | No `#ifndef` in .h |
-| P1 | Uninitialized member | Class members without `{}` |
-| P1 | Missing explicit | Single-param constructor |
-| P1 | Missing override | Virtual function without override |
-| P1 | Macro constant | `#define\s+[A-Z_]+\s+[0-9]` |
-| P1 | long type | `\blong\b` |
-| P2 | const static order | `const\s+static` |
-| P2 | Magic number | Unnamed numeric literals |
-| P2 | Missing comment | Public function without doc |
+| Priority | Category | Search Pattern | Description |
+|----------|----------|----------------|-------------|
+| **P0** | **NULL usage** | `\bNULL\b` | 使用NULL而非nullptr，类型不安全 |
+| **P0** | **C-style cast** | `\(\w+\*\)` | C风格强制转换，缺乏类型安全检查 |
+| **P0** | **Raw new[] without delete[]** | `new\s+\w+\[` | 内存泄漏风险 |
+| **P0** | **Division without check** | `/\s*\w+\s*[;)]` | 除零错误风险 |
+| **P0** | **Buffer access without bounds** | `\[\s*\w+\s*\]` | 数组越界风险 |
+| **P0** | **Missing nullptr check** | Manual review | 函数参数/返回值未校验nullptr |
+| **P0** | **Missing length check** | Manual review | 缓冲区操作未校验长度 |
+| **P0** | **Unvalidated external data** | Manual review | 外部数据未进行合法性校验 |
+| **P0** | **Integer overflow risk** | Manual review | 整数运算可能导致溢出 |
+| **P0** | **Use after free** | Manual review | 内存释放后继续使用 |
+| **P0** | **Dangling pointer** | Manual review | 返回局部变量指针 |
+| **P0** | **Missing size check before alloc** | Manual review | 内存申请前未校验大小 |
+| **P0** | **strncpy/strcpy unsafe usage** | `strncpy|strcpy|sprintf` | 不安全的字符串操作 |
+| **P1** | Duplicate include | Check same header twice | 重复包含头文件 |
+| **P1** | Missing header guard | No `#ifndef` in .h | 缺少头文件保护 |
+| **P1** | Uninitialized member | Class members without `{}` | 成员变量未初始化 |
+| **P1** | Missing explicit | Single-param constructor | 单参数构造函数未声明explicit |
+| **P1** | Missing override | Virtual function without override | 虚函数重写未声明override |
+| **P1** | Macro constant | `#define\s+[A-Z_]+\s+[0-9]` | 使用宏定义常量 |
+| **P1** | long type | `\blong\b` | 使用long类型（32/64位不兼容） |
+| **P2** | const static order | `const\s+static` | const static顺序错误 |
+| **P2** | Magic number | Unnamed numeric literals | 魔鬼数字 |
+| **P2** | Missing comment | Public function without doc | 公有函数缺少注释 |
+
+**IMPORTANT**: All security-related issues (memory safety, null pointer, buffer overflow, integer overflow, use-after-free) MUST be classified as **P0** and block submission.
+
+### Security Coding Checklist (P0 - Block Submission)
+
+Before marking code as approved, verify ALL of the following:
+
+1. **Null Pointer Safety**
+   - All pointer parameters checked for nullptr before use
+   - All pointer return values checked before dereference
+   - Use nullptr instead of NULL or 0
+
+2. **Buffer Safety**
+   - Buffer length checked before read/write operations
+   - Array index bounds checked
+   - Use memcpy_s instead of memcpy
+   - No reliance on null terminator for buffer boundaries
+
+3. **Memory Safety**
+   - new[] paired with delete[] (not delete)
+   - No memory leaks (every allocation has corresponding free)
+   - No use after free
+   - Allocation size validated before malloc/new
+
+4. **Integer Safety**
+   - Division/modulo operations check divisor != 0
+   - Arithmetic operations checked for overflow
+   - Use fixed-width types (int32_t, uint32_t, etc.)
+
+5. **External Data Validation**
+   - All network/file/user input validated
+   - Length, range, format checked
+   - Use whitelist for acceptable values
 
 ### Step 3: Generate HTML Report
 
