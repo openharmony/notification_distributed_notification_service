@@ -1201,7 +1201,6 @@ HWTEST_F(AdvancedNotificationServiceUnitTest, RemoveFromNotificationList_200, Fu
     auto bundleOption = record->bundleOption;
     NotificationKey notificationKey = {.id = request->GetNotificationId(), .label = request->GetLabel()};
 
-
     auto res = advancedNotificationService_->RemoveFromNotificationList(bundleOption, notificationKey,
         record->notification, 8, false);
 
@@ -1247,6 +1246,138 @@ HWTEST_F(AdvancedNotificationServiceUnitTest, RemoveFromNotificationList_400, Fu
     auto res = advancedNotificationService_->RemoveFromNotificationList(key, record->notification, false, 8);
 
     ASSERT_EQ(res, (int)ERR_ANS_NOTIFICATION_IS_UNALLOWED_REMOVEALLOWED);
+}
+
+
+/**
+ * @tc.name: RemoveFromNotificationList_1000
+ * @tc.desc: test RemoveFromNotificationList when isCancel is false & reason is Onclick
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceUnitTest, RemoveFromNotificationList_1000, Function | SmallTest | Level1)
+{
+    sptr<NotificationBundleOption> bundle = new NotificationBundleOption(TEST_DEFUALT_BUNDLE, SYSTEM_APP_UID);
+    sptr<NotificationRequest> request = new (std::nothrow) NotificationRequest();
+    request->SetNotificationId(1);
+    auto record = advancedNotificationService_->MakeNotificationRecord(request, bundle);
+    advancedNotificationService_->AddToNotificationList(record);
+    std::string key = record->notification->GetKey();
+
+    auto res = advancedNotificationService_->RemoveFromNotificationList(key,
+        record->notification, false, NotificationConstant::CLICK_REASON_DELETE);
+
+    ASSERT_EQ(res, (int)ERR_OK);
+}
+
+/**
+ * @tc.name: RemoveFromNotificationList_1001
+ * @tc.desc: test RemoveFromNotificationList when isCancel is true & reason is Onclick
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceUnitTest, RemoveFromNotificationList_1001, Function | SmallTest | Level1)
+{
+    sptr<NotificationBundleOption> bundle = new NotificationBundleOption(TEST_DEFUALT_BUNDLE, SYSTEM_APP_UID);
+    sptr<NotificationRequest> request = new (std::nothrow) NotificationRequest();
+    request->SetNotificationId(1);
+    auto record = advancedNotificationService_->MakeNotificationRecord(request, bundle);
+    advancedNotificationService_->AddToNotificationList(record);
+    std::string key = record->notification->GetKey();
+
+    auto res = advancedNotificationService_->RemoveFromNotificationList(key,
+        record->notification, true, NotificationConstant::CLICK_REASON_DELETE);
+    ASSERT_EQ(res, (int)ERR_OK);
+}
+
+/**
+ * @tc.name: RemoveFromNotificationList_1002
+ * @tc.desc: test RemoveFromNotificationList when isCancel is true & reason is not Onclick
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceUnitTest, RemoveFromNotificationList_1002, Function | SmallTest | Level1)
+{
+    sptr<NotificationBundleOption> bundle = new NotificationBundleOption(TEST_DEFUALT_BUNDLE, SYSTEM_APP_UID);
+    sptr<NotificationRequest> request = new (std::nothrow) NotificationRequest();
+    request->SetNotificationId(1);
+    auto record = advancedNotificationService_->MakeNotificationRecord(request, bundle);
+    advancedNotificationService_->AddToNotificationList(record);
+    std::string key = record->notification->GetKey();
+    auto res = advancedNotificationService_->RemoveFromNotificationList(key,
+        record->notification, true, NotificationConstant::DISTRIBUTED_ENABLE_CLOSE_DELETE);
+    ASSERT_EQ(res, (int)ERR_OK);
+}
+
+/**
+ * @tc.name: RemoveFromNotificationList_1003
+ * @tc.desc: test RemoveFromNotificationList when reason is Onclick && isSystemLiveView
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceUnitTest, RemoveFromNotificationList_1003, Function | SmallTest | Level1)
+{
+    sptr<NotificationRequest> request = new (std::nothrow) NotificationRequest();
+    request->SetNotificationId(1);
+    request->SetSlotType(NotificationConstant::SlotType::LIVE_VIEW);
+    auto localLiveViewContent = std::make_shared<NotificationLocalLiveViewContent>();
+    auto content = std::make_shared<NotificationContent>(localLiveViewContent);
+    request->SetContent(content);
+    int creatorUid = 1;
+    request->SetCreatorUid(creatorUid);
+    int ownerUid = 2;
+    request->SetOwnerUid(ownerUid);
+    sptr<NotificationBundleOption> bundle = new NotificationBundleOption("test", creatorUid);
+    auto record = advancedNotificationService_->MakeNotificationRecord(request, bundle);
+    advancedNotificationService_->AddToNotificationList(record);
+    std::string key = record->notification->GetKey();
+    auto res = advancedNotificationService_->RemoveFromNotificationList(key,
+        record->notification, false, NotificationConstant::CLICK_REASON_DELETE);
+    ASSERT_EQ(res, (int)ERR_OK);
+}
+
+/**
+ * @tc.name: RemoveFromNotificationList_1004
+ * @tc.desc: test RemoveFromNotificationList when reason is Onclick && isCommonLiveView
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceUnitTest, RemoveFromNotificationList_1004, Function | SmallTest | Level1)
+{
+    sptr<NotificationRequest> request = new (std::nothrow) NotificationRequest();
+    request->SetNotificationId(1);
+    request->SetSlotType(NotificationConstant::SlotType::LIVE_VIEW);
+    auto liveViewContent = std::make_shared<NotificationLiveViewContent>();
+    auto content = std::make_shared<NotificationContent>(liveViewContent);
+    request->SetContent(content);
+    int creatorUid = 1;
+    request->SetCreatorUid(creatorUid);
+    int ownerUid = 2;
+    request->SetOwnerUid(ownerUid);
+    sptr<NotificationBundleOption> bundle = new NotificationBundleOption("test", creatorUid);
+    auto record = advancedNotificationService_->MakeNotificationRecord(request, bundle);
+    advancedNotificationService_->AddToNotificationList(record);
+    std::string key = record->notification->GetKey();
+    auto res = advancedNotificationService_->RemoveFromNotificationList(key,
+        record->notification, false, NotificationConstant::CLICK_REASON_DELETE);
+    ASSERT_EQ(res, (int)ERR_OK);
+}
+
+/**
+ * @tc.name: RemoveFromNotificationList_1005
+ * @tc.desc: test RemoveFromNotificationList when reason is Onclick && normal notification
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceUnitTest, RemoveFromNotificationList_1005, Function | SmallTest | Level1)
+{
+    sptr<NotificationRequest> request = new (std::nothrow) NotificationRequest();
+    request->SetNotificationId(1);
+    int creatorUid = 1;
+    request->SetCreatorUid(creatorUid);
+    int ownerUid = 2;
+    request->SetOwnerUid(ownerUid);
+    sptr<NotificationBundleOption> bundle = new NotificationBundleOption("test", creatorUid);
+    auto record = advancedNotificationService_->MakeNotificationRecord(request, bundle);
+    advancedNotificationService_->AddToNotificationList(record);
+    std::string key = record->notification->GetKey();
+    auto res = advancedNotificationService_->RemoveFromNotificationList(key,
+        record->notification, false, NotificationConstant::CLICK_REASON_DELETE);
+    ASSERT_EQ(res, (int)ERR_OK);
 }
 
 /**
