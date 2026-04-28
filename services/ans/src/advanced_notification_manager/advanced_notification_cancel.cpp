@@ -625,10 +625,7 @@ ErrCode AdvancedNotificationService::ExcuteRemoveNotification(const sptr<Notific
             notificationRequest = record->request;
             isThirdParty = record->isThirdparty;
 
-            if (!IsReasonClickDelete(removeReason)) {
-                ProcForDeleteNotificationFromDb(record);
-            }
-
+            DeleteNotificationFromDb(record, removeReason, false);
             notificationList_.remove(record);
             result = ERR_OK;
             break;

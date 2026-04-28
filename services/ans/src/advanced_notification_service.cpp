@@ -1787,13 +1787,7 @@ ErrCode AdvancedNotificationService::RemoveFromNotificationList(
         }
         notification = record->notification;
         // delete or delete all, call the function
-        if (removeReason != NotificationConstant::CLICK_REASON_DELETE &&
-            removeReason != NotificationConstant::DISTRIBUTED_COLLABORATIVE_CLICK_DELETE) {
-            ProcForDeleteNotificationFromDb(record);
-            if (!isCancel) {
-                TriggerRemoveWantAgent(record->request, removeReason, record->isThirdparty);
-            }
-        }
+        DeleteNotificationFromDb(record, removeReason, isCancel);
         CancelWantAgent(notification);
         notificationList_.remove(record);
         return ERR_OK;

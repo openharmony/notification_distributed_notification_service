@@ -212,6 +212,25 @@ void AdvancedNotificationService::ProcForDeleteNotificationFromDb(const std::sha
     }
 }
 
+void AdvancedNotificationService::DeleteNotificationFromDb(const std::shared_ptr<NotificationRecord> &record,
+    const int32_t removeReason, const bool isCancel)
+{
+    if (record->request == nullptr) {
+        return;
+    }
+    if (!IsReasonClickDelete(removeReason)) {
+        ProcForDeleteNotificationFromDb(record);
+        if (!isCancel) {
+            TriggerRemoveWantAgent(record->request, removeReason, record->isThirdparty);
+        }
+        return;
+    }
+    if (!(record->request->IsCommonLiveView() || record->request->IsSystemLiveView())) {
+        DoubleDeleteNotificationFromDb(record->request->GetKey(),
+            record->request->GetSecureKey(), record->request->GetReceiverUserId());
+    }
+}
+
 ErrCode AdvancedNotificationService::OnSubscriberAdd(
     const std::shared_ptr<NotificationSubscriberManager::SubscriberRecord> &record, const int32_t userId)
 {
