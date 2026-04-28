@@ -28,8 +28,12 @@ bool GetSlotTypes(ani_env *env, ani_object value, NotificationSubscribeInfo &inf
         ANS_LOGE("GetPropertyEnumItemArray fail or undefined");
         return false;
     }
-    if (isUndefined == ANI_TRUE || slotTypesEnum.empty()) {
+    if (isUndefined == ANI_TRUE) {
         return true;
+    }
+    if (slotTypesEnum.empty()) {
+        ANS_LOGE("slotTypes is empty");
+        return false;
     }
     std::vector<SlotType> slotTypes = {};
     for (auto slotTypeEnum : slotTypesEnum) {
@@ -73,6 +77,7 @@ bool GetVoiceContentOption(ani_env *env, ani_object value, NotificationSubscribe
 
 bool UnwarpNotificationSubscribeInfo(ani_env *env, ani_object value, NotificationSubscribeInfo &info)
 {
+    ANS_LOGD("enter");
     if (env == nullptr || value == nullptr) {
         ANS_LOGE("env or value is null");
         return false;
@@ -109,6 +114,10 @@ bool UnwarpNotificationSubscribeInfo(ani_env *env, ani_object value, Notificatio
     if (!GetVoiceContentOption(env, value, info)) {
         return false;
     }
+
+    ANS_LOGD("userId %{public}d deviceType %{public}s filterLimit %{public}d voiceContentOption %{public}s",
+        info.GetAppUserId(), info.GetDeviceType().c_str(), info.GetFilterType(),
+        info.GetVoiceContentOption() != nullptr ? "enabled" : "null");
     return true;
 }
 
