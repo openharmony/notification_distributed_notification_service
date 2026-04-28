@@ -102,34 +102,85 @@ Use grep/regex patterns for quick scanning:
 
 ### Security Coding Checklist (P0 - Block Submission)
 
-Before marking code as approved, verify ALL of the following:
+**来源：华为C/C++安全编码规范 + OpenHarmony安全编程指南**
 
-1. **Null Pointer Safety**
-   - All pointer parameters checked for nullptr before use
-   - All pointer return values checked before dereference
-   - Use nullptr instead of NULL or 0
+详细检视清单请参考：[references/security-coding-checklist.md](references/security-coding-checklist.md)
 
-2. **Buffer Safety**
-   - Buffer length checked before read/write operations
-   - Array index bounds checked
-   - Use memcpy_s instead of memcpy
-   - No reliance on null terminator for buffer boundaries
+#### 必须检查的P0安全编码问题（33项）
 
-3. **Memory Safety**
-   - new[] paired with delete[] (not delete)
-   - No memory leaks (every allocation has corresponding free)
-   - No use after free
-   - Allocation size validated before malloc/new
+| 类别 | 检视点数量 | 关键检查项 |
+|------|-----------|-----------|
+| **内存安全** | 9项 | 分配大小校验、new[]配delete[]、memcpy_s/strcpy_s |
+| **指针安全** | 6项 | nullptr校验、禁止NULL、禁止悬空指针、禁止C风格转换 |
+| **缓冲区安全** | 7项 | 边界校验、指定长度、不依赖'\0'终止符 |
+| **整数安全** | 6项 | 溢出检查、除零检查、位运算类型 |
+| **外部数据** | 4项 | 网络/文件/IPC/用户输入校验 |
+| **并发安全** | 1项 | 共享数据加锁 |
+| **密码安全** | 2项 | 禁止硬编码密钥、禁止打印敏感信息 |
 
-4. **Integer Safety**
-   - Division/modulo operations check divisor != 0
-   - Arithmetic operations checked for overflow
-   - Use fixed-width types (int32_t, uint32_t, etc.)
+#### 详细检视清单
 
-5. **External Data Validation**
-   - All network/file/user input validated
-   - Length, range, format checked
-   - Use whitelist for acceptable values
+1. **内存安全 (P0-01 ~ P0-09)**
+   - [ ] P0-01: 分配前是否校验大小 (size != 0 && size <= MAX)
+   - [ ] P0-02: 分配失败是否检查返回值 (ptr != nullptr)
+   - [ ] P0-03: 是否禁止new[0] (length == 0校验)
+   - [ ] P0-04: new[]是否配delete[]而非delete
+   - [ ] P0-05: 释放后是否置nullptr
+   - [ ] P0-06: 是否禁止释放后继续使用 (UAF)
+   - [ ] P0-07: 是否使用memcpy_s而非memcpy
+   - [ ] P0-08: 是否使用strcpy_s而非strcpy
+   - [ ] P0-09: 是否使用snprintf而非sprintf
+
+2. **指针安全 (P0-10 ~ P0-15)**
+   - [ ] P0-10: 是否使用nullptr而非NULL
+   - [ ] P0-11: 参数指针是否校验nullptr
+   - [ ] P0-12: 返回值指针是否校验
+   - [ ] P0-13: 成员指针是否校验
+   - [ ] P0-14: 是否禁止返回局部变量指针
+   - [ ] P0-15: 是否使用C++类型转换而非C风格
+
+3. **缓冲区安全 (P0-16 ~ P0-21)**
+   - [ ] P0-16: 数组索引是否校验边界
+   - [ ] P0-17: 缓冲区写入是否校验剩余空间
+   - [ ] P0-18: 缓冲区读取是否校验数据长度
+   - [ ] P0-19: 是否禁止依赖'\0'终止符确定边界
+   - [ ] P0-20: 创建string前是否校验指针非空
+   - [ ] P0-21: 构造string是否指定长度
+
+4. **整数安全 (P0-22 ~ P0-26)**
+   - [ ] P0-22: 加法运算是否检查溢出
+   - [ ] P0-23: 乘法运算是否检查溢出
+   - [ ] P0-24: 除法前是否检查除数不为0
+   - [ ] P0-25: 取模前是否检查模数不为0
+   - [ ] P0-26: 是否禁止有符号数位运算
+
+5. **外部数据校验 (P0-27 ~ P0-30)**
+   - [ ] P0-27: 网络数据是否校验
+   - [ ] P0-28: 文件数据是否校验
+   - [ ] P0-29: IPC数据是否校验
+   - [ ] P0-30: 用户输入是否校验
+
+6. **并发安全 (P0-31)**
+   - [ ] P0-31: 共享数据是否加锁
+
+7. **密码安全 (P0-32 ~ P0-33)**
+   - [ ] P0-32: 是否禁止硬编码密钥/密码
+   - [ ] P0-33: 是否禁止日志打印敏感信息
+
+#### 检视时必须使用以下方式
+
+```bash
+# 自动检测命令
+grep -n "\bNULL\b" *.cpp *.h              # P0-10: NULL使用
+grep -n "\(\w+\*\)" *.cpp *.h             # P0-15: C风格转换
+grep -n "memcpy\b" *.cpp *.h              # P0-07: memcpy使用
+grep -n "strcpy\b" *.cpp *.h              # P0-08: strcpy使用
+grep -n "sprintf\b" *.cpp *.h             # P0-09: sprintf使用
+grep -n "password\|secret\|key" *.cpp *.h # P0-32: 硬编码敏感信息
+
+# 人工审查项（无法自动检测）
+# P0-01~06, P0-11~21, P0-22~31, P0-33: 需要人工逐行审查代码逻辑
+```
 
 ### Step 3: Generate HTML Report
 
