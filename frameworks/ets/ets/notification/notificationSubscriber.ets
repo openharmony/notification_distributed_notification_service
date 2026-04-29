@@ -87,12 +87,21 @@ export class NotificationSubscriberInner implements NotificationSubscriber {
     public onSystemUpdate?: (data: SubscribeCallbackData) => void;
 }
 
+export interface VoiceContent {
+    textContent?: string;
+}
+
 export interface SubscribeCallbackData {
     readonly request: NotificationRequest;
     readonly sortingMap?: NotificationSortingMap;
     readonly reason?: int;
     readonly sound?: string;
     readonly vibrationValues?: Array<long>;
+    voiceContent?: VoiceContent;
+}
+
+class VoiceContentInner implements VoiceContent {
+    public textContent?: string;
 }
 
 class SubscribeCallbackDataInner implements SubscribeCallbackData {
@@ -153,6 +162,7 @@ class SubscribeCallbackDataInner implements SubscribeCallbackData {
     public readonly reason?: int;
     public readonly sound?: string;
     public readonly vibrationValues?: Array<long>;
+    public voiceContent?: VoiceContent;
 }
 
 export interface EnabledNotificationCallbackData {
