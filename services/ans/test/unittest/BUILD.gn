@@ -115,7 +115,8 @@ ohos_unittest("ans_unit_test") {
     "samgr:samgr_proxy",
     "time_service:time_client",
   ]
-  if (ans_device_manager_enable && distributed_notification_service_feature_watch) {
+  if (ans_device_manager_enable &&
+      distributed_notification_service_feature_watch) {
     external_deps += [ "device_manager:devicemanagersdk" ]
   }
 
@@ -211,7 +212,8 @@ ohos_unittest("notification_preferences_database_test") {
     "samgr:samgr_proxy",
     "time_service:time_client",
   ]
-  if (ans_device_manager_enable && distributed_notification_service_feature_watch) {
+  if (ans_device_manager_enable &&
+      distributed_notification_service_feature_watch) {
     external_deps += [ "device_manager:devicemanagersdk" ]
   }
 
@@ -301,7 +303,8 @@ ohos_unittest("notification_preferences_database_two_test") {
     "samgr:samgr_proxy",
     "time_service:time_client",
   ]
-  if (ans_device_manager_enable && distributed_notification_service_feature_watch) {
+  if (ans_device_manager_enable &&
+      distributed_notification_service_feature_watch) {
     external_deps += [ "device_manager:devicemanagersdk" ]
   }
 
@@ -407,7 +410,8 @@ ohos_unittest("notification_subscriber_manager_test") {
     "samgr:samgr_proxy",
     "time_service:time_client",
   ]
-  if (ans_device_manager_enable && distributed_notification_service_feature_watch) {
+  if (ans_device_manager_enable &&
+      distributed_notification_service_feature_watch) {
     external_deps += [ "device_manager:devicemanagersdk" ]
   }
 
@@ -515,7 +519,8 @@ ohos_unittest("notification_service_test") {
     "samgr:samgr_proxy",
     "time_service:time_client",
   ]
-  if (ans_device_manager_enable && distributed_notification_service_feature_watch) {
+  if (ans_device_manager_enable &&
+      distributed_notification_service_feature_watch) {
     external_deps += [ "device_manager:devicemanagersdk" ]
   }
 
@@ -628,7 +633,8 @@ ohos_unittest("notification_clone_test") {
     "samgr:samgr_proxy",
     "time_service:time_client",
   ]
-  if (ans_device_manager_enable && distributed_notification_service_feature_watch) {
+  if (ans_device_manager_enable &&
+      distributed_notification_service_feature_watch) {
     external_deps += [ "device_manager:devicemanagersdk" ]
   }
 
@@ -734,7 +740,8 @@ ohos_unittest("notification_publish_service_test") {
     "samgr:samgr_proxy",
     "time_service:time_client",
   ]
-  if (ans_device_manager_enable && distributed_notification_service_feature_watch) {
+  if (ans_device_manager_enable &&
+      distributed_notification_service_feature_watch) {
     external_deps += [ "device_manager:devicemanagersdk" ]
   }
 
@@ -834,7 +841,8 @@ ohos_unittest("notification_service_publish_test") {
     "time_service:time_client",
   ]
 
-  if (ans_device_manager_enable && distributed_notification_service_feature_watch) {
+  if (ans_device_manager_enable &&
+      distributed_notification_service_feature_watch) {
     external_deps += [ "device_manager:devicemanagersdk" ]
   }
 
@@ -975,7 +983,8 @@ ohos_unittest("notification_preferences_test") {
     "samgr:samgr_proxy",
     "time_service:time_client",
   ]
-  if (ans_device_manager_enable && distributed_notification_service_feature_watch) {
+  if (ans_device_manager_enable &&
+      distributed_notification_service_feature_watch) {
     external_deps += [ "device_manager:devicemanagersdk" ]
   }
 
@@ -1320,7 +1329,8 @@ ohos_unittest("advanced_notification_ringtone_service_test") {
     "samgr:samgr_proxy",
     "time_service:time_client",
   ]
-  if (ans_device_manager_enable && distributed_notification_service_feature_watch) {
+  if (ans_device_manager_enable &&
+      distributed_notification_service_feature_watch) {
     external_deps += [ "device_manager:devicemanagersdk" ]
   }
 
@@ -1413,7 +1423,8 @@ ohos_unittest("advanced_notification_geofence_service_test") {
     "samgr:samgr_proxy",
     "time_service:time_client",
   ]
-  if (ans_device_manager_enable && distributed_notification_service_feature_watch) {
+  if (ans_device_manager_enable &&
+      distributed_notification_service_feature_watch) {
     external_deps += [ "device_manager:devicemanagersdk" ]
   }
 
@@ -2210,7 +2221,8 @@ ohos_unittest("notification_extension_test") {
     "samgr:samgr_proxy",
     "time_service:time_client",
   ]
-  if (ans_device_manager_enable && distributed_notification_service_feature_watch) {
+  if (ans_device_manager_enable &&
+      distributed_notification_service_feature_watch) {
     external_deps += [ "device_manager:devicemanagersdk" ]
   }
 
