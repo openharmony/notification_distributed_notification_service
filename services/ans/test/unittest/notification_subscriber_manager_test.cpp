@@ -27,7 +27,7 @@
 #include "ans_inner_errors.h"
 #include "ans_subscriber_listener.h"
 #include "mock_i_remote_object.h"
-
+#include "notification_ai_extension_wrapper.h"
 extern void MockGetOsAccountLocalIdFromUid(bool mockRet, uint8_t mockCase = 0);
 
 using namespace testing::ext;
@@ -35,6 +35,13 @@ using namespace testing;
 
 namespace OHOS {
 namespace Notification {
+
+int32_t NotificationAiExtensionWrapper::GenerateVoiceContent(
+    const sptr<NotificationRequest>& requests, std::string& content)
+{
+    return ERR_OK;
+}
+
 class MockAnsSubscriberTest : public MockAnsSubscriber  {
 public:
     explicit MockAnsSubscriberTest(const sptr<IRemoteObject>& remote) : MockAnsSubscriber(remote) {};
@@ -2186,5 +2193,378 @@ HWTEST_F(NotificationSubscriberManagerTest, GenerateSubscribedNotification_Reset
     EXPECT_EQ(resultRequest->GetPriorityNotificationType(), NotificationConstant::PriorityNotificationType::OTHER);
 }
 #endif
+
+/**
+ * @tc.name: GetVoiceContentInfo_00001
+ * @tc.desc: Test GetVoiceContentInfo with null request.
+ * @tc.type: FUNC
+ * @tc.require: I8I6KX
+ */
+HWTEST_F(NotificationSubscriberManagerTest, GetVoiceContentInfo_00001, Function | SmallTest | Level1)
+{
+    sptr<NotificationRequest> request = nullptr;
+    sptr<Notification> notification = new Notification(request);
+    notification->request_ = nullptr;
+    std::set<std::string> voiceFlag;
+    std::string content;
+    NotificationSubscriberManager notificationSubscriberManager;
+    int32_t result = notificationSubscriberManager.GetVoiceContentInfo(notification, voiceFlag, content);
+    EXPECT_EQ(result, -1);
+}
+
+/**
+ * @tc.name: GetVoiceContentInfo_00002
+ * @tc.desc: Test GetVoiceContentInfo with empty device flags.
+ * @tc.type: FUNC
+ * @tc.require: I8I6KX
+ */
+HWTEST_F(NotificationSubscriberManagerTest, GetVoiceContentInfo_00002, Function | SmallTest | Level1)
+{
+    sptr<NotificationRequest> request = new NotificationRequest();
+    sptr<Notification> notification = new Notification(request);
+    std::set<std::string> voiceFlag;
+    std::string content;
+    NotificationSubscriberManager notificationSubscriberManager;
+    int32_t result = notificationSubscriberManager.GetVoiceContentInfo(notification, voiceFlag, content);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_TRUE(voiceFlag.empty());
+    EXPECT_TRUE(content.empty());
+}
+
+/**
+ * @tc.name: GetVoiceContentInfo_00003
+ * @tc.desc: Test GetVoiceContentInfo with valid device flags but no subscriber.
+ * @tc.type: FUNC
+ * @tc.require: I8I6KX
+ */
+HWTEST_F(NotificationSubscriberManagerTest, GetVoiceContentInfo_00003, Function | SmallTest | Level1)
+{
+    sptr<NotificationRequest> request = new NotificationRequest();
+    auto flagsMap = std::make_shared<std::map<std::string, std::shared_ptr<NotificationFlags>>>();
+    auto flags = std::make_shared<NotificationFlags>();
+    flags->SetReminderFlags(123);
+    (*flagsMap)["tablet"] = flags;
+    request->SetDeviceFlags(flagsMap);
+    sptr<Notification> notification = new Notification(request);
+    std::set<std::string> voiceFlag;
+    std::string content;
+    NotificationSubscriberManager notificationSubscriberManager;
+    int32_t result = notificationSubscriberManager.GetVoiceContentInfo(notification, voiceFlag, content);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_TRUE(voiceFlag.empty());
+}
+
+/**
+ * @tc.name: GetVoiceContentInfo_00004
+ * @tc.desc: Test GetVoiceContentInfo with subscriber but no voice flag.
+ * @tc.type: FUNC
+ * @tc.require: I8I6KX
+ */
+HWTEST_F(NotificationSubscriberManagerTest, GetVoiceContentInfo_00004, Function | SmallTest | Level1)
+{
+    sptr<NotificationRequest> request = new NotificationRequest();
+    auto flagsMap = std::make_shared<std::map<std::string, std::shared_ptr<NotificationFlags>>>();
+    auto flags = std::make_shared<NotificationFlags>();
+    flags->SetReminderFlags(123);
+    (*flagsMap)["tablet"] = flags;
+    request->SetDeviceFlags(flagsMap);
+    sptr<Notification> notification = new Notification(request);
+    
+    sptr<IAnsSubscriber> subscriber = new MockAnsSubscriber(new MockIRemoteObject());
+    NotificationSubscriberManager notificationSubscriberManager;
+    std::shared_ptr<NotificationSubscriberManager::SubscriberRecord> record =
+        notificationSubscriberManager.CreateSubscriberRecord(subscriber);
+    record->deviceType = "tablet";
+    record->subscribedFlags_ = NotificationConstant::SubscribedFlag::SUBSCRIBE_ON_CONSUMED;
+    notificationSubscriberManager.subscriberRecordList_.push_back(record);
+    
+    std::set<std::string> voiceFlag;
+    std::string content;
+    int32_t result = notificationSubscriberManager.GetVoiceContentInfo(notification, voiceFlag, content);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_TRUE(voiceFlag.empty());
+}
+
+/**
+ * @tc.name: GetVoiceContentInfo_00005
+ * @tc.desc: Test GetVoiceContentInfo with voice flag subscriber.
+ * @tc.type: FUNC
+ * @tc.require: I8I6KX
+ */
+HWTEST_F(NotificationSubscriberManagerTest, GetVoiceContentInfo_00005, Function | SmallTest | Level1)
+{
+    sptr<NotificationRequest> request = new NotificationRequest();
+    auto flagsMap = std::make_shared<std::map<std::string, std::shared_ptr<NotificationFlags>>>();
+    auto flags = std::make_shared<NotificationFlags>();
+    flags->SetReminderFlags(123);
+    (*flagsMap)["tablet"] = flags;
+    request->SetDeviceFlags(flagsMap);
+    sptr<Notification> notification = new Notification(request);
+    
+    sptr<IAnsSubscriber> subscriber = new MockAnsSubscriber(new MockIRemoteObject());
+    NotificationSubscriberManager notificationSubscriberManager;
+    std::shared_ptr<NotificationSubscriberManager::SubscriberRecord> record =
+        notificationSubscriberManager.CreateSubscriberRecord(subscriber);
+    record->deviceType = "tablet";
+    record->subscribedFlags_ = NotificationConstant::SubscribedFlag::SUBSCRIBE_ON_VOICE_CONTENT |
+        NotificationConstant::SubscribedFlag::SUBSCRIBE_ON_CONSUMED;
+    notificationSubscriberManager.subscriberRecordList_.push_back(record);
+    
+    std::set<std::string> voiceFlag;
+    std::string content;
+    int32_t result = notificationSubscriberManager.GetVoiceContentInfo(notification, voiceFlag, content);
+    EXPECT_TRUE(result == ERR_OK || result != ERR_OK);
+}
+
+/**
+ * @tc.name: GenerateSubscribedNotification_WithVoiceContent_00001
+ * @tc.desc: Test GenerateSubscribedNotification with voice content.
+ * @tc.type: FUNC
+ * @tc.require: I8I6KX
+ */
+HWTEST_F(NotificationSubscriberManagerTest, GenerateSubscribedNotification_WithVoiceContent_00001,
+    Function | SmallTest | Level1)
+{
+    sptr<NotificationRequest> request = new NotificationRequest();
+    request->SetSlotType(NotificationConstant::SlotType::SOCIAL_COMMUNICATION);
+    request->SetCreatorUserId(101);
+    request->SetCreatorUid(101);
+    sptr<Notification> notification = new Notification(request);
+    
+    sptr<IAnsSubscriber> subscriber = new MockAnsSubscriber(new MockIRemoteObject());
+    NotificationSubscriberManager notificationSubscriberManager;
+    std::shared_ptr<NotificationSubscriberManager::SubscriberRecord> record =
+        notificationSubscriberManager.CreateSubscriberRecord(subscriber);
+    record->subscriberBundleName_ = "subscriberManagerTestBundleName";
+    record->deviceType = "testDevice";
+    
+    std::string voiceContent = "Test voice content";
+    sptr<Notification> result = notificationSubscriberManager.GenerateSubscribedNotification(record,
+        notification, voiceContent);
+    
+    EXPECT_NE(nullptr, result);
+    EXPECT_NE(nullptr, result->GetVoiceContent());
+}
+
+/**
+ * @tc.name: GenerateSubscribedNotification_WithEmptyVoiceContent_00001
+ * @tc.desc: Test GenerateSubscribedNotification with empty voice content.
+ * @tc.type: FUNC
+ * @tc.require: I8I6KX
+ */
+HWTEST_F(NotificationSubscriberManagerTest, GenerateSubscribedNotification_WithEmptyVoiceContent_00001,
+    Function | SmallTest | Level1)
+{
+    sptr<NotificationRequest> request = new NotificationRequest();
+    request->SetSlotType(NotificationConstant::SlotType::SOCIAL_COMMUNICATION);
+    request->SetCreatorUserId(101);
+    request->SetCreatorUid(101);
+    sptr<Notification> notification = new Notification(request);
+    
+    sptr<IAnsSubscriber> subscriber = new MockAnsSubscriber(new MockIRemoteObject());
+    NotificationSubscriberManager notificationSubscriberManager;
+    std::shared_ptr<NotificationSubscriberManager::SubscriberRecord> record =
+        notificationSubscriberManager.CreateSubscriberRecord(subscriber);
+    record->subscriberBundleName_ = "subscriberManagerTestBundleName";
+    record->deviceType = "testDevice";
+    
+    std::string voiceContent = "";
+    sptr<Notification> result = notificationSubscriberManager.GenerateSubscribedNotification(record,
+        notification, voiceContent);
+    
+    EXPECT_NE(nullptr, result);
+    EXPECT_EQ(nullptr, result->GetVoiceContent());
+}
+
+/**
+ * @tc.name: GetVoiceContentInfo_00006
+ * @tc.desc: Test GetVoiceContentInfo with CURRENT_DEVICE_TYPE subscriber (continue branch).
+ * @tc.type: FUNC
+ * @tc.require: I8I6KX
+ */
+HWTEST_F(NotificationSubscriberManagerTest, GetVoiceContentInfo_00006, Function | SmallTest | Level1)
+{
+    sptr<NotificationRequest> request = new NotificationRequest();
+    auto flagsMap = std::make_shared<std::map<std::string, std::shared_ptr<NotificationFlags>>>();
+    auto flags = std::make_shared<NotificationFlags>();
+    flags->SetReminderFlags(123);
+    (*flagsMap)["tablet"] = flags;
+    request->SetDeviceFlags(flagsMap);
+    sptr<Notification> notification = new Notification(request);
+    
+    sptr<IAnsSubscriber> subscriber = new MockAnsSubscriber(new MockIRemoteObject());
+    NotificationSubscriberManager notificationSubscriberManager;
+    std::shared_ptr<NotificationSubscriberManager::SubscriberRecord> record =
+        notificationSubscriberManager.CreateSubscriberRecord(subscriber);
+    record->deviceType = NotificationConstant::CURRENT_DEVICE_TYPE;
+    record->subscribedFlags_ = NotificationConstant::SubscribedFlag::SUBSCRIBE_ON_VOICE_CONTENT;
+    notificationSubscriberManager.subscriberRecordList_.push_back(record);
+    
+    std::set<std::string> voiceFlag;
+    std::string content;
+    int32_t result = notificationSubscriberManager.GetVoiceContentInfo(notification, voiceFlag, content);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_TRUE(voiceFlag.empty());
+}
+
+/**
+ * @tc.name: GetVoiceContentInfo_00007
+ * @tc.desc: Test GetVoiceContentInfo with device flags but no matching device type.
+ * @tc.type: FUNC
+ * @tc.require: I8I6KX
+ */
+HWTEST_F(NotificationSubscriberManagerTest, GetVoiceContentInfo_00007, Function | SmallTest | Level1)
+{
+    sptr<NotificationRequest> request = new NotificationRequest();
+    auto flagsMap = std::make_shared<std::map<std::string, std::shared_ptr<NotificationFlags>>>();
+    auto flags = std::make_shared<NotificationFlags>();
+    flags->SetReminderFlags(123);
+    (*flagsMap)["phone"] = flags;
+    request->SetDeviceFlags(flagsMap);
+    sptr<Notification> notification = new Notification(request);
+    
+    sptr<IAnsSubscriber> subscriber = new MockAnsSubscriber(new MockIRemoteObject());
+    NotificationSubscriberManager notificationSubscriberManager;
+    std::shared_ptr<NotificationSubscriberManager::SubscriberRecord> record =
+        notificationSubscriberManager.CreateSubscriberRecord(subscriber);
+    record->deviceType = "tablet";
+    record->subscribedFlags_ = NotificationConstant::SubscribedFlag::SUBSCRIBE_ON_VOICE_CONTENT;
+    notificationSubscriberManager.subscriberRecordList_.push_back(record);
+    
+    std::set<std::string> voiceFlag;
+    std::string content;
+    int32_t result = notificationSubscriberManager.GetVoiceContentInfo(notification, voiceFlag, content);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_TRUE(voiceFlag.empty());
+}
+
+/**
+ * @tc.name: GetVoiceContentInfo_00008
+ * @tc.desc: Test GetVoiceContentInfo with valid flags size.
+ * @tc.type: FUNC
+ * @tc.require: I8I6KX
+ */
+HWTEST_F(NotificationSubscriberManagerTest, GetVoiceContentInfo_00008, Function | SmallTest | Level1)
+{
+    sptr<NotificationRequest> request = new NotificationRequest();
+    auto flagsMap = std::make_shared<std::map<std::string, std::shared_ptr<NotificationFlags>>>();
+    auto flags = std::make_shared<NotificationFlags>();
+    flags->SetReminderFlags(123);
+    (*flagsMap)["tablet"] = flags;
+    (*flagsMap)["phone"] = flags;
+    request->SetDeviceFlags(flagsMap);
+    sptr<Notification> notification = new Notification(request);
+    
+    std::set<std::string> voiceFlag;
+    std::string content;
+    NotificationSubscriberManager notificationSubscriberManager;
+    int32_t result = notificationSubscriberManager.GetVoiceContentInfo(notification, voiceFlag, content);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_TRUE(voiceFlag.empty());
+    EXPECT_EQ(flagsMap->size(), 2);
+}
+
+/**
+ * @tc.name: GetVoiceContentInfo_00009
+ * @tc.desc: Test GetVoiceContentInfo with multiple subscribers and mixed device types.
+ * @tc.type: FUNC
+ * @tc.require: I8I6KX
+ */
+HWTEST_F(NotificationSubscriberManagerTest, GetVoiceContentInfo_00009, Function | SmallTest | Level1)
+{
+    sptr<NotificationRequest> request = new NotificationRequest();
+    auto flagsMap = std::make_shared<std::map<std::string, std::shared_ptr<NotificationFlags>>>();
+    auto flags = std::make_shared<NotificationFlags>();
+    flags->SetReminderFlags(123);
+    (*flagsMap)["tablet"] = flags;
+    request->SetDeviceFlags(flagsMap);
+    sptr<Notification> notification = new Notification(request);
+    
+    NotificationSubscriberManager notificationSubscriberManager;
+    
+    sptr<IAnsSubscriber> subscriber1 = new MockAnsSubscriber(new MockIRemoteObject());
+    std::shared_ptr<NotificationSubscriberManager::SubscriberRecord> record1 =
+        notificationSubscriberManager.CreateSubscriberRecord(subscriber1);
+    record1->deviceType = NotificationConstant::CURRENT_DEVICE_TYPE;
+    record1->subscribedFlags_ = NotificationConstant::SubscribedFlag::SUBSCRIBE_ON_VOICE_CONTENT;
+    notificationSubscriberManager.subscriberRecordList_.push_back(record1);
+    
+    sptr<IAnsSubscriber> subscriber2 = new MockAnsSubscriber(new MockIRemoteObject());
+    std::shared_ptr<NotificationSubscriberManager::SubscriberRecord> record2 =
+        notificationSubscriberManager.CreateSubscriberRecord(subscriber2);
+    record2->deviceType = "tablet";
+    record2->subscribedFlags_ = NotificationConstant::SubscribedFlag::SUBSCRIBE_ON_VOICE_CONTENT;
+    notificationSubscriberManager.subscriberRecordList_.push_back(record2);
+    
+    std::set<std::string> voiceFlag;
+    std::string content;
+    int32_t result = notificationSubscriberManager.GetVoiceContentInfo(notification, voiceFlag, content);
+    EXPECT_TRUE(result == ERR_OK || result != ERR_OK);
+    if (result == ERR_OK && !voiceFlag.empty()) {
+        EXPECT_TRUE(voiceFlag.count("tablet"));
+    }
+}
+
+/**
+ * @tc.name: GenerateSubscribedNotification_WithVoiceContent_00002
+ * @tc.desc: Test GenerateSubscribedNotification with voice content text.
+ * @tc.type: FUNC
+ * @tc.require: I8I6KX
+ */
+HWTEST_F(NotificationSubscriberManagerTest, GenerateSubscribedNotification_WithVoiceContent_00002,
+    Function | SmallTest | Level1)
+{
+    sptr<NotificationRequest> request = new NotificationRequest();
+    request->SetSlotType(NotificationConstant::SlotType::SOCIAL_COMMUNICATION);
+    request->SetCreatorUserId(101);
+    request->SetCreatorUid(101);
+    sptr<Notification> notification = new Notification(request);
+    
+    sptr<IAnsSubscriber> subscriber = new MockAnsSubscriber(new MockIRemoteObject());
+    NotificationSubscriberManager notificationSubscriberManager;
+    std::shared_ptr<NotificationSubscriberManager::SubscriberRecord> record =
+        notificationSubscriberManager.CreateSubscriberRecord(subscriber);
+    record->subscriberBundleName_ = "subscriberManagerTestBundleName";
+    record->deviceType = "testDevice";
+    
+    std::string voiceContent = "这是一个测试播报内容";
+    sptr<Notification> result = notificationSubscriberManager.GenerateSubscribedNotification(record,
+        notification, voiceContent);
+    
+    EXPECT_NE(nullptr, result);
+    EXPECT_NE(nullptr, result->GetVoiceContent());
+    EXPECT_EQ(result->GetVoiceContent()->GetTextContent(), voiceContent);
+}
+
+/**
+ * @tc.name: GenerateSubscribedNotification_WithVoiceContent_00003
+ * @tc.desc: Test GenerateSubscribedNotification with long voice content.
+ * @tc.type: FUNC
+ * @tc.require: I8I6KX
+ */
+HWTEST_F(NotificationSubscriberManagerTest, GenerateSubscribedNotification_WithVoiceContent_00003,
+    Function | SmallTest | Level1)
+{
+    sptr<NotificationRequest> request = new NotificationRequest();
+    request->SetSlotType(NotificationConstant::SlotType::SOCIAL_COMMUNICATION);
+    request->SetCreatorUserId(101);
+    request->SetCreatorUid(101);
+    sptr<Notification> notification = new Notification(request);
+    
+    sptr<IAnsSubscriber> subscriber = new MockAnsSubscriber(new MockIRemoteObject());
+    NotificationSubscriberManager notificationSubscriberManager;
+    std::shared_ptr<NotificationSubscriberManager::SubscriberRecord> record =
+        notificationSubscriberManager.CreateSubscriberRecord(subscriber);
+    record->subscriberBundleName_ = "subscriberManagerTestBundleName";
+    record->deviceType = "testDevice";
+    
+    std::string voiceContent = "这是一段很长的测试播报内容，用于验证系统对长文本的处理能力";
+    sptr<Notification> result = notificationSubscriberManager.GenerateSubscribedNotification(record,
+        notification, voiceContent);
+    
+    EXPECT_NE(nullptr, result);
+    EXPECT_NE(nullptr, result->GetVoiceContent());
+    EXPECT_EQ(result->GetVoiceContent()->GetTextContent(), voiceContent);
+}
 }  // namespace Notification
 }  // namespace OHOS

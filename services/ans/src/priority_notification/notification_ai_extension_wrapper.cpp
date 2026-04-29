@@ -71,6 +71,11 @@ void NotificationAiExtensionWrapper::InitExtensionWrapper()
         ANS_LOGE("failed to notify priority event extension %{public}s.", dlerror());
         return;
     }
+    generateVoiceContent_ = (GENERATE_VOICE_CONTENT)dlsym(ExtensionHandle_, "GenerateVoiceContent");
+    if (generateVoiceContent_ == nullptr) {
+        ANS_LOGE("failed to generate voice content %{public}s.", dlerror());
+        return;
+    }
 
     ANS_LOGI("notification ai extension wrapper init success");
 }
@@ -154,4 +159,14 @@ int32_t NotificationAiExtensionWrapper::NotifyPriorityEvent(
     }
     return notifyPriorityEvent_(event, bundleOptions, requests);
 }
+
+int32_t __attribute__((weak)) NotificationAiExtensionWrapper::GenerateVoiceContent(
+    const sptr<NotificationRequest>& requests, std::string& content)
+{
+    if (generateVoiceContent_ == nullptr) {
+        ANS_LOGE("Generate voice content wrapper symbol failed");
+        return ErrorCode::ERR_FAIL;
+    }
+    return generateVoiceContent_(requests, content);
 }
+}  // namespace OHOS::Notification
