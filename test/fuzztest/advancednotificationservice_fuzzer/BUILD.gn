@@ -89,7 +89,7 @@ ohos_fuzztest("AdvancedNotificationServiceFuzzTest") {
     "image_framework:image_native",
     "init:libbegetutil",
     "kv_store:distributeddata_inner",
-    "libxml2:libxml2",
+    "libxml2:static_libxml2",
     "openssl:libcrypto_shared",
     "os_account:os_account_innerkits",
     "relational_store:native_rdb",
