@@ -232,7 +232,6 @@ ohos_shared_library("notification_subscribe_ani") {
     "ability_base:want",
     "ability_base:zuri",
     "ability_runtime:ani_common",
-    "ability_runtime:ani_common",
     "ability_runtime:ani_wantagent_common",
     "ability_runtime:runtime",
     "ability_runtime:wantagent_innerkits",
