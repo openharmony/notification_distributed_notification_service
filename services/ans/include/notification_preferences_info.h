@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,6 +32,7 @@
 #include "notification_constant.h"
 #include "notification_ringtone_info.h"
 #include "notification_statistics.h"
+#include "utils/lru_cache.h"
 
 namespace OHOS {
 namespace Notification {
@@ -43,9 +44,7 @@ public:
         int32_t uid;
         NotificationConstant::SWITCH_STATE enableStatus {NotificationConstant::SWITCH_STATE::SYSTEM_DEFAULT_OFF};
     };
-    struct CacheEntryMeta {
-        std::chrono::steady_clock::time_point lastAccessTime;
-    };
+
     class BundleInfo final {
     public:
         BundleInfo();
@@ -294,7 +293,7 @@ public:
      * @param info Indicates the bundle info.
      * @return Whether to get bundle info success.
      */
-    bool GetBundleInfo(const sptr<NotificationBundleOption> &bundleOption, BundleInfo &info) const;
+    bool GetBundleInfo(const sptr<NotificationBundleOption> &bundleOption, BundleInfo &info);
 
     /**
      * set silent reminder info into preferences info.
@@ -335,11 +334,6 @@ public:
      * clear bundle info in the of preferences info.
      */
     void ClearBundleInfo();
-    void UpdateInfosMetaAccessTime(const std::string &bundleKey);
-    const std::unordered_map<std::string, CacheEntryMeta>& GetInfosMeta() const;
-    void RemoveInfosMetaByKey(const std::string &bundleKey);
-    void RemoveBundleInfoByKey(const std::string &bundleKey);
-    std::chrono::minutes GetCacheExpiryDuration() const;
 
     /**
      * set do not disturb date into preferences info.
@@ -402,13 +396,25 @@ public:
     void RemoveNotificationStatisticsByBundle(int32_t bundleId);
     void UpdateNotificationStatisticsTime(int64_t offsetTime);
     std::vector<NotificationStatistics> GetNotificationStatisticsAll();
+
+    // LRU Cache internal management (used by expiry task)
+    size_t GetCacheSize() const;
+    void GetCacheStats(size_t& hitCount, size_t& missCount) const;
+    void EvictExpiredCache();
+
+private:
+    std::string GenerateBundleKey(const std::string& bundleName, int32_t uid) const;
+
 private:
     std::map<int32_t, bool> isEnabledAllNotification_;
     std::map<int32_t, sptr<NotificationDoNotDisturbDate>> doNotDisturbDate_;
     std::map<std::string, sptr<NotificationDoNotDisturbProfile>> doNotDisturbProfiles_;
-    std::map<std::string, BundleInfo> infos_;
-    mutable std::unordered_map<std::string, CacheEntryMeta> infosMeta_;
-    static constexpr std::chrono::minutes CACHE_EXPIRY_DURATION{1};
+
+    // LRU Cache replaces the original infos_ and infosMeta_
+    // Key: bundleKey (bundleName + uid), Value: BundleInfo
+    using BundleKey = std::string;
+    LRUCache<BundleKey, BundleInfo> bundleCache_;
+
     std::vector<std::string> kioskAppTrustList_;
     std::unordered_map<int32_t, std::vector<std::string>> restrictedModeTrustList_;
     std::unordered_map<std::string, SilentReminderInfo> silentReminderInfos_;
