@@ -405,24 +405,22 @@ void NotificationPreferencesInfo::BundleInfo::RemoveExtensionSubscriptionBundles
     }
 }
 
+std::string NotificationPreferencesInfo::GenerateBundleKey(const std::string& bundleName, int32_t uid) const
+{
+    return bundleName + std::to_string(uid);
+}
+
 void NotificationPreferencesInfo::SetBundleInfo(BundleInfo &info)
 {
-    std::string bundleKey = info.GetBundleName().append(std::to_string(info.GetBundleUid()));
-    infos_.insert_or_assign(bundleKey, info);
-    infosMeta_[bundleKey].lastAccessTime = std::chrono::steady_clock::now();
+    std::string bundleKey = GenerateBundleKey(info.GetBundleName(), info.GetBundleUid());
+    bundleCache_.Put(bundleKey, info);
 }
 
 bool NotificationPreferencesInfo::GetBundleInfo(
-    const sptr<NotificationBundleOption> &bundleOption, BundleInfo &info) const
+    const sptr<NotificationBundleOption> &bundleOption, BundleInfo &info)
 {
-    std::string bundleKey = bundleOption->GetBundleName() + std::to_string(bundleOption->GetUid());
-    auto iter = infos_.find(bundleKey);
-    if (iter != infos_.end()) {
-        info = iter->second;
-        infosMeta_[bundleKey].lastAccessTime = std::chrono::steady_clock::now();
-        return true;
-    }
-    return false;
+    std::string bundleKey = GenerateBundleKey(bundleOption->GetBundleName(), bundleOption->GetUid());
+    return bundleCache_.Get(bundleKey, info);
 }
 
 void NotificationPreferencesInfo::SetSilentReminderInfo(SilentReminderInfo &info)
@@ -456,30 +454,19 @@ bool NotificationPreferencesInfo::RemoveSilentReminderInfo(const sptr<Notificati
 
 bool NotificationPreferencesInfo::RemoveBundleInfo(const sptr<NotificationBundleOption> &bundleOption)
 {
-    std::string bundleKey = bundleOption->GetBundleName() + std::to_string(bundleOption->GetUid());
-    auto iter = infos_.find(bundleKey);
-    if (iter != infos_.end()) {
-        infos_.erase(iter);
-        infosMeta_.erase(bundleKey);
-        return true;
-    }
-    return false;
+    std::string bundleKey = GenerateBundleKey(bundleOption->GetBundleName(), bundleOption->GetUid());
+    return bundleCache_.Remove(bundleKey);
 }
 
 bool NotificationPreferencesInfo::IsExsitBundleInfo(const sptr<NotificationBundleOption> &bundleOption) const
 {
-    std::string bundleKey = bundleOption->GetBundleName() + std::to_string(bundleOption->GetUid());
-    auto iter = infos_.find(bundleKey);
-    if (iter != infos_.end()) {
-        return true;
-    }
-    return false;
+    std::string bundleKey = GenerateBundleKey(bundleOption->GetBundleName(), bundleOption->GetUid());
+    return bundleCache_.Contains(bundleKey);
 }
 
 void NotificationPreferencesInfo::ClearBundleInfo()
 {
-    infos_.clear();
-    infosMeta_.clear();
+    bundleCache_.Clear();
 }
 
 void NotificationPreferencesInfo::SetDoNotDisturbDate(const int32_t &userId,
@@ -583,30 +570,30 @@ void NotificationPreferencesInfo::GetAllCloneBundlesInfo(const int32_t &dbUserId
     std::vector<NotificationCloneBundleInfo> &cloneBundles)
 {
     for (const auto& bundleItem : bunlesMap) {
-        auto iter = infos_.find(bundleItem.second);
-        if (iter == infos_.end()) {
+        BundleInfo info;
+        if (!bundleCache_.Peek(bundleItem.second, info)) {
             ANS_LOGI("No finde bundle info %{public}s.", bundleItem.second.c_str());
             continue;
         }
 
         // back up anco bundle, filter not current userid application.
-        if (dbUserId == ZERO_USERID && iter->second.GetBundleUserId() != -1 &&
-            iter->second.GetBundleUserId() != userId) {
-            ANS_LOGI("Anco userid %{public}s %{public}d.", bundleItem.second.c_str(), iter->second.GetBundleUid());
+        if (dbUserId == ZERO_USERID && info.GetBundleUserId() != -1 &&
+            info.GetBundleUserId() != userId) {
+            ANS_LOGI("Anco userid %{public}s %{public}d.", bundleItem.second.c_str(), info.GetBundleUid());
             continue;
         }
- 
+
         if (dbUserId != ZERO_USERID &&
-            BundleManagerHelper::GetInstance()->IsAncoApp(iter->second.GetBundleName(), iter->second.GetBundleUid())) {
+            BundleManagerHelper::GetInstance()->IsAncoApp(info.GetBundleName(), info.GetBundleUid())) {
             ANS_LOGI("Anco bundle info %{public}s.", bundleItem.second.c_str());
             continue;
         }
 
         NotificationCloneBundleInfo cloneBundleInfo;
-        SetCloneBundleBasicInfo(iter->second, cloneBundleInfo);
-        cloneBundleInfo.SetExtensionSubscriptionInfos(iter->second.GetExtensionSubscriptionInfos());
+        SetCloneBundleBasicInfo(info, cloneBundleInfo);
+        cloneBundleInfo.SetExtensionSubscriptionInfos(info.GetExtensionSubscriptionInfos());
         std::vector<sptr<NotificationBundleOption>> bundles;
-        iter->second.GetExtensionSubscriptionBundles(bundles);
+        info.GetExtensionSubscriptionBundles(bundles);
         cloneBundleInfo.SetExtensionSubscriptionBundles(bundles);
         auto silentReminderIter = silentReminderInfos_.find(bundleItem.second);
         if (silentReminderIter != silentReminderInfos_.end()) {
@@ -655,8 +642,7 @@ void NotificationPreferencesInfo::RemoveDoNotDisturbDate(const int32_t userId)
 
 void NotificationPreferencesInfo::SetBundleInfoFromDb(BundleInfo &info, std::string bundleKey)
 {
-    infos_.insert_or_assign(bundleKey, info);
-    infosMeta_[bundleKey].lastAccessTime = std::chrono::steady_clock::now();
+    bundleCache_.Put(bundleKey, info);
 }
 
 void NotificationPreferencesInfo::SetSilentReminderInfoFromDb(
@@ -780,17 +766,22 @@ ErrCode NotificationPreferencesInfo::GetAllLiveViewEnabledBundles(const int32_t 
     }
 
     sptr<NotificationSlot> liveSlot;
-    for (auto bundleInfo : infos_) {
-        if (!bundleInfo.second.GetSlot(NotificationConstant::SlotType::LIVE_VIEW, liveSlot)) {
+    auto allKeys = bundleCache_.GetAllKeys();
+    for (const auto& key : allKeys) {
+        BundleInfo info;
+        if (!bundleCache_.Peek(key, info)) {
             continue;
         }
-        int32_t bundleUserId = bundleInfo.second.GetBundleUserId();
+        if (!info.GetSlot(NotificationConstant::SlotType::LIVE_VIEW, liveSlot)) {
+            continue;
+        }
+        int32_t bundleUserId = info.GetBundleUserId();
         if (bundleUserId == SUBSCRIBE_USER_INIT) {
             OsAccountManagerHelper::GetInstance().GetOsAccountLocalIdFromUid(
-                bundleInfo.second.GetBundleUid(), bundleUserId);
+                info.GetBundleUid(), bundleUserId);
         }
         if (liveSlot->GetEnable() && bundleUserId == userId) {
-            NotificationBundleOption bundleItem(bundleInfo.second.GetBundleName(), bundleInfo.second.GetBundleUid());
+            NotificationBundleOption bundleItem(info.GetBundleName(), info.GetBundleUid());
             bundleOption.push_back(bundleItem);
         }
     }
@@ -864,33 +855,21 @@ std::vector<NotificationStatistics> NotificationPreferencesInfo::GetNotification
     return statistics;
 }
 
-void NotificationPreferencesInfo::UpdateInfosMetaAccessTime(const std::string &bundleKey)
+size_t NotificationPreferencesInfo::GetCacheSize() const
 {
-    infosMeta_[bundleKey].lastAccessTime = std::chrono::steady_clock::now();
+    return bundleCache_.Size();
 }
 
-const std::unordered_map<std::string, NotificationPreferencesInfo::CacheEntryMeta>& NotificationPreferencesInfo::GetInfosMeta() const
+void NotificationPreferencesInfo::GetCacheStats(size_t& hitCount, size_t& missCount) const
 {
-    return infosMeta_;
+    auto stats = bundleCache_.GetStats();
+    hitCount = stats.hits;
+    missCount = stats.misses;
 }
 
-void NotificationPreferencesInfo::RemoveInfosMetaByKey(const std::string &bundleKey)
+void NotificationPreferencesInfo::EvictExpiredCache()
 {
-    infosMeta_.erase(bundleKey);
-}
-
-void NotificationPreferencesInfo::RemoveBundleInfoByKey(const std::string &bundleKey)
-{
-    auto iter = infos_.find(bundleKey);
-    if (iter != infos_.end()) {
-        infos_.erase(iter);
-    }
-    infosMeta_.erase(bundleKey);
-}
-
-std::chrono::minutes NotificationPreferencesInfo::GetCacheExpiryDuration() const
-{
-    return CACHE_EXPIRY_DURATION;
+    bundleCache_.EvictExpired();
 }
 }  // namespace Notification
 }  // namespace OHOS
