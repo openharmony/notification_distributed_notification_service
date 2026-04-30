@@ -14,8 +14,8 @@
 #####################hydra-fuzz###################
 import("//base/notification/distributed_notification_service/notification.gni")
 import("//build/config/features.gni")
-import("//build/test.gni")
 import("//build/ohos.gni")
+import("//build/test.gni")
 
 ##############################fuzztest##########################################
 ohos_fuzztest("AnsManagerStubAnnexFuzzTest") {
@@ -50,15 +50,15 @@ ohos_fuzztest("AnsManagerStubAnnexFuzzTest") {
     "ability_base:want",
     "ability_base:zuri",
     "ability_runtime:ability_connect_callback_stub",
+    "bluetooth:btframework",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "ffrt:libffrt",
     "hilog:libhilog",
-    "kv_store:distributeddata_inner",
     "image_framework:image_native",
     "ipc:ipc_single",
+    "kv_store:distributeddata_inner",
     "relational_store:native_rdb",
-    "bluetooth:btframework",
     "time_service:time_client",
   ]
 
@@ -120,7 +120,6 @@ ohos_fuzztest("AnsManagerStubAnnexFuzzTest") {
   if (distributed_notification_service_feature_disable_fa_model) {
     defines += [ "ANS_DISABLE_FA_MODEL" ]
   }
-
 }
 
 ###############################################################################
