@@ -73,6 +73,7 @@ ohos_fuzztest("ReminderServiceFuzzTest") {
     "icu:shared_icuuc",
     "image_framework:image_native",
     "init:libbegetutil",
+    "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "libxml2:libxml2",
     "openssl:libcrypto_shared",
