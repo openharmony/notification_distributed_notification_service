@@ -4,6 +4,10 @@ description: Auto-generate commit/issue, handle conflicts, push and create PR+Is
 
 执行完整提交工作流，commit message 和 issue title 由 AI 自动生成，包含冲突自动处理。
 
+## 参数说明
+
+- `--amend`: 修改最后一次提交（不创建新提交），适用于修正当前会话的提交
+
 ## 执行步骤
 
 ### 1. 分析代码变更
@@ -12,6 +16,13 @@ description: Auto-generate commit/issue, handle conflicts, push and create PR+Is
 !`git branch --show-current`
 !`git diff --stat`
 !`git diff`
+
+**若使用 --amend 参数**:
+- 检查 amend 条件:
+  !`git log -1 --format='%an %ae'`
+  !`git status | grep "Your branch is ahead" || echo "pushed"`
+- 验证 HEAD commit 是否由当前会话创建且未推送
+- 若不符合条件，中止并提示: "Amend 条件不满足：commit 非 Agent 创建或已推送"
 
 基于变更内容分析并生成:
 - **Commit Message**: 简洁概括变更内容 (一句话，符合 OpenHarmony 规范)
@@ -24,12 +35,24 @@ description: Auto-generate commit/issue, handle conflicts, push and create PR+Is
 将用户回答用于 commit message 的 Co-Authored-By 行。
 
 ### 3. Git 提交
-执行:
+
+**若使用 --amend 参数**:
+- git add 所有变更文件
+- git commit --amend --signoff -m "<生成的commit message>\n\nCo-Authored-By: <用户输入>"
+- 验证提交成功 (git log -1)
+
+**否则（正常流程）**:
 - git add 所有变更文件
 - git commit --signoff -m "<生成的commit message>\n\nCo-Authored-By: <用户输入>"
 - 验证提交成功 (git log -1)
 
 ### 4. Push (含冲突处理)
+
+**若使用 --amend 参数**:
+- 使用 force push: git push --force-with-lease origin <当前分支>
+- 若失败，中止并提示: "Amend push 失败，请检查远程分支状态"
+
+**否则（正常流程）**:
 尝试: git push origin <当前分支>
 
 **若 push 成功**: 继续下一步
@@ -75,15 +98,19 @@ description: Auto-generate commit/issue, handle conflicts, push and create PR+Is
    - head 格式: stepend98:<当前分支名>
 
 3. **若已存在**: 更新现有 PR (gitcode_update_pull_request)
-   - 更新 body 添加 issue 链接
+   - 更新 title 和 body
 
-4. **若不存在**: 创建新 PR (gitcode_create_pull_request)
+4. **若不存在且未使用 --amend**: 创建新 PR (gitcode_create_pull_request)
    - title: 使用生成的 commit message
    - head: stepend98:<当前分支>
    - base: master
    - body: 变更说明摘要
 
 ### 7. 创建 Issue
+
+**若使用 --amend 参数**: 跳过此步骤（使用现有 Issue）
+
+**否则**:
 目标仓库: openharmony/notification_distributed_notification_service
 
 使用 gitcode_create_issue:
@@ -95,6 +122,10 @@ description: Auto-generate commit/issue, handle conflicts, push and create PR+Is
 记录返回的 issue number。
 
 ### 8. 关联 PR 和 Issue
+
+**若使用 --amend 参数**: 跳过此步骤（保持现有关联）
+
+**否则**:
 使用 gitcode_update_pull_request 更新 PR:
 - 在 body 中添加: "Related Issue: #<issue-number>"
 - 或使用 "Fixes #<issue-number>" 格式
@@ -107,8 +138,15 @@ description: Auto-generate commit/issue, handle conflicts, push and create PR+Is
 - Issue: <Issue URL>
 - 冲突处理: 若有冲突处理过程，说明处理结果
 
+### 10. 触发门禁
+在pr中评论start build触发门禁
+
 ## 注意事项
 
 - 自动冲突解决仅处理简单情况，复杂冲突需用户手动处理
 - force push 仅在 rebase upstream/master 成功后执行
-- 所有操作在中止时会保留 git 原始状态，用户可手动继续
+- 所有操作在中止时会保留 git 基于原始状态，用户可手动继续
+- **--amend 参数限制**:
+  - 仅当 HEAD commit 由当前会话创建且未推送时可用
+  - 使用 force push (--force-with-lease) 确保安全性
+  - 不创建新 Issue，保持现有 PR-Issue 关联
