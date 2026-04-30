@@ -383,7 +383,7 @@ ErrCode AdvancedNotificationService::AssignToNotificationList(const std::shared_
 {
     ErrCode result = ERR_OK;
     if (!IsNotificationExists(record->notification->GetKey())) {
-        if (record->request->IsUpdateOnly()) {
+        if (record->request->IsUpdateOnly() && !IsSetSnooze(record->notification->GetKey())) {
             ANS_LOGW("Notification not exists when update");
             return ERR_ANS_NOTIFICATION_NOT_EXISTS;
         }

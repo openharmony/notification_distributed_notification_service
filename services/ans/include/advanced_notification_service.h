@@ -1998,6 +1998,7 @@ public:
     void SetNextSnoozeTimer(int64_t currentTime);
     void RemoveAllFromSnoozeDelayList(const sptr<NotificationBundleOption> &bundle);
     void RemoveAllFromSnoozeDelayListByUser(int32_t userId);
+    bool IsSetSnooze(const std::string &key);
 protected:
     /**
      * @brief Query whether there is a agent relationship between the two apps.

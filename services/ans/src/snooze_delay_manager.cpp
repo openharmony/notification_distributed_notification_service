@@ -83,7 +83,8 @@ ErrCode AdvancedNotificationService::ExcuteSnoozeNotification(const std::string 
             message.ErrorCode(ERR_ANS_NOTIFICATION_NOT_EXISTS).BranchId(BRANCH_3));
         return ERR_ANS_NOTIFICATION_NOT_EXISTS;
     }
-    if (outRecord->request->IsCommonLiveView() || outRecord->request->IsSystemLiveView()) {
+    if (outRecord->request->IsCommonLiveView() || outRecord->request->IsSystemLiveView() ||
+        !outRecord->notification->IsRemoveAllowed()) {
         ANS_LOGE("notification is not supported to snooze");
         message.Message(hashCode + " is not supported to snooze");
         NotificationAnalyticsUtil::ReportModifyEvent(
@@ -351,6 +352,22 @@ void AdvancedNotificationService::RemoveAllFromSnoozeDelayListByUser(int32_t use
         }
     }
     CheckSnoozeTimer();
+}
+
+bool AdvancedNotificationService::IsSetSnooze(const std::string &key)
+{
+    for (auto item : notificationList_) {
+        if (item->notification->GetKey().find(key) == 0) {
+            return true;
+        }
+    }
+    std::lock_guard<ffrt::mutex> locker(snoozeNotificationMutex_);
+    for (auto item : snoozeDelayTimerList_) {
+        if (item->notification->GetKey().find(key) == 0) {
+            return true;
+        }
+    }
+    return false;
 }
 } // Notification
 } // OHOS
