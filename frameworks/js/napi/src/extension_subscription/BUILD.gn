@@ -90,6 +90,13 @@ ohos_shared_library("notificationextensionsubscription") {
     "relational_store:native_rdb",
   ]
 
+  defines = []
+
+  if (distributed_notification_service_feature_api_metrics) {
+    external_deps += [ "api_metrics:histogrammanager" ]
+    defines += [ "ANS_FEATURE_API_METRICS_HISTOGRAM" ]
+  }
+
   relative_install_dir = "module"
   subsystem_name = "${subsystem_name}"
   part_name = "${component_name}"

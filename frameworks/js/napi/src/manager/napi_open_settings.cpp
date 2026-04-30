@@ -95,6 +95,7 @@ napi_value NapiOpenNotificationSettings(napi_env env, napi_callback_info info)
     ANS_LOGD("start");
     OpenSettingsParams params {};
     if (ParseOpenSettingsParameters(env, info, params) == nullptr) {
+        Common::HistogramBoolReport("NotificationKit.APICall.openNotificationSettings", false);
         Common::NapiThrow(env, ERROR_PARAM_INVALID);
         return Common::NapiGetUndefined(env);
     }
@@ -102,6 +103,7 @@ napi_value NapiOpenNotificationSettings(napi_env env, napi_callback_info info)
     AsyncCallbackInfoOpenSettings *asynccallbackinfo = new (std::nothrow) AsyncCallbackInfoOpenSettings {
             .env = env, .params = params};
     if (!asynccallbackinfo) {
+        Common::HistogramBoolReport("NotificationKit.APICall.openNotificationSettings", false);
         return Common::JSParaError(env, nullptr);
     }
     napi_value promise = nullptr;
@@ -116,6 +118,7 @@ napi_value NapiOpenNotificationSettings(napi_env env, napi_callback_info info)
         ANS_LOGD("called");
         if (data == nullptr) {
             ANS_LOGE("null data");
+            Common::HistogramBoolReport("NotificationKit.APICall.openNotificationSettings", false);
             return;
         }
         auto* asynccallbackinfo = static_cast<AsyncCallbackInfoOpenSettings*>(data);
@@ -127,14 +130,17 @@ napi_value NapiOpenNotificationSettings(napi_env env, napi_callback_info info)
             if (errCode != ERROR_SETTING_WINDOW_EXIST) {
                 isExist.store(false);
             }
+            Common::HistogramBoolReport("NotificationKit.APICall.openNotificationSettings", false);
             return;
         }
         if (!Init(env, asynccallbackinfo, NapiAsyncCompleteCallbackOpenSettings)) {
             ANS_LOGE("error");
             asynccallbackinfo->info.errorCode = ERROR_INTERNAL_ERROR;
             NapiAsyncCompleteCallbackOpenSettings(env, static_cast<void*>(asynccallbackinfo));
+            Common::HistogramBoolReport("NotificationKit.APICall.openNotificationSettings", false);
             return;
         }
+        Common::HistogramBoolReport("NotificationKit.APICall.openNotificationSettings", true);
         ANS_LOGD("jsCb end");
     };
 
