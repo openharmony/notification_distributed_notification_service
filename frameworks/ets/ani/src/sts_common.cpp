@@ -28,8 +28,16 @@ constexpr const char* CLASSNAME_INT = "std.core.Int";
 constexpr const char* CLASSNAME_LONG = "std.core.Long";
 ani_object GetNullObject(ani_env *env)
 {
+    if (env == nullptr) {
+        ANS_LOGE("GetNullObject failed, env is nullptr");
+        return nullptr;
+    }
     ani_ref nullRef;
-    env->GetNull(&nullRef);
+    ani_status status = env->GetNull(&nullRef);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetNull failed, status: %{public}d", status);
+        return nullptr;
+    }
     return static_cast<ani_object>(nullRef);
 }
 std::string GetResizeStr(std::string instr, int32_t length)
@@ -1104,8 +1112,16 @@ void ParseRecord(ani_env *env, ani_object recordRef, std::map<std::string, ani_r
 
 ani_object CreateAniUndefined(ani_env *env)
 {
+    if (env == nullptr) {
+        ANS_LOGE("CreateAniUndefined failed, env is nullptr");
+        return nullptr;
+    }
     ani_ref aniRef;
-    env->GetUndefined(&aniRef);
+    ani_status status = env->GetUndefined(&aniRef);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetUndefined failed, status: %{public}d", status);
+        return nullptr;
+    }
     return reinterpret_cast<ani_object>(aniRef);
 }
 

@@ -34,7 +34,10 @@ void DeleteCallBackInfoWithoutPromise(ani_env* env, AsyncCallbackSlotInfo* async
     }
     if (asyncCallbackInfo->info.callback != nullptr) {
         ANS_LOGD("Delete callback reference");
-        env->GlobalReference_Delete(asyncCallbackInfo->info.callback);
+        ani_status status = env->GlobalReference_Delete(asyncCallbackInfo->info.callback);
+        if (status != ANI_OK) {
+            ANS_LOGW("GlobalReference_Delete failed, status: %{public}d", status);
+        }
     }
     if (asyncCallbackInfo->asyncWork != nullptr) {
         ANS_LOGD("DeleteAsyncWork");
@@ -53,7 +56,10 @@ void DeleteCallBackInfo(ani_env* env, AsyncCallbackSlotInfo* asyncCallbackInfo)
     }
     if (asyncCallbackInfo->info.resolve != nullptr) {
         ANS_LOGD("Delete resolve reference");
-        env->GlobalReference_Delete(reinterpret_cast<ani_ref>(asyncCallbackInfo->info.resolve));
+        ani_status status = env->GlobalReference_Delete(reinterpret_cast<ani_ref>(asyncCallbackInfo->info.resolve));
+        if (status != ANI_OK) {
+            ANS_LOGW("GlobalReference_Delete failed, status: %{public}d", status);
+        }
     }
     DeleteCallBackInfoWithoutPromise(env, asyncCallbackInfo);
 }
@@ -242,9 +248,15 @@ ani_object AniGetSlotsByBundle(ani_env *env, ani_object bundleOption, ani_object
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     asyncCallbackInfo->functionType = GET_SLOTS_BY_BUNDLE;
-    WorkStatus status = CreateAsyncWork(env,
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackSlotInfo*>(data);
             if (asyncCallbackInfo) {
@@ -253,7 +265,7 @@ ani_object AniGetSlotsByBundle(ani_env *env, ani_object bundleOption, ani_object
             }
         },
         HandleSlotFunctionCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -285,8 +297,14 @@ ani_object AniAddSlots(ani_env *env, ani_object notificationSlotArrayObj, ani_ob
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
-    WorkStatus status = CreateAsyncWork(env,
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackSlotInfo*>(data);
             if (asyncCallbackInfo) {
@@ -295,7 +313,7 @@ ani_object AniAddSlots(ani_env *env, ani_object notificationSlotArrayObj, ani_ob
             }
         },
         HandleSlotFunctionCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -326,8 +344,14 @@ ani_object AniAddSlotByNotificationSlot(ani_env *env, ani_object notificationSlo
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
-    WorkStatus status = CreateAsyncWork(env,
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackSlotInfo*>(data);
             if (asyncCallbackInfo) {
@@ -336,7 +360,7 @@ ani_object AniAddSlotByNotificationSlot(ani_env *env, ani_object notificationSlo
             }
         },
         HandleSlotFunctionCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -367,8 +391,14 @@ ani_object AniAddSlotBySlotType(ani_env *env, ani_enum_item enumObj, ani_object 
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
-    WorkStatus status = CreateAsyncWork(env,
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackSlotInfo*>(data);
             if (asyncCallbackInfo) {
@@ -377,7 +407,7 @@ ani_object AniAddSlotBySlotType(ani_env *env, ani_enum_item enumObj, ani_object 
             }
         },
         HandleSlotFunctionCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -408,9 +438,15 @@ ani_object AniGetSlot(ani_env *env, ani_enum_item enumObj, ani_object callback)
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     asyncCallbackInfo->functionType = GET_SLOT;
-    WorkStatus status = CreateAsyncWork(env,
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackSlotInfo*>(data);
             if (asyncCallbackInfo) {
@@ -419,7 +455,7 @@ ani_object AniGetSlot(ani_env *env, ani_enum_item enumObj, ani_object callback)
             }
         },
         HandleSlotFunctionCallbackComplete1, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -445,9 +481,15 @@ ani_object AniGetSlots(ani_env *env, ani_object callback)
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     asyncCallbackInfo->functionType = GET_SLOTS;
-    WorkStatus status = CreateAsyncWork(env,
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackSlotInfo*>(data);
             if (asyncCallbackInfo) {
@@ -456,7 +498,7 @@ ani_object AniGetSlots(ani_env *env, ani_object callback)
             }
         },
         HandleSlotFunctionCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -487,8 +529,14 @@ ani_object AniRemoveSlot(ani_env *env, ani_enum_item enumObj, ani_object callbac
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
-    WorkStatus status = CreateAsyncWork(env,
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackSlotInfo*>(data);
             if (asyncCallbackInfo) {
@@ -497,7 +545,7 @@ ani_object AniRemoveSlot(ani_env *env, ani_enum_item enumObj, ani_object callbac
             }
         },
         HandleSlotFunctionCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -523,9 +571,15 @@ ani_object AniRemoveAllSlots(ani_env *env, ani_object callback)
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
 
-    WorkStatus status = CreateAsyncWork(env,
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackSlotInfo*>(data);
             if (asyncCallbackInfo) {
@@ -533,7 +587,7 @@ ani_object AniRemoveAllSlots(ani_env *env, ani_object callback)
             }
         },
         HandleSlotFunctionCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -574,8 +628,14 @@ ani_object AniSetSlotByBundle(ani_env *env, ani_object bundleOptionObj, ani_obje
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
-    WorkStatus status = CreateAsyncWork(env,
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackSlotInfo*>(data);
             if (asyncCallbackInfo) {
@@ -584,7 +644,7 @@ ani_object AniSetSlotByBundle(ani_env *env, ani_object bundleOptionObj, ani_obje
             }
         },
         HandleSlotFunctionCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -615,9 +675,15 @@ ani_object AniGetSlotNumByBundle(ani_env *env, ani_object bundleOption, ani_obje
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     asyncCallbackInfo->functionType = GET_SLOT_NUM_BY_BUNDLE;
-    WorkStatus status = CreateAsyncWork(env,
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackSlotInfo*>(data);
             if (asyncCallbackInfo) {
@@ -626,7 +692,7 @@ ani_object AniGetSlotNumByBundle(ani_env *env, ani_object bundleOption, ani_obje
             }
         },
         HandleSlotFunctionCallbackComplete1, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -664,8 +730,14 @@ ani_object AniSetNotificationEnableSlot(ani_env *env, ani_object bundleOption, a
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
-    WorkStatus status = CreateAsyncWork(env,
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackSlotInfo*>(data);
             if (asyncCallbackInfo) {
@@ -675,7 +747,7 @@ ani_object AniSetNotificationEnableSlot(ani_env *env, ani_object bundleOption, a
             }
         },
         HandleSlotFunctionCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -706,8 +778,14 @@ ani_object AniSetNotificationEnableSlotWithForce(ani_env *env, ani_object parame
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
-    WorkStatus status = CreateAsyncWork(env,
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackSlotInfo*>(data);
             if (asyncCallbackInfo) {
@@ -717,7 +795,7 @@ ani_object AniSetNotificationEnableSlotWithForce(ani_env *env, ani_object parame
             }
         },
         HandleSlotFunctionCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -749,9 +827,15 @@ ani_object AniIsNotificationSlotEnabled(ani_env *env, ani_object bundleOption, a
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     asyncCallbackInfo->functionType = IS_NOTIFICATION_SLOT_ENABLED;
-    WorkStatus status = CreateAsyncWork(env,
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackSlotInfo*>(data);
             if (asyncCallbackInfo) {
@@ -761,7 +845,7 @@ ani_object AniIsNotificationSlotEnabled(ani_env *env, ani_object bundleOption, a
             }
         },
         HandleSlotFunctionCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -792,9 +876,15 @@ ani_object AniGetSlotFlagsByBundle(ani_env *env, ani_object obj, ani_object call
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     asyncCallbackInfo->functionType = GET_SLOT_FLAGS_BY_BUNDLE;
-    WorkStatus status = CreateAsyncWork(env,
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackSlotInfo*>(data);
             if (asyncCallbackInfo) {
@@ -803,7 +893,7 @@ ani_object AniGetSlotFlagsByBundle(ani_env *env, ani_object obj, ani_object call
             }
         },
         HandleSlotFunctionCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -835,8 +925,14 @@ ani_object AniSetSlotFlagsByBundle(ani_env *env, ani_object obj, ani_long slotFl
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
-    WorkStatus status = CreateAsyncWork(env,
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackSlotInfo*>(data);
             if (asyncCallbackInfo) {
@@ -845,7 +941,7 @@ ani_object AniSetSlotFlagsByBundle(ani_env *env, ani_object obj, ani_long slotFl
             }
         },
         HandleSlotFunctionCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -877,9 +973,15 @@ ani_object AniGetSlotByBundle(ani_env *env, ani_object bundleOption, ani_enum_it
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     asyncCallbackInfo->functionType = GET_SLOT_BY_BUNDLE;
-    WorkStatus status = CreateAsyncWork(env,
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackSlotInfo*>(data);
             if (asyncCallbackInfo) {
@@ -888,7 +990,7 @@ ani_object AniGetSlotByBundle(ani_env *env, ani_object bundleOption, ani_enum_it
             }
         },
         HandleSlotFunctionCallbackComplete1, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -914,9 +1016,15 @@ ani_object AniGetNotificationSetting(ani_env *env, ani_object callback)
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     asyncCallbackInfo->functionType = GET_NOTIFICATION_SETTING;
-    WorkStatus status = CreateAsyncWork(env,
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackSlotInfo*>(data);
             if (asyncCallbackInfo) {
@@ -925,7 +1033,7 @@ ani_object AniGetNotificationSetting(ani_env *env, ani_object callback)
             }
         },
         HandleSlotFunctionCallbackComplete1, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;

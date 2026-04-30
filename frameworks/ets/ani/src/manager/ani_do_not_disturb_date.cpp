@@ -31,7 +31,10 @@ void DeleteCallBackInfoWithoutPromise(ani_env* env, AsyncCallbackDisturbInfo* as
     }
     if (asyncCallbackInfo->info.callback != nullptr) {
         ANS_LOGD("Delete callback reference");
-        env->GlobalReference_Delete(asyncCallbackInfo->info.callback);
+        ani_status status = env->GlobalReference_Delete(asyncCallbackInfo->info.callback);
+        if (status != ANI_OK) {
+            ANS_LOGW("GlobalReference_Delete failed, status: %{public}d", status);
+        }
     }
     if (asyncCallbackInfo->asyncWork != nullptr) {
         ANS_LOGD("DeleteAsyncWork");
@@ -50,7 +53,10 @@ void DeleteCallBackInfo(ani_env* env, AsyncCallbackDisturbInfo* asyncCallbackInf
     }
     if (asyncCallbackInfo->info.resolve != nullptr) {
         ANS_LOGD("Delete resolve reference");
-        env->GlobalReference_Delete(reinterpret_cast<ani_ref>(asyncCallbackInfo->info.resolve));
+        ani_status status = env->GlobalReference_Delete(reinterpret_cast<ani_ref>(asyncCallbackInfo->info.resolve));
+        if (status != ANI_OK) {
+            ANS_LOGW("GlobalReference_Delete failed, status: %{public}d", status);
+        }
     }
     DeleteCallBackInfoWithoutPromise(env, asyncCallbackInfo);
 }
@@ -135,7 +141,13 @@ ani_object AniSetDoNotDisturbDate(ani_env *env, ani_object date, ani_object call
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
     }
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     if (!SetCallbackObject(env, callback, asyncCallbackInfo)) {
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -143,7 +155,7 @@ ani_object AniSetDoNotDisturbDate(ani_env *env, ani_object date, ani_object call
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    WorkStatus status = CreateAsyncWork(env,
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackDisturbInfo*>(data);
             if (asyncCallbackInfo) {
@@ -152,7 +164,7 @@ ani_object AniSetDoNotDisturbDate(ani_env *env, ani_object date, ani_object call
             }
         },
         HandleDoDisturbDataCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -176,7 +188,13 @@ ani_object AniSetDoNotDisturbDateWithId(ani_env *env, ani_object date, ani_int u
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
     }
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     if (!SetCallbackObject(env, callback, asyncCallbackInfo)) {
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -184,7 +202,7 @@ ani_object AniSetDoNotDisturbDateWithId(ani_env *env, ani_object date, ani_int u
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    WorkStatus status = CreateAsyncWork(env,
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackDisturbInfo*>(data);
             if (asyncCallbackInfo) {
@@ -193,7 +211,7 @@ ani_object AniSetDoNotDisturbDateWithId(ani_env *env, ani_object date, ani_int u
             }
         },
         HandleDoDisturbDataCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -212,7 +230,13 @@ ani_object AniGetDoNotDisturbDate(ani_env *env, ani_object callback)
         NotificationSts::ThrowInternerErrorWithLogE(env, "asyncCallbackInfo is nullptr");
         return nullptr;
     }
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     if (!SetCallbackObject(env, callback, asyncCallbackInfo)) {
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -221,7 +245,7 @@ ani_object AniGetDoNotDisturbDate(ani_env *env, ani_object callback)
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
     asyncCallbackInfo->functionType = GET_DO_NOT_DISTURB_DATE;
-    WorkStatus status = CreateAsyncWork(env,
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackDisturbInfo*>(data);
             if (asyncCallbackInfo) {
@@ -230,7 +254,7 @@ ani_object AniGetDoNotDisturbDate(ani_env *env, ani_object callback)
             }
         },
         HandleDoDisturbDataCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -249,7 +273,13 @@ ani_object AniGetDoNotDisturbDateWithId(ani_env *env, ani_int userId, ani_object
         NotificationSts::ThrowInternerErrorWithLogE(env, "asyncCallbackInfo is nullptr");
         return nullptr;
     }
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     asyncCallbackInfo->userId = userId;
     if (!SetCallbackObject(env, callback, asyncCallbackInfo)) {
         DeleteCallBackInfo(env, asyncCallbackInfo);
@@ -259,7 +289,7 @@ ani_object AniGetDoNotDisturbDateWithId(ani_env *env, ani_int userId, ani_object
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
     asyncCallbackInfo->functionType = GET_DO_NOT_DISTURB_DATE_WITH_ID;
-    WorkStatus status = CreateAsyncWork(env,
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackDisturbInfo*>(data);
             if (asyncCallbackInfo) {
@@ -268,7 +298,7 @@ ani_object AniGetDoNotDisturbDateWithId(ani_env *env, ani_int userId, ani_object
             }
         },
         HandleDoDisturbDataCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -287,7 +317,13 @@ ani_object AniIsSupportDoNotDisturbMode(ani_env *env, ani_object callback)
         NotificationSts::ThrowInternerErrorWithLogE(env, "asyncCallbackInfo is nullptr");
         return nullptr;
     }
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     if (!SetCallbackObject(env, callback, asyncCallbackInfo)) {
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -296,7 +332,7 @@ ani_object AniIsSupportDoNotDisturbMode(ani_env *env, ani_object callback)
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
     asyncCallbackInfo->functionType = IS_SUPPORT_DO_NOT_DISTURB_DATE_MODE;
-    WorkStatus status = CreateAsyncWork(env,
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackDisturbInfo*>(data);
             if (asyncCallbackInfo) {
@@ -305,7 +341,7 @@ ani_object AniIsSupportDoNotDisturbMode(ani_env *env, ani_object callback)
             }
         },
         HandleDoDisturbDataCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;

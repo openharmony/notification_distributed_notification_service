@@ -33,7 +33,10 @@ void DeleteCallBackInfoWithoutPromise(ani_env* env, AsyncCallbackBadgeInfo* asyn
     }
     if (asyncCallbackInfo->info.callback != nullptr) {
         ANS_LOGD("Delete callback reference");
-        env->GlobalReference_Delete(asyncCallbackInfo->info.callback);
+        ani_status status = env->GlobalReference_Delete(asyncCallbackInfo->info.callback);
+        if (status != ANI_OK) {
+            ANS_LOGW("GlobalReference_Delete failed, status: %{public}d", status);
+        }
     }
     if (asyncCallbackInfo->asyncWork != nullptr) {
         ANS_LOGD("DeleteAsyncWork");
@@ -52,7 +55,10 @@ void DeleteCallBackInfo(ani_env* env, AsyncCallbackBadgeInfo* asyncCallbackInfo)
     }
     if (asyncCallbackInfo->info.resolve != nullptr) {
         ANS_LOGD("Delete resolve reference");
-        env->GlobalReference_Delete(reinterpret_cast<ani_ref>(asyncCallbackInfo->info.resolve));
+        ani_status status = env->GlobalReference_Delete(reinterpret_cast<ani_ref>(asyncCallbackInfo->info.resolve));
+        if (status != ANI_OK) {
+            ANS_LOGW("GlobalReference_Delete failed, status: %{public}d", status);
+        }
     }
     DeleteCallBackInfoWithoutPromise(env, asyncCallbackInfo);
 }
@@ -141,7 +147,13 @@ ani_object AniDisplayBadge(ani_env *env, ani_object obj, ani_boolean enable, ani
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
     }
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status vmStatus = env->GetVM(&asyncCallbackInfo->vm);
+    if (vmStatus != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", vmStatus);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     asyncCallbackInfo->isEnable = NotificationSts::AniBooleanToBool(enable);
     if (!SetCallbackObject(env, callback, asyncCallbackInfo)) {
         DeleteCallBackInfo(env, asyncCallbackInfo);
@@ -184,7 +196,13 @@ ani_object AniIsBadgeDisplayed(ani_env *env, ani_object obj, ani_object callback
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
     }
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status vmStatus = env->GetVM(&asyncCallbackInfo->vm);
+    if (vmStatus != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", vmStatus);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     if (!SetCallbackObject(env, callback, asyncCallbackInfo)) {
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -221,7 +239,13 @@ ani_object AniSetBadgeNumber(ani_env *env, ani_int badgeNumber, ani_object callb
         NotificationSts::ThrowInternerErrorWithLogE(env, "asyncCallbackInfo is null");
         return nullptr;
     }
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status vmStatus = env->GetVM(&asyncCallbackInfo->vm);
+    if (vmStatus != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", vmStatus);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        delete asyncCallbackInfo;
+        return nullptr;
+    }
     asyncCallbackInfo->badgeNumber = badgeNumber;
     if (!SetCallbackObject(env, callback, asyncCallbackInfo)) {
         DeleteCallBackInfo(env, asyncCallbackInfo);
@@ -265,7 +289,13 @@ ani_object AniSetBadgeNumberByBundle(ani_env *env, ani_object obj, ani_int badge
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
     }
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     asyncCallbackInfo->badgeNumber = badgeNumber;
     if (!SetCallbackObject(env, callback, asyncCallbackInfo)) {
         DeleteCallBackInfo(env, asyncCallbackInfo);
@@ -274,7 +304,7 @@ ani_object AniSetBadgeNumberByBundle(ani_env *env, ani_object obj, ani_int badge
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    WorkStatus status = CreateAsyncWork(env,
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackBadgeInfo*>(data);
             if (asyncCallbackInfo) {
@@ -283,7 +313,7 @@ ani_object AniSetBadgeNumberByBundle(ani_env *env, ani_object obj, ani_int badge
             }
         },
         HandleBadgeCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -307,7 +337,13 @@ ani_object AniSetBadgeDisplayStatusByBundles(ani_env *env, ani_object obj, ani_o
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
     }
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     if (!SetCallbackObject(env, callback, asyncCallbackInfo)) {
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -316,7 +352,7 @@ ani_object AniSetBadgeDisplayStatusByBundles(ani_env *env, ani_object obj, ani_o
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
 
-    WorkStatus status = CreateAsyncWork(env,
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackBadgeInfo*>(data);
             if (asyncCallbackInfo) {
@@ -325,7 +361,7 @@ ani_object AniSetBadgeDisplayStatusByBundles(ani_env *env, ani_object obj, ani_o
             }
         },
         HandleBadgeCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -349,7 +385,13 @@ ani_object AniGetBadgeDisplayStatusByBundles(ani_env *env, ani_object obj, ani_o
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
     }
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     if (!SetCallbackObject(env, callback, asyncCallbackInfo)) {
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -358,7 +400,7 @@ ani_object AniGetBadgeDisplayStatusByBundles(ani_env *env, ani_object obj, ani_o
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
     asyncCallbackInfo->functionType = GET_BADGE_DISPLAY_STATUS_BY_BUNDLES;
-    WorkStatus status = CreateAsyncWork(env,
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackBadgeInfo*>(data);
             if (asyncCallbackInfo) {
@@ -367,7 +409,7 @@ ani_object AniGetBadgeDisplayStatusByBundles(ani_env *env, ani_object obj, ani_o
             }
         },
         HandleBadgeCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -390,12 +432,18 @@ ani_object AniGetBadgeNumber(ani_env *env, ani_object callback)
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
     }
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
     asyncCallbackInfo->functionType = GET_BADGE_NUMBER;
-    WorkStatus status = CreateAsyncWork(env,
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackBadgeInfo*>(data);
             if (asyncCallbackInfo) {
@@ -404,7 +452,7 @@ ani_object AniGetBadgeNumber(ani_env *env, ani_object callback)
             }
         },
         HandleBadgeCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;

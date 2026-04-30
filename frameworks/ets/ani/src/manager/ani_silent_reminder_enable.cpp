@@ -31,7 +31,10 @@ void DeleteCallBackInfoWithoutPromise(ani_env* env, AsyncCallbackSilentInfo* asy
     }
     if (asyncCallbackInfo->info.callback != nullptr) {
         ANS_LOGD("Delete callback reference");
-        env->GlobalReference_Delete(asyncCallbackInfo->info.callback);
+        ani_status status = env->GlobalReference_Delete(asyncCallbackInfo->info.callback);
+        if (status != ANI_OK) {
+            ANS_LOGW("GlobalReference_Delete failed, status: %{public}d", status);
+        }
     }
     if (asyncCallbackInfo->asyncWork != nullptr) {
         ANS_LOGD("DeleteAsyncWork");
@@ -50,7 +53,10 @@ void DeleteCallBackInfo(ani_env* env, AsyncCallbackSilentInfo* asyncCallbackInfo
     }
     if (asyncCallbackInfo->info.resolve != nullptr) {
         ANS_LOGD("Delete resolve reference");
-        env->GlobalReference_Delete(reinterpret_cast<ani_ref>(asyncCallbackInfo->info.resolve));
+        ani_status status = env->GlobalReference_Delete(reinterpret_cast<ani_ref>(asyncCallbackInfo->info.resolve));
+        if (status != ANI_OK) {
+            ANS_LOGW("GlobalReference_Delete failed, status: %{public}d", status);
+        }
     }
     DeleteCallBackInfoWithoutPromise(env, asyncCallbackInfo);
 }
@@ -130,7 +136,13 @@ ani_object AniSetSilentReminderEnabled(ani_env *env, ani_object bundleOption, an
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status aniStatus = env->GetVM(&asyncCallbackInfo->vm);
+    if (aniStatus != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", aniStatus);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
 
     WorkStatus status = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
@@ -172,7 +184,13 @@ ani_object AniIsSilentReminderEnabled(ani_env *env, ani_object bundleOption, ani
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status aniStatus = env->GetVM(&asyncCallbackInfo->vm);
+    if (aniStatus != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", aniStatus);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     asyncCallbackInfo->isFuncIsSilentReminderEnabled = true;
     WorkStatus status = CreateAsyncWork(env,
         [](ani_env* env, void* data) {

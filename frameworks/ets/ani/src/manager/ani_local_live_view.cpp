@@ -30,7 +30,10 @@ void DeleteCallBackInfoWithoutPromise(ani_env* env, AsyncCallbackLiveViewInfo* a
     }
     if (asyncCallbackInfo->info.callback != nullptr) {
         ANS_LOGD("Delete callback reference");
-        env->GlobalReference_Delete(asyncCallbackInfo->info.callback);
+        ani_status status = env->GlobalReference_Delete(asyncCallbackInfo->info.callback);
+        if (status != ANI_OK) {
+            ANS_LOGW("GlobalReference_Delete failed, status: %{public}d", status);
+        }
     }
     if (asyncCallbackInfo->asyncWork != nullptr) {
         ANS_LOGD("DeleteAsyncWork");
@@ -49,7 +52,10 @@ void DeleteCallBackInfo(ani_env* env, AsyncCallbackLiveViewInfo* asyncCallbackIn
     }
     if (asyncCallbackInfo->info.resolve != nullptr) {
         ANS_LOGD("Delete resolve reference");
-        env->GlobalReference_Delete(reinterpret_cast<ani_ref>(asyncCallbackInfo->info.resolve));
+        ani_status status = env->GlobalReference_Delete(reinterpret_cast<ani_ref>(asyncCallbackInfo->info.resolve));
+        if (status != ANI_OK) {
+            ANS_LOGW("GlobalReference_Delete failed, status: %{public}d", status);
+        }
     }
     DeleteCallBackInfoWithoutPromise(env, asyncCallbackInfo);
 }
@@ -125,8 +131,14 @@ ani_object AniTriggerSystemLiveView(ani_env *env, ani_object bundleOptionObj, an
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
-    WorkStatus status = CreateAsyncWork(env,
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackLiveViewInfo*>(data);
             if (asyncCallbackInfo) {
@@ -136,7 +148,7 @@ ani_object AniTriggerSystemLiveView(ani_env *env, ani_object bundleOptionObj, an
             }
         },
         HandleLiveViewFunctionCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -174,9 +186,19 @@ ani_object AniSubscribeSystemLiveView(ani_env *env, ani_object subscriberObj, an
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        if (asyncCallbackInfo->localLiveViewSubscriber != nullptr) {
+            delete asyncCallbackInfo->localLiveViewSubscriber;
+            asyncCallbackInfo->localLiveViewSubscriber = nullptr;
+        }
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
 
-    WorkStatus status = CreateAsyncWork(env,
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackLiveViewInfo*>(data);
             if (asyncCallbackInfo) {
@@ -186,7 +208,7 @@ ani_object AniSubscribeSystemLiveView(ani_env *env, ani_object subscriberObj, an
             }
         },
         HandleLiveViewFunctionCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;

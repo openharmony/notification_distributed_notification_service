@@ -31,7 +31,10 @@ void DeleteCallBackInfoWithoutPromise(ani_env* env, AsyncCallbackDistributedInfo
     }
     if (asyncCallbackInfo->info.callback != nullptr) {
         ANS_LOGD("Delete callback reference");
-        env->GlobalReference_Delete(asyncCallbackInfo->info.callback);
+        ani_status status = env->GlobalReference_Delete(asyncCallbackInfo->info.callback);
+        if (status != ANI_OK) {
+            ANS_LOGW("GlobalReference_Delete failed, status: %{public}d", status);
+        }
     }
     if (asyncCallbackInfo->asyncWork != nullptr) {
         ANS_LOGD("DeleteAsyncWork");
@@ -50,7 +53,10 @@ void DeleteCallBackInfo(ani_env* env, AsyncCallbackDistributedInfo* asyncCallbac
     }
     if (asyncCallbackInfo->info.resolve != nullptr) {
         ANS_LOGD("Delete resolve reference");
-        env->GlobalReference_Delete(reinterpret_cast<ani_ref>(asyncCallbackInfo->info.resolve));
+        ani_status status = env->GlobalReference_Delete(reinterpret_cast<ani_ref>(asyncCallbackInfo->info.resolve));
+        if (status != ANI_OK) {
+            ANS_LOGW("GlobalReference_Delete failed, status: %{public}d", status);
+        }
     }
     DeleteCallBackInfoWithoutPromise(env, asyncCallbackInfo);
 }
@@ -140,7 +146,13 @@ ani_object AniIsDistributedEnabled(ani_env* env, ani_object callback)
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status vmStatus = env->GetVM(&asyncCallbackInfo->vm);
+    if (vmStatus != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", vmStatus);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     asyncCallbackInfo->functionType = IS_DISTURB_ENABLED;
     WorkStatus status = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
@@ -182,7 +194,13 @@ ani_object AniIsDistributedEnabledByBundle(ani_env* env, ani_object obj, ani_obj
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status vmStatus = env->GetVM(&asyncCallbackInfo->vm);
+    if (vmStatus != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", vmStatus);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     asyncCallbackInfo->functionType = IS_DISTURB_ENABLED_BY_BUNDLE;
     WorkStatus status = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
@@ -231,7 +249,13 @@ ani_object AniIsDistributedEnabledByBundleType(ani_env* env, ani_object obj, ani
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status vmStatus = env->GetVM(&asyncCallbackInfo->vm);
+    if (vmStatus != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", vmStatus);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     asyncCallbackInfo->functionType = IS_DISTURB_ENABLED_BY_BUNDLE_TYPE;
     WorkStatus status = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
@@ -273,7 +297,13 @@ ani_object AniSetDistributedEnable(ani_env* env, ani_boolean enabled, ani_object
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status aniStatus = env->GetVM(&asyncCallbackInfo->vm);
+    if (aniStatus != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", aniStatus);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     WorkStatus status = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackDistributedInfo*>(data);
@@ -315,7 +345,13 @@ ani_object AniSetDistributedEnableByBundle(ani_env* env, ani_object obj, ani_boo
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status aniStatus = env->GetVM(&asyncCallbackInfo->vm);
+    if (aniStatus != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", aniStatus);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     WorkStatus status = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackDistributedInfo*>(data);
@@ -365,7 +401,13 @@ ani_object AniSetDistributedEnableByBundleAndType(ani_env* env, ani_object obj, 
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status aniStatus = env->GetVM(&asyncCallbackInfo->vm);
+    if (aniStatus != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", aniStatus);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     WorkStatus status = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackDistributedInfo*>(data);
@@ -412,9 +454,15 @@ ani_object AniIsDistributedEnabledBySlot(ani_env* env, ani_enum_item slot, ani_s
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     asyncCallbackInfo->functionType = IS_DISTURB_ENABLED_BY_SLOT;
-    WorkStatus status = CreateAsyncWork(env,
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackDistributedInfo*>(data);
             if (asyncCallbackInfo) {
@@ -423,7 +471,7 @@ ani_object AniIsDistributedEnabledBySlot(ani_env* env, ani_enum_item slot, ani_s
             }
         },
         HandleDistribCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -461,7 +509,13 @@ ani_object AniSetDistributedEnableBySlot(ani_env *env, ani_enum_item slot, ani_s
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status aniStatus = env->GetVM(&asyncCallbackInfo->vm);
+    if (aniStatus != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", aniStatus);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     WorkStatus status = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackDistributedInfo*>(data);
@@ -502,9 +556,15 @@ ani_object AniIsDistributedEnabledByDeviceType(ani_env* env, ani_string deviceTy
     }
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     asyncCallbackInfo->functionType = IS_DISTURB_ENABLED_BY_DEVICE_TYPE;
-    WorkStatus status = CreateAsyncWork(env,
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackDistributedInfo*>(data);
             if (asyncCallbackInfo) {
@@ -513,7 +573,7 @@ ani_object AniIsDistributedEnabledByDeviceType(ani_env* env, ani_string deviceTy
             }
         },
         HandleDistribCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -546,7 +606,13 @@ ani_object AniSetDistributedEnabledByDeviceType(ani_env* env,
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status aniStatus = env->GetVM(&asyncCallbackInfo->vm);
+    if (aniStatus != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", aniStatus);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     WorkStatus status = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackDistributedInfo*>(data);
@@ -592,7 +658,13 @@ ani_object AniSetDistributedEnableByBundles(ani_env* env, ani_object obj, ani_st
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status aniStatus = env->GetVM(&asyncCallbackInfo->vm);
+    if (aniStatus != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", aniStatus);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     WorkStatus status = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackDistributedInfo*>(data);
@@ -628,9 +700,15 @@ ani_object AniGetDistributedDeviceList(ani_env* env, ani_object callback)
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     asyncCallbackInfo->functionType = GET_DISTURB_ENABLED_DEVICE_LIST;
-    WorkStatus status = CreateAsyncWork(env,
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackDistributedInfo*>(data);
             if (asyncCallbackInfo) {
@@ -639,7 +717,7 @@ ani_object AniGetDistributedDeviceList(ani_env* env, ani_object callback)
             }
         },
         HandleDistribCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -671,7 +749,13 @@ ani_object AniSetTargetDeviceStatus(ani_env* env, ani_string deviceType, ani_lon
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status aniStatus = env->GetVM(&asyncCallbackInfo->vm);
+    if (aniStatus != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", aniStatus);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     WorkStatus status = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackDistributedInfo*>(data);
@@ -712,9 +796,15 @@ ani_object AniIsSmartReminderEnabled(ani_env* env, ani_string deviceType, ani_ob
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status status = env->GetVM(&asyncCallbackInfo->vm);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     asyncCallbackInfo->functionType = IS_SMART_REMINDER_ENABLE;
-    WorkStatus status = CreateAsyncWork(env,
+    WorkStatus workStatus = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackDistributedInfo*>(data);
             if (asyncCallbackInfo) {
@@ -723,7 +813,7 @@ ani_object AniIsSmartReminderEnabled(ani_env* env, ani_string deviceType, ani_ob
             }
         },
         HandleDistribCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
-    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -755,7 +845,13 @@ ani_object AniSetSmartReminderEnable(ani_env* env, ani_string deviceType, ani_bo
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
         asyncCallbackInfo->info, promise);
-    env->GetVM(&asyncCallbackInfo->vm);
+    ani_status aniStatus = env->GetVM(&asyncCallbackInfo->vm);
+    if (aniStatus != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", aniStatus);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
     WorkStatus status = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
             auto asyncCallbackInfo = static_cast<AsyncCallbackDistributedInfo*>(data);
