@@ -28,6 +28,7 @@ ohos_fuzztest("AnsManagerStubAnnexTwoFuzzTest") {
     "${core_path}/include",
     "${services_path}/ans/include/utils",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
   ]
 
   cflags = [
@@ -50,18 +51,19 @@ ohos_fuzztest("AnsManagerStubAnnexTwoFuzzTest") {
     "ability_base:want",
     "ability_base:zuri",
     "ability_runtime:ability_connect_callback_stub",
+    "bluetooth:btframework",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "ffrt:libffrt",
     "hilog:libhilog",
-    "kv_store:distributeddata_inner",
     "image_framework:image_native",
     "ipc:ipc_single",
+    "kv_store:distributeddata_inner",
     "relational_store:native_rdb",
-    "bluetooth:btframework",
+    "time_service:time_client",
   ]
 
-    defines = []
+  defines = []
 
   if (is_double_framework) {
     cflags += [ "-DCONFIG_DUAL_FRAMEWORK" ]

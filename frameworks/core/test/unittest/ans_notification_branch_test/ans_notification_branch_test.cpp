@@ -1180,6 +1180,11 @@ public:
     {
         return ERR_ANS_INVALID_PARAM;
     }
+
+    ErrCode SnoozeNotification(const std::string &hashCode, const int64_t delayTime) override
+    {
+        return ERR_ANS_INVALID_PARAM;
+    }
 };
 
 class AnsNotificationBranchTest : public testing::Test {

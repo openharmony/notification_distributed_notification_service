@@ -28,6 +28,7 @@ ohos_moduletest("ans_module_test") {
     "${services_path}/test/moduletest/mock/include",
     "${services_path}/ans/include/utils",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
   ]
 
   sources = [
@@ -57,6 +58,7 @@ ohos_moduletest("ans_module_test") {
     "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
     "access_token:libtokenid_sdk",
+    "bluetooth:btframework",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -75,7 +77,6 @@ ohos_moduletest("ans_module_test") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "time_service:time_client",
-    "bluetooth:btframework",
   ]
 
   defines = []

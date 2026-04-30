@@ -15,7 +15,8 @@ import("//base/notification/distributed_notification_service/notification.gni")
 import("//build/ohos.gni")
 import("//build/test.gni")
 
-module_output_path = "${component_name}/distributed_notification_service/unittest"
+module_output_path =
+    "${component_name}/distributed_notification_service/unittest"
 infra_test_path = "/${services_path}/infrastructure/test"
 
 template("advancednotificationservice_infra_test_target") {
@@ -31,10 +32,11 @@ template("advancednotificationservice_infra_test_target") {
       "/${services_path}/infrastructure/interfaces",
       "/${services_path}/infrastructure/interfaces/adapter",
       "/${services_path}/infrastructure/external_adapter/bms/include",
+      "/${services_path}/infrastructure/external_adapter/timer/include",
     ]
 
     defines = []
-    deps = [ 
+    deps = [
       "${frameworks_module_ans_path}:ans_innerkits",
       "${services_path}/infrastructure:ans_base",
     ]
@@ -61,6 +63,7 @@ template("advancednotificationservice_infra_test_target") {
       "ipc:ipc_single",
       "os_account:os_account_innerkits",
       "samgr:samgr_proxy",
+      "time_service:time_client",
     ]
 
     if (defined(invoker.external_deps)) {

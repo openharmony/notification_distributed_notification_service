@@ -56,6 +56,7 @@
 #include "notification_clone_bundle_info.h"
 #include "ibadge_query_callback.h"
 #include "ffrt_queue_impl.h"
+#include "timer_impl.h"
 #include "notification_app_state_observer.h"
 
 namespace OHOS {
@@ -846,6 +847,15 @@ public:
      */
     ErrCode GetStatisticsByBundle(const std::vector<sptr<NotificationBundleOption>> &bundles,
     std::vector<NotificationStatistics> &statistics) override;
+
+    /**
+     * @brief Delays a notification to remind again after a specified time interval
+     *
+     * @param hashCode The hashCode of the notification to snooze.
+     * @param delayTime  The time interval in seconds to delay the reminder.
+     * @return Returns set result.
+     */
+    ErrCode SnoozeNotification(const std::string &hashCode, const int64_t delayTime) override;
 
     /**
      * @brief Add Do Not Disturb profiles.
@@ -1975,6 +1985,19 @@ public:
      * @param pid Process id.
      */
     void RemoveCommonLiveViewNotification(const int32_t pid);
+    void SnoozeNotificationConsumed(const std::shared_ptr<NotificationRecord> &record);
+    bool IsCanRecoverSnooze(const std::shared_ptr<NotificationRecord> &record);
+    void DeleteSnoozeNotificationFromDB(const std::shared_ptr<NotificationRecord> &record);
+    bool SetEncryptToDB(const NotificationRequestDb &requestDb);
+    void TriggerSnoozeDelay();
+    void InsertsnoozeDelayTimer(const std::shared_ptr<NotificationRecord> &record);
+    void CreateSnoozeTimer();
+    bool StartSnoozeTimer();
+    int64_t GetEarliestTriggerTime();
+    void CheckSnoozeTimer();
+    void SetNextSnoozeTimer(int64_t currentTime);
+    void RemoveAllFromSnoozeDelayList(const sptr<NotificationBundleOption> &bundle);
+    void RemoveAllFromSnoozeDelayListByUser(int32_t userId);
 protected:
     /**
      * @brief Query whether there is a agent relationship between the two apps.
@@ -2547,6 +2570,8 @@ private:
     ErrCode ExtractWantAgentInfo(
         const std::shared_ptr<NotificationRecord> record, sptr<NotificationParameters> &parameters);
     bool GrantSoundPermission(const sptr<NotificationRequest> request, sptr<NotificationBundleOption> bundleOption);
+    ErrCode ExcuteSnoozeNotification(const std::string &hashCode, const int64_t delayTime);
+    bool SetSnoozeDelayTimeToDB(const int64_t delayTime, const std::shared_ptr<NotificationRecord> &record);
 #ifdef ANS_FEATURE_NOTIFICATION_STATISTICS
     void SetNotificationStatisticsToDB(const std::shared_ptr<NotificationRecord> &record,
         const sptr<NotificationBundleOption> bundleOption, const bool isExists);
@@ -2595,10 +2620,12 @@ private:
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler_ = nullptr;
     std::list<std::shared_ptr<NotificationRecord>> notificationList_;
     std::list<std::shared_ptr<NotificationRecord>> triggerNotificationList_;
+    std::list<std::shared_ptr<NotificationRecord>> snoozeDelayTimerList_;
     std::shared_ptr<RecentInfo> recentInfo_ = nullptr;
     std::shared_ptr<SystemEventObserver> systemEventObserver_ = nullptr;
     sptr<IRemoteObject::DeathRecipient> pushRecipient_ = nullptr;
     Infra::FfrtQueueImpl notificationSvrQueue_;
+    Infra::TimerImpl timerImpl_;
     std::map<NotificationConstant::SlotType, std::shared_ptr<BasePublishProcess>> publishProcess_;
 #ifdef ANS_FEATURE_ORIGINAL_DISTRIBUTED
     std::shared_ptr<DistributedKvStoreDeathRecipient> distributedKvStoreDeathRecipient_ = nullptr;
@@ -2616,6 +2643,7 @@ private:
     std::list<std::pair<std::shared_ptr<NotificationRecord>, uint64_t>> delayNotificationList_;
     ffrt::mutex delayNotificationMutext_;
     ffrt::mutex triggerNotificationMutex_;
+    ffrt::mutex snoozeNotificationMutex_;
     static ffrt::mutex doNotDisturbMutex_;
     std::map<int32_t, std::string> doNotDisturbEnableRecord_;
     bool isCachedAppAndDeviceRelationMap_ = false;

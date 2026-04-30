@@ -1351,7 +1351,6 @@ ErrCode AdvancedNotificationService::RemoveAllNotificationsByBundleName(
     const std::string &bundleName, int32_t reason, int32_t userId)
 {
     NOTIFICATION_HITRACE(HITRACE_TAG_NOTIFICATION);
-    ANS_LOGD("called");
  
     if (bundleName.empty()) {
         std::string message = "bundle name is empty.";
@@ -1365,7 +1364,6 @@ ErrCode AdvancedNotificationService::RemoveAllNotificationsByBundleName(
         std::vector<std::shared_ptr<NotificationRecord>> removeList;
         ANS_LOGD("ffrt enter!");
         RemoveAllNotificationsByBundleNameFromTriggerNotificationList(bundleName);
-
         for (auto record : notificationList_) {
             if (record == nullptr) {
                 ANS_LOGE("record is nullptr");
@@ -1388,7 +1386,6 @@ ErrCode AdvancedNotificationService::RemoveAllNotificationsByBundleName(
                 removeList.push_back(record);
             }
         }
- 
         std::vector<sptr<Notification>> notifications;
         std::vector<uint64_t> timerIds;
         for (auto record : removeList) {

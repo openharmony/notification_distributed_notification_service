@@ -36,12 +36,12 @@ ohos_unittest("advanced_notification_extension_subscription_test") {
     "${services_path}/ans/include",
     "${services_path}/ans/include/utils/",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
   ]
   version_script = "../libans_test.map"
 
   sources = [
     "${test_path}/mock/mock_tokenid_kit.cpp",
-    "advanced_notification_extension_subscription_test.cpp",
     "../mock/mock_accesstoken_kit.cpp",
     "../mock/mock_bluetooth.cpp",
     "../mock/mock_bundle_mgr.cpp",
@@ -51,6 +51,7 @@ ohos_unittest("advanced_notification_extension_subscription_test") {
     "../mock/mock_os_account_manager.cpp",
     "../mock/mock_push_callback_stub.cpp",
     "../mock/mock_time_service_client.cpp",
+    "advanced_notification_extension_subscription_test.cpp",
   ]
 
   defines = []
@@ -78,6 +79,7 @@ ohos_unittest("advanced_notification_extension_subscription_test") {
     "ability_base:configuration",
     "ability_base:zuri",
     "access_token:libaccesstoken_sdk",
+    "bluetooth:btframework",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -90,7 +92,6 @@ ohos_unittest("advanced_notification_extension_subscription_test") {
     "os_account:os_account_innerkits",
     "relational_store:native_rdb",
     "time_service:time_client",
-    "bluetooth:btframework",
   ]
 
   subsystem_name = "${subsystem_name}"

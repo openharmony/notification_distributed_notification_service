@@ -1193,6 +1193,7 @@ public:
      * @return Returns true if succeed; returns false otherwise.
      */
     bool ToJson(nlohmann::json &jsonObject) const override;
+    void ToJsonExt(nlohmann::json &jsonObject) const;
 
     /**
      * @brief Creates a NotificationRequest object from a Json.
@@ -1679,6 +1680,10 @@ private:
     std::string GetLiveViewStatusKey();
     void AddConsumedDevices(const std::string &deviceType);
     bool IsConsumedDevices(const std::string &deviceType);
+    void SetSnoozeDelayTime(const int64_t snoozeDelayTime);
+    int64_t GetSnoozeDelayTime();
+    void SetIsSnoozeTrigger(bool isSnoozeTrigger);
+    bool GetIsSnoozeTrigger();
 
 private:
     int32_t notificationId_ {0};
@@ -1689,6 +1694,7 @@ private:
     int32_t progressMax_ {0};
     int64_t createTime_ {0};
     int64_t deliveryTime_ {0};
+    int64_t snoozeDelayTime_ {0};
 
     int64_t autoDeletedTime_ {NotificationConstant::INVALID_AUTO_DELETE_TIME};
     int64_t updateDeadLine_ {0};
@@ -1752,6 +1758,7 @@ private:
     bool notDistributed_ {false};
     bool isSystemApp_ {false};
     bool isDoNotDisturbByPassed_ {false};
+    bool isSnoozeTrigger_ {false};
 
     std::shared_ptr<AbilityRuntime::WantAgent::WantAgent> wantAgent_ {};
     std::shared_ptr<AbilityRuntime::WantAgent::WantAgent> removalWantAgent_ {};
@@ -1782,6 +1789,8 @@ private:
     uint32_t publishDelayTime_ {0};
     std::string priorityNotificationType_ {NotificationConstant::PriorityNotificationType::OTHER};
     friend class NotificationSubscriberManager;
+    friend class AdvancedNotificationService;
+    friend class SnoozeTimerHelper;
 };
 }  // namespace Notification
 }  // namespace OHOS

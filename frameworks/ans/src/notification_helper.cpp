@@ -1134,5 +1134,10 @@ ErrCode NotificationHelper::GetStatisticsByBundle(const std::vector<Notification
 {
     return DelayedSingleton<AnsNotification>::GetInstance()->GetStatisticsByBundle(bundleOptions, statistics);
 }
+
+ErrCode NotificationHelper::SnoozeNotification(const std::string &hashCode, const int64_t delayTime)
+{
+    return DelayedSingleton<AnsNotification>::GetInstance()->SnoozeNotification(hashCode, delayTime);
+}
 }  // namespace Notification
 }  // namespace OHOS

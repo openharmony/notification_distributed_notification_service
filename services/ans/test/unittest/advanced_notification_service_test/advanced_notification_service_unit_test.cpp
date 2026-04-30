@@ -2524,6 +2524,119 @@ HWTEST_F(AdvancedNotificationServiceUnitTest, SetNotificationRequestToDbCommon_6
     MockInsertData(true);
 }
 
+
+/**
+ * @tc.name: SetEncryptToDB_100
+ * @tc.desc: Test SetEncryptToDB.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceUnitTest, SetEncryptToDB_100, Function | SmallTest | Level1)
+{
+    sptr<NotificationRequest> request = new NotificationRequest(1);
+    sptr<NotificationBundleOption> bundleOption = new NotificationBundleOption();
+    bundleOption->SetBundleName("testBundle");
+    bundleOption->SetUid(100);
+    AdvancedNotificationService::NotificationRequestDb requestDbObj =
+        { .request = request, .bundleOption = nullptr };
+    auto result = advancedNotificationService_->SetEncryptToDB(requestDbObj);
+    ASSERT_EQ(result, false);
+
+    AdvancedNotificationService::NotificationRequestDb requestDbObj1 =
+        { .request = nullptr, .bundleOption = bundleOption };
+    result = advancedNotificationService_->SetEncryptToDB(requestDbObj1);
+    ASSERT_EQ(result, false);
+}
+
+/**
+ * @tc.name: SetEncryptToDB_200
+ * @tc.desc: Test SetEncryptToDB.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceUnitTest, SetEncryptToDB_200, Function | SmallTest | Level1)
+{
+    std::string bundleName = "BundleName_04";
+    int32_t uid = 100;
+    sptr<NotificationBundleOption> bundleOption = new NotificationBundleOption();
+    bundleOption->SetBundleName(bundleName);
+    bundleOption->SetUid(uid);
+    sptr<MockNotificationRequest> request = new MockNotificationRequest();
+    EXPECT_CALL(*request, ToJson(testing::_))
+        .WillOnce(testing::DoAll(
+            testing::SetArgReferee<0>(nlohmann::json{{"status", "success"}}),
+            testing::Return(false)
+        ));
+
+    AdvancedNotificationService::NotificationRequestDb requestDbObj =
+        { .request = request, .bundleOption = bundleOption };
+    auto result = advancedNotificationService_->SetEncryptToDB(requestDbObj);
+    ASSERT_EQ(result, false);
+}
+
+/**
+ * @tc.name: SetEncryptToDB_300
+ * @tc.desc: Test SetEncryptToDB.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceUnitTest, SetEncryptToDB_300, Function | SmallTest | Level1)
+{
+    std::string bundleName = "BundleName_04";
+    int32_t uid = 100;
+    sptr<MockNotificationBundleOption> bundleOption = new MockNotificationBundleOption();
+    EXPECT_CALL(*bundleOption, ToJson(testing::_))
+        .WillOnce(testing::DoAll(
+            testing::SetArgReferee<0>(nlohmann::json{{"status", "success"}}),
+            testing::Return(false)
+        ));
+    bundleOption->SetBundleName(bundleName);
+    bundleOption->SetUid(uid);
+    sptr<NotificationRequest> request = new NotificationRequest(1);
+    std::shared_ptr<NotificationNormalContent> normalContent = std::make_shared<NotificationNormalContent>();
+    normalContent->SetTitle("title_1");
+    std::shared_ptr<NotificationContent> content = std::make_shared<NotificationContent>(normalContent);
+    request->SetContent(content);
+    request->SetCreatorUid(100);
+    request->SetCreatorUserId(100);
+    request->SetLabel("test_4");
+    request->SetSlotType(NotificationConstant::SlotType::SOCIAL_COMMUNICATION);
+
+    AdvancedNotificationService::NotificationRequestDb requestDbObj =
+        { .request = request, .bundleOption = bundleOption };
+    auto result = advancedNotificationService_->SetEncryptToDB(requestDbObj);
+    ASSERT_EQ(result, false);
+}
+
+/**
+ * @tc.name: SetSnoozeDelayTimeToDB_100
+ * @tc.desc: Test SetSnoozeDelayTimeToDB.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdvancedNotificationServiceUnitTest, SetSnoozeDelayTimeToDB_100, Function | SmallTest | Level1)
+{
+    std::string bundleName = "BundleName_04";
+    int32_t uid = 100;
+    sptr<MockNotificationBundleOption> bundleOption = new MockNotificationBundleOption();
+    EXPECT_CALL(*bundleOption, ToJson(testing::_))
+        .WillOnce(testing::DoAll(
+            testing::SetArgReferee<0>(nlohmann::json{{"status", "success"}}),
+            testing::Return(false)
+        ));
+    bundleOption->SetBundleName(bundleName);
+    bundleOption->SetUid(uid);
+    sptr<NotificationRequest> request = new NotificationRequest(1);
+    std::shared_ptr<NotificationNormalContent> normalContent = std::make_shared<NotificationNormalContent>();
+    normalContent->SetTitle("title_1");
+    std::shared_ptr<NotificationContent> content = std::make_shared<NotificationContent>(normalContent);
+    request->SetContent(content);
+    request->SetCreatorUid(100);
+    request->SetCreatorUserId(100);
+    request->SetLabel("test_4");
+    request->SetSlotType(NotificationConstant::SlotType::SOCIAL_COMMUNICATION);
+    auto record = advancedNotificationService_->MakeNotificationRecord(request, bundleOption);
+
+    auto result = advancedNotificationService_->SetSnoozeDelayTimeToDB(100, record);
+    ASSERT_EQ(result, false);
+}
+
 #ifdef ANS_FEATURE_NOTIFICATION_STATISTICS
 /**
  * @tc.name: SetNotificationStatisticsToDB_100
