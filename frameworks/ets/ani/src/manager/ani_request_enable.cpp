@@ -19,6 +19,7 @@
 #include "ets_error_utils.h"
 #include "notification_helper.h"
 #include "ani_common_util.h"
+#include "sts_common.h"
 #include "sts_throw_erro.h"
 
 namespace OHOS {
@@ -198,12 +199,14 @@ ani_object AniRequestEnableNotification(ani_env *env, ani_object content)
     ANS_LOGD("enter");
     std::shared_ptr<EnableNotificationInfo> info = std::make_shared<EnableNotificationInfo>();
     if (!GetEnableNotificationInfo(env, content, info)) {
+        NotificationSts::HistogramBoolReport("NotificationKit.APICall.requestEnableNotification", false);
         ANS_LOGE("GetEnableNotificationInfo");
         return nullptr;
     }
     ani_object aniPromise {};
     ani_resolver aniResolver {};
     if (ANI_OK != env->Promise_New(&aniResolver, &aniPromise)) {
+        NotificationSts::HistogramBoolReport("NotificationKit.APICall.requestEnableNotification", false);
         ANS_LOGE("Promise_New faild");
         return nullptr;
     }
@@ -211,6 +214,8 @@ ani_object AniRequestEnableNotification(ani_env *env, ani_object content)
     RequestEnableExecute(info);
     RequestEnableComplete(env, info);
     ANS_LOGD("RequestEnableNotification done");
+    NotificationSts::HistogramBoolReport(
+        "NotificationKit.APICall.requestEnableNotification", info->errorCode == ERR_ANS_DIALOG_POP_SUCCEEDED);
     return aniPromise;
 }
 }

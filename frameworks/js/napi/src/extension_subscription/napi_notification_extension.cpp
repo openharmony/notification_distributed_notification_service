@@ -860,12 +860,14 @@ void ProcessExtensionSubCreation(napi_env env, void* data)
 {
     if (data == nullptr) {
         ANS_LOGE("null data");
+        Common::HistogramBoolReport("NotificationKit.APICall.openSubscriptionSettings", false);
         return;
     }
     auto* asynccallbackinfo = static_cast<AsyncCallbackInfoOpenSettings*>(data);
     
     if (asynccallbackinfo->info.errorCode != ERR_OK) {
         NapiAsyncCompleteCallbackOpenSettings(env, static_cast<void*>(asynccallbackinfo));
+        Common::HistogramBoolReport("NotificationKit.APICall.openSubscriptionSettings", false);
         return;
     }
     
@@ -877,14 +879,17 @@ void ProcessExtensionSubCreation(napi_env env, void* data)
         if (errCode != ERROR_SETTING_WINDOW_EXIST) {
             subisExist.store(false);
         }
+        Common::HistogramBoolReport("NotificationKit.APICall.openSubscriptionSettings", false);
         return;
     }
     if (!InitSub(env, asynccallbackinfo, NapiAsyncCompleteCallbackOpenSettings)) {
         ANS_LOGE("init error");
         asynccallbackinfo->info.errorCode = ERROR_INTERNAL_ERROR;
         NapiAsyncCompleteCallbackOpenSettings(env, static_cast<void*>(asynccallbackinfo));
+        Common::HistogramBoolReport("NotificationKit.APICall.openSubscriptionSettings", false);
         return;
     }
+    Common::HistogramBoolReport("NotificationKit.APICall.openSubscriptionSettings", true);
 }
 
 
@@ -931,6 +936,7 @@ napi_value NapiNotificationExtensionOpenSubscriptionSettings(napi_env env, napi_
 
     OpenSettingsParams params {};
     if (ParseOpenSettingsParameters(env, info, params) == nullptr) {
+        Common::HistogramBoolReport("NotificationKit.APICall.openSubscriptionSettings", false);
         Common::NapiThrow(env, ERROR_PARAM_INVALID);
         return Common::NapiGetUndefined(env);
     }
@@ -939,6 +945,7 @@ napi_value NapiNotificationExtensionOpenSubscriptionSettings(napi_env env, napi_
         .env = env, .params = params
     };
     if (!asynccallbackinfo) {
+        Common::HistogramBoolReport("NotificationKit.APICall.openSubscriptionSettings", false);
         return Common::JSParaError(env, nullptr);
     }
 

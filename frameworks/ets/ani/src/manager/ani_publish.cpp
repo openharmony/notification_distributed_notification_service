@@ -94,13 +94,17 @@ void HandlePublishFunctionCallbackComplete(ani_env* env, WorkStatus status, void
     auto asyncCallbackInfo = static_cast<AsyncCallbackPublishInfo*>(data);
     if (!asyncCallbackInfo) {
         ANS_LOGE("asyncCallbackInfo is nullptr");
+        NotificationSts::HistogramBoolReport("NotificationKit.APICall.publish", false);
         return;
     }
     ani_env *envCurr = nullptr;
     if (!CheckCompleteEnvironment(&envCurr, asyncCallbackInfo)) {
+        NotificationSts::HistogramBoolReport("NotificationKit.APICall.publish", false);
         return;
     }
     NotificationSts::CreateReturnData(envCurr, asyncCallbackInfo->info);
+    NotificationSts::HistogramBoolReport(
+        "NotificationKit.APICall.publish", asyncCallbackInfo->info.returnCode == ERR_OK);
     DeleteCallBackInfoWithoutPromise(envCurr, asyncCallbackInfo);
 }
 
@@ -118,16 +122,19 @@ ani_object AniPublish(ani_env *env, ani_object obj, ani_object callback)
     ANS_LOGD("AniPublish called");
     auto asyncCallbackInfo = new (std::nothrow)AsyncCallbackPublishInfo{.asyncWork = nullptr};
     if (!asyncCallbackInfo) {
+        NotificationSts::HistogramBoolReport("NotificationKit.APICall.publish", false);
         NotificationSts::ThrowInternerErrorWithLogE(env, "asyncCallbackInfo is null");
         return nullptr;
     }
     int32_t ret = NotificationSts::UnWarpNotificationRequest(env, obj, asyncCallbackInfo->notificationRequest);
     if (ret != ERR_OK) {
+        NotificationSts::HistogramBoolReport("NotificationKit.APICall.publish", false);
         NotificationSts::ThrowErrorWithCode(env, ret);
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
     }
     if (!SetCallbackObject(env, callback, asyncCallbackInfo)) {
+        NotificationSts::HistogramBoolReport("NotificationKit.APICall.publish", false);
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
     }
@@ -140,12 +147,14 @@ ani_object AniPublish(ani_env *env, ani_object obj, ani_object callback)
         ANS_LOGE("GetVM failed, status: %{public}d", status);
         NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
+        NotificationSts::HistogramBoolReport("NotificationKit.APICall.publish", false);
         return nullptr;
     }
 
     WorkStatus workStatus = CreateAsyncWork(env, ExecutePublishWork,
         HandlePublishFunctionCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
     if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+        NotificationSts::HistogramBoolReport("NotificationKit.APICall.publish", false);
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
@@ -161,17 +170,20 @@ ani_object AniPublishWithId(ani_env *env, ani_object obj, ani_int userId, ani_ob
     ANS_LOGD("AniPublishWithId called");
     auto asyncCallbackInfo = new (std::nothrow)AsyncCallbackPublishInfo{.asyncWork = nullptr};
     if (!asyncCallbackInfo) {
+        NotificationSts::HistogramBoolReport("NotificationKit.APICall.publish", false);
         NotificationSts::ThrowInternerErrorWithLogE(env, "asyncCallbackInfo is null");
         return nullptr;
     }
     int32_t ret = NotificationSts::UnWarpNotificationRequest(env, obj, asyncCallbackInfo->notificationRequest);
     if (ret != ERR_OK) {
+        NotificationSts::HistogramBoolReport("NotificationKit.APICall.publish", false);
         NotificationSts::ThrowErrorWithCode(env, ret);
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
     }
     asyncCallbackInfo->notificationRequest->SetOwnerUserId(userId);
     if (!SetCallbackObject(env, callback, asyncCallbackInfo)) {
+        NotificationSts::HistogramBoolReport("NotificationKit.APICall.publish", false);
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
     }
@@ -183,11 +195,13 @@ ani_object AniPublishWithId(ani_env *env, ani_object obj, ani_int userId, ani_ob
         ANS_LOGE("GetVM failed, status: %{public}d", status);
         NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
+        NotificationSts::HistogramBoolReport("NotificationKit.APICall.publish", false);
         return nullptr;
     }
     WorkStatus workStatus = CreateAsyncWork(env, ExecutePublishWork,
         HandlePublishFunctionCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
     if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+        NotificationSts::HistogramBoolReport("NotificationKit.APICall.publish", false);
         NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return nullptr;
