@@ -740,7 +740,7 @@ void AdvancedNotificationService::ExcuteRemoveAllNotificationsInner(const sptr<N
 
         TriggerRemoveWantAgent(record->request, reason, record->isThirdparty);
     }
-
+    RemoveAllFromSnoozeDelayList(bundle);
     if (!notifications.empty()) {
         NotificationSubscriberManager::GetInstance()->BatchNotifyCanceled(notifications, nullptr, reason);
     }

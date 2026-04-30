@@ -302,6 +302,7 @@ public:
     MOCK_METHOD2(GetNotificationSwitch, ErrCode(const sptr<NotificationBundleOption>&, int32_t&));
     MOCK_METHOD2(GetStatisticsByBundle, ErrCode(
         const std::vector<sptr<NotificationBundleOption>>&, std::vector<NotificationStatistics>&));
+    MOCK_METHOD2(SnoozeNotification, ErrCode(const std::string&, const int64_t));
 };
 } // namespace Notification
 } // namespace OHOS

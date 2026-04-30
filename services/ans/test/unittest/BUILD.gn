@@ -29,6 +29,7 @@ ohos_unittest("ans_unit_test") {
     "/${services_path}/ans/include/utils",
     "/${services_path}/ans/include/notification_extension",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
   ]
 
   defines = []
@@ -114,7 +115,8 @@ ohos_unittest("ans_unit_test") {
     "samgr:samgr_proxy",
     "time_service:time_client",
   ]
-  if (ans_device_manager_enable && distributed_notification_service_feature_watch) {
+  if (ans_device_manager_enable &&
+      distributed_notification_service_feature_watch) {
     external_deps += [ "device_manager:devicemanagersdk" ]
   }
 
@@ -150,6 +152,7 @@ ohos_unittest("notification_preferences_database_test") {
     "/${services_path}/ans/include/utils/",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
     "${services_path}/infrastructure/external_adapter/rdb/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
   ]
 
   defines = []
@@ -209,7 +212,8 @@ ohos_unittest("notification_preferences_database_test") {
     "samgr:samgr_proxy",
     "time_service:time_client",
   ]
-  if (ans_device_manager_enable && distributed_notification_service_feature_watch) {
+  if (ans_device_manager_enable &&
+      distributed_notification_service_feature_watch) {
     external_deps += [ "device_manager:devicemanagersdk" ]
   }
 
@@ -248,6 +252,7 @@ ohos_unittest("notification_preferences_database_two_test") {
     "/${services_path}/ans/include/utils/",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
     "${services_path}/infrastructure/external_adapter/rdb/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
   ]
 
   defines = []
@@ -298,7 +303,8 @@ ohos_unittest("notification_preferences_database_two_test") {
     "samgr:samgr_proxy",
     "time_service:time_client",
   ]
-  if (ans_device_manager_enable && distributed_notification_service_feature_watch) {
+  if (ans_device_manager_enable &&
+      distributed_notification_service_feature_watch) {
     external_deps += [ "device_manager:devicemanagersdk" ]
   }
 
@@ -334,6 +340,7 @@ ohos_unittest("notification_subscriber_manager_test") {
     "/${services_path}/ans/include/utils",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
     "${services_path}/infrastructure/external_adapter/rdb/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
   ]
 
   defines = []
@@ -403,7 +410,8 @@ ohos_unittest("notification_subscriber_manager_test") {
     "samgr:samgr_proxy",
     "time_service:time_client",
   ]
-  if (ans_device_manager_enable && distributed_notification_service_feature_watch) {
+  if (ans_device_manager_enable &&
+      distributed_notification_service_feature_watch) {
     external_deps += [ "device_manager:devicemanagersdk" ]
   }
 
@@ -446,6 +454,7 @@ ohos_unittest("notification_service_test") {
     "/${services_path}/ans/include/utils/",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
     "${services_path}/infrastructure/external_adapter/rdb/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
   ]
 
   defines = []
@@ -466,6 +475,7 @@ ohos_unittest("notification_service_test") {
     "mock/mock_push_callback_stub.cpp",
     "mock/mock_single_kv_store.cpp",
     "notification_dialog_test/mock_os_account_manager_annex.cpp",
+    "snooze_delay_manager_test.cpp",
   ]
 
   deps = [
@@ -509,7 +519,8 @@ ohos_unittest("notification_service_test") {
     "samgr:samgr_proxy",
     "time_service:time_client",
   ]
-  if (ans_device_manager_enable && distributed_notification_service_feature_watch) {
+  if (ans_device_manager_enable &&
+      distributed_notification_service_feature_watch) {
     external_deps += [ "device_manager:devicemanagersdk" ]
   }
 
@@ -554,6 +565,7 @@ ohos_unittest("notification_clone_test") {
     "${services_path}/ans/test/unittest/mock/include",
     "/${services_path}/ans/include/utils/",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
   ]
 
   defines = []
@@ -621,7 +633,8 @@ ohos_unittest("notification_clone_test") {
     "samgr:samgr_proxy",
     "time_service:time_client",
   ]
-  if (ans_device_manager_enable && distributed_notification_service_feature_watch) {
+  if (ans_device_manager_enable &&
+      distributed_notification_service_feature_watch) {
     external_deps += [ "device_manager:devicemanagersdk" ]
   }
 
@@ -658,6 +671,7 @@ ohos_unittest("notification_publish_service_test") {
     "${services_path}/ans/test/unittest/mock/include",
     "/${services_path}/ans/include/utils",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
   ]
 
   defines = []
@@ -726,7 +740,8 @@ ohos_unittest("notification_publish_service_test") {
     "samgr:samgr_proxy",
     "time_service:time_client",
   ]
-  if (ans_device_manager_enable && distributed_notification_service_feature_watch) {
+  if (ans_device_manager_enable &&
+      distributed_notification_service_feature_watch) {
     external_deps += [ "device_manager:devicemanagersdk" ]
   }
 
@@ -767,6 +782,7 @@ ohos_unittest("notification_service_publish_test") {
     "${services_path}/ans/test/unittest/mock/include",
     "/${services_path}/ans/include/utils/",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
   ]
 
   defines = []
@@ -825,7 +841,8 @@ ohos_unittest("notification_service_publish_test") {
     "time_service:time_client",
   ]
 
-  if (ans_device_manager_enable && distributed_notification_service_feature_watch) {
+  if (ans_device_manager_enable &&
+      distributed_notification_service_feature_watch) {
     external_deps += [ "device_manager:devicemanagersdk" ]
   }
 
@@ -857,6 +874,7 @@ ohos_unittest("notification_preferences_second_test") {
     "/${services_path}/ans/include/utils/",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
     "${services_path}/infrastructure/external_adapter/rdb/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
   ]
 
   defines = []
@@ -880,6 +898,7 @@ ohos_unittest("notification_preferences_second_test") {
     "hitrace:hitrace_meter",
     "kv_store:distributeddata_inner",
     "relational_store:native_rdb",
+    "time_service:time_client",
   ]
 
   subsystem_name = "${subsystem_name}"
@@ -897,6 +916,7 @@ ohos_unittest("notification_preferences_test") {
     "${services_path}/ans/test/unittest/mock/include",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
     "${services_path}/infrastructure/external_adapter/rdb/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
   ]
 
   use_exceptions = true
@@ -963,7 +983,8 @@ ohos_unittest("notification_preferences_test") {
     "samgr:samgr_proxy",
     "time_service:time_client",
   ]
-  if (ans_device_manager_enable && distributed_notification_service_feature_watch) {
+  if (ans_device_manager_enable &&
+      distributed_notification_service_feature_watch) {
     external_deps += [ "device_manager:devicemanagersdk" ]
   }
 
@@ -1058,6 +1079,7 @@ ohos_unittest("bundle_manager_helper_branch_test") {
     "/${services_path}/ans/include",
     "${services_path}/ans/test/unittest/mock/include",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
   ]
 
   sources = [
@@ -1173,6 +1195,7 @@ ohos_unittest("notification_subscriber_manager_branch_test") {
     "/${services_path}/ans/include/utils",
     "${services_path}/infrastructure/external_adapter/extension/include",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
   ]
 
   defines = []
@@ -1246,6 +1269,7 @@ ohos_unittest("advanced_notification_ringtone_service_test") {
     "${services_path}/ans/test/unittest/mock/include",
     "/${services_path}/ans/include/utils/",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
   ]
 
   defines = []
@@ -1305,7 +1329,8 @@ ohos_unittest("advanced_notification_ringtone_service_test") {
     "samgr:samgr_proxy",
     "time_service:time_client",
   ]
-  if (ans_device_manager_enable && distributed_notification_service_feature_watch) {
+  if (ans_device_manager_enable &&
+      distributed_notification_service_feature_watch) {
     external_deps += [ "device_manager:devicemanagersdk" ]
   }
 
@@ -1338,6 +1363,7 @@ ohos_unittest("advanced_notification_geofence_service_test") {
     "${services_path}/ans/test/unittest/mock/include",
     "/${services_path}/ans/include/utils/",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
   ]
 
   defines = []
@@ -1397,7 +1423,8 @@ ohos_unittest("advanced_notification_geofence_service_test") {
     "samgr:samgr_proxy",
     "time_service:time_client",
   ]
-  if (ans_device_manager_enable && distributed_notification_service_feature_watch) {
+  if (ans_device_manager_enable &&
+      distributed_notification_service_feature_watch) {
     external_deps += [ "device_manager:devicemanagersdk" ]
   }
 
@@ -1430,6 +1457,7 @@ ohos_unittest("advanced_notification_service_branch_test") {
     "/${services_path}/ans/include/utils/",
     "${services_path}/ans/test/unittest/mock/include",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
   ]
 
   defines = []
@@ -1507,6 +1535,7 @@ ohos_unittest("notification_preferences_database_branch_test") {
     "${services_path}/domain/settings/rdb_mgr_repo/include",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
     "${services_path}/infrastructure/external_adapter/rdb/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
   ]
 
   sources = [
@@ -1543,7 +1572,7 @@ ohos_unittest("notification_preferences_database_branch_test") {
     "image_framework:image_native",
     "ipc:ipc_core",
     "kv_store:distributeddata_inner",
-    "libxml2:libxml2",
+    "libxml2:static_libxml2",
     "openssl:libcrypto_shared",
     "os_account:os_account_innerkits",
     "relational_store:native_rdb",
@@ -1567,6 +1596,7 @@ ohos_unittest("push_callback_stub_test") {
     "include",
     "/${services_path}/ans/include",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
   ]
 
   sources = [ "push_callback_stub_test.cpp" ]
@@ -1621,6 +1651,7 @@ ohos_unittest("notification_rdb_data_mgr_test") {
     "${services_path}/ans/test/unittest/mock/include",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
     "${services_path}/infrastructure/external_adapter/rdb/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
   ]
 
   sources = [
@@ -1679,6 +1710,7 @@ ohos_unittest("notification_config_parse_test") {
     "/${services_path}/ans/include",
     "${services_path}/ans/test/unittest/mock/include",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
   ]
 
   sources = [
@@ -1713,7 +1745,7 @@ ohos_unittest("notification_config_parse_test") {
     "image_framework:image_native",
     "ipc:ipc_core",
     "kv_store:distributeddata_inner",
-    "libxml2:libxml2",
+    "libxml2:static_libxml2",
     "os_account:os_account_innerkits",
     "relational_store:native_rdb",
     "safwk:system_ability_fwk",
@@ -1892,6 +1924,7 @@ ohos_unittest("advanced_notification_service_unit_test") {
     "/${services_path}/ans/include/utils/",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
     "${services_path}/infrastructure/external_adapter/rdb/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
   ]
 
   sources = [
@@ -2028,6 +2061,7 @@ ohos_unittest("notification_extension_test") {
     "${services_path}/infrastructure/external_adapter/extension/include",
     "${services_path}/infrastructure/external_adapter/ffrt/include",
     "${services_path}/infrastructure/external_adapter/rdb/include",
+    "${services_path}/infrastructure/external_adapter/timer/include",
   ]
 
   sources = [
@@ -2113,6 +2147,7 @@ ohos_unittest("notification_extension_test") {
     "${services_path}/ans/src/priority_notification/notification_ai_extension_wrapper.cpp",
     "${services_path}/ans/src/reminder_swing_decision_center.cpp",
     "${services_path}/ans/src/report_time_info.cpp",
+    "${services_path}/ans/src/snooze_delay_manager.cpp",
     "${services_path}/ans/src/system_dialog_connect_stb.cpp",
     "${services_path}/ans/src/system_event_observer.cpp",
     "${services_path}/ans/src/system_live_view/advanced_notification_system_live_view_service.cpp",
@@ -2186,7 +2221,8 @@ ohos_unittest("notification_extension_test") {
     "samgr:samgr_proxy",
     "time_service:time_client",
   ]
-  if (ans_device_manager_enable && distributed_notification_service_feature_watch) {
+  if (ans_device_manager_enable &&
+      distributed_notification_service_feature_watch) {
     external_deps += [ "device_manager:devicemanagersdk" ]
   }
 

@@ -75,7 +75,9 @@ void AdvancedNotificationService::RecoverLiveViewFromDb(int32_t userId)
                 NotificationAnalyticsUtil::ReportPublishFailedEvent(record->request, ansStatus.BuildMessage(true));
                 continue;
             }
-
+            if (IsCanRecoverSnooze(record)) {
+                continue;
+            }
             ansStatus = Filter(record, true);
             if (!ansStatus.Ok()) {
                 ANS_LOGE("Filter record failed.");
@@ -116,6 +118,7 @@ void AdvancedNotificationService::RecoverLiveViewFromDb(int32_t userId)
         if (!keys.empty()) {
             OnRecoverLiveView(keys);
         }
+        StartSnoozeTimer();
         // publish notifications
         for (const auto &subscriber : NotificationSubscriberManager::GetInstance()->GetSubscriberRecords()) {
             OnSubscriberAdd(subscriber, userId);

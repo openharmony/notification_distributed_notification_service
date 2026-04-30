@@ -11,13 +11,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//base/notification/distributed_notification_service/notification.gni")
+import("../advancednotificationservice_infra_test_common.gni")  # import common
+                                                                # cfg
+
+# unittest
+advancednotificationservice_infra_test_target("timer_impl_test") {
+  sources_value = [ "timer_impl_test.cpp" ]
+}
 
 group("unittest") {
   testonly = true
-
-  deps = [
-    "bms:bundle_manager_repository_impl_test",
-    "timer:timer_impl_test",
-  ]
+  deps = [ ":timer_impl_test" ]
 }

@@ -1904,6 +1904,15 @@ public:
      */
     static ErrCode GetStatisticsByBundle(const std::vector<NotificationBundleOption> &bundleOptions,
         std::vector<NotificationStatistics> &statistics);
+    
+    /**
+     * @brief Delays a notification to remind again after a specified time interval
+     *
+     * @param hashCode The hashCode of the notification to snooze.
+     * @param delayTime  The time interval in seconds to delay the reminder.
+     * @return Returns set result.
+     */
+    static ErrCode SnoozeNotification(const std::string &hashCode, const int64_t delayTime);
 };
 }  // namespace Notification
 }  // namespace OHOS

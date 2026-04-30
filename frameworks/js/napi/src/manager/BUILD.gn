@@ -100,6 +100,7 @@ ohos_shared_library("notificationmanager") {
     "napi_ringtone_info_by_bundle.cpp",
     "napi_silent_reminder_enable.cpp",
     "napi_slot.cpp",
+    "napi_snooze_notification.cpp",
     "napi_statistics.cpp",
     "napi_sync_config.cpp",
     "napi_template.cpp",
