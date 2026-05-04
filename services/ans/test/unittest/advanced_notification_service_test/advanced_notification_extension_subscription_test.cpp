@@ -71,6 +71,7 @@ void AdvancedNotificationExtensionSubscriptionTest::SetUp()
 
 void AdvancedNotificationExtensionSubscriptionTest::TearDown()
 {
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
     advancedNotificationService_ = nullptr;
 }
 
@@ -502,11 +503,11 @@ HWTEST_F(AdvancedNotificationExtensionSubscriptionTest, GetUserGrantedState_0200
 {
     bool enabled = false;
     sptr<NotificationBundleOption> targetBundle = new NotificationBundleOption("test.bundle", 1001);
-    
+
     MockGetTokenTypeFlag(ATokenTypeEnum::TOKEN_NATIVE);
     MockIsSystemApp(true);
     MockIsVerfyPermisson(false);
-    
+
     ErrCode ret = advancedNotificationService_->GetUserGrantedState(targetBundle, enabled);
     EXPECT_EQ(ret, ERR_ANS_PERMISSION_DENIED);
 }
@@ -520,11 +521,11 @@ HWTEST_F(AdvancedNotificationExtensionSubscriptionTest, GetUserGrantedState_0300
 {
     bool enabled = false;
     sptr<NotificationBundleOption> targetBundle = nullptr;
-    
+
     MockGetTokenTypeFlag(ATokenTypeEnum::TOKEN_NATIVE);
     MockIsSystemApp(true);
     MockIsVerfyPermisson(true);
-    
+
     ErrCode ret = advancedNotificationService_->GetUserGrantedState(targetBundle, enabled);
     EXPECT_EQ(ret, ERR_ANS_INVALID_BUNDLE_OPTION);
 }
@@ -581,7 +582,7 @@ HWTEST_F(AdvancedNotificationExtensionSubscriptionTest, GetUserGrantedState_0600
 {
     bool enabled = false;
     sptr<NotificationBundleOption> targetBundle = new NotificationBundleOption("bundleName", NON_SYSTEM_APP_UID);
-    
+
     MockGetTokenTypeFlag(ATokenTypeEnum::TOKEN_NATIVE);
     MockIsSystemApp(true);
     MockIsVerfyPermisson(true);
@@ -621,7 +622,7 @@ HWTEST_F(AdvancedNotificationExtensionSubscriptionTest, SetUserGrantedState_0200
     MockGetTokenTypeFlag(ATokenTypeEnum::TOKEN_NATIVE);
     MockIsSystemApp(true);
     MockIsVerfyPermisson(false);
-    
+
     ErrCode ret = advancedNotificationService_->SetUserGrantedState(targetBundle, enabled);
     EXPECT_EQ(ret, ERR_ANS_PERMISSION_DENIED);
 }
@@ -635,11 +636,11 @@ HWTEST_F(AdvancedNotificationExtensionSubscriptionTest, SetUserGrantedState_0300
 {
     bool enabled = true;
     sptr<NotificationBundleOption> targetBundle = nullptr;
-    
+
     MockGetTokenTypeFlag(ATokenTypeEnum::TOKEN_NATIVE);
     MockIsSystemApp(true);
     MockIsVerfyPermisson(true);
-    
+
     ErrCode ret = advancedNotificationService_->SetUserGrantedState(targetBundle, enabled);
     EXPECT_EQ(ret, ERR_ANS_INVALID_BUNDLE_OPTION);
 }
@@ -696,7 +697,7 @@ HWTEST_F(AdvancedNotificationExtensionSubscriptionTest, SetUserGrantedState_0600
 {
     bool enabled = true;
     sptr<NotificationBundleOption> targetBundle = new NotificationBundleOption("bundleName", NON_SYSTEM_APP_UID);
-    
+
     MockGetTokenTypeFlag(ATokenTypeEnum::TOKEN_NATIVE);
     MockIsSystemApp(true);
     MockIsVerfyPermisson(true);
@@ -1439,7 +1440,7 @@ HWTEST_F(AdvancedNotificationExtensionSubscriptionTest, FilterGrantedBundles_010
 {
     NotificationPreferences notificationPreferences;
     sptr<NotificationBundleOption> bundleOption = new NotificationBundleOption("bundleName", NON_SYSTEM_APP_UID);
-    
+
     auto ret = notificationPreferences.SetExtensionSubscriptionEnabled(bundleOption,
         NotificationConstant::SWITCH_STATE::USER_MODIFIED_ON);
     EXPECT_EQ(ret, ERR_OK);
