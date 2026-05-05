@@ -22,6 +22,9 @@
 #include <vector>
 #include "ans_log_wrapper.h"
 #include <ani_signature_builder.h>
+#ifdef ANS_FEATURE_API_METRICS_HISTOGRAM
+#include "histogram_plugin_macros.h"
+#endif
 
 namespace OHOS {
 namespace NotificationSts {
@@ -115,6 +118,13 @@ inline bool AniBooleanToBool(ani_boolean value)
 inline ani_boolean BoolToAniBoolean(bool value)
 {
     return value ? ANI_TRUE : ANI_FALSE;
+}
+
+inline void HistogramBoolReport(const std::string &name, const bool isSuccess)
+{
+#ifdef ANS_FEATURE_API_METRICS_HISTOGRAM
+    HISTOGRAM_BOOLEAN(name.c_str(), isSuccess);
+#endif
 }
 
 template<typename valueType>

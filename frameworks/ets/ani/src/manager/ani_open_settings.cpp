@@ -192,16 +192,19 @@ ani_object AniOpenNotificationSettings(ani_env *env, ani_object content)
     ANS_LOGD("sts AniOpenNotificationSettings call");
     std::shared_ptr<OpenSettingsInfo> info = std::make_shared<OpenSettingsInfo>();
     if (!GetOpenSettingsInfo(env, content, info)) {
+        HistogramBoolReport("NotificationKit.APICall.openNotificationSettings", false);
         ANS_LOGE("sts AniOpenNotificationSettings GetOpenSettingsInfo fail");
         return nullptr;
     }
     if (info->context == nullptr) {
+        HistogramBoolReport("NotificationKit.APICall.openNotificationSettings", false);
         ANS_LOGE("sts AniOpenNotificationSettings context is null");
         NotificationSts::ThrowInternerErrorWithLogE(env, "");
         return nullptr;
     }
     std::string bundleName {""};
     if (isExist.exchange(true)) {
+        HistogramBoolReport("NotificationKit.APICall.openNotificationSettings", false);
         ANS_LOGE("sts AniOpenNotificationSettings ERROR_SETTING_WINDOW_EXIST");
         OHOS::NotificationSts::ThrowError(env, OHOS::Notification::ERROR_SETTING_WINDOW_EXIST,
             NotificationSts::FindAnsErrMsg(OHOS::Notification::ERROR_SETTING_WINDOW_EXIST));
@@ -210,6 +213,7 @@ ani_object AniOpenNotificationSettings(ani_env *env, ani_object content)
     ani_object aniPromise {};
     ani_resolver aniResolver {};
     if (ANI_OK != env->Promise_New(&aniResolver, &aniPromise)) {
+        HistogramBoolReport("NotificationKit.APICall.openNotificationSettings", false);
         ANS_LOGE("Promise_New faild");
         return nullptr;
     }
@@ -221,13 +225,14 @@ ani_object AniOpenNotificationSettings(ani_env *env, ani_object content)
         info->errorCode = OHOS::Notification::ERROR_INTERNAL_ERROR;
     }
     if (info->errorCode != ERR_ANS_DIALOG_POP_SUCCEEDED) {
+        HistogramBoolReport("NotificationKit.APICall.openNotificationSettings", false);
         ANS_LOGE("error, code is %{public}d.", info->errorCode);
         StsAsyncCompleteCallbackOpenSettings(env, info);
         isExist.store(false);
         return nullptr;
     }
     ANS_LOGD("sts AniOpenNotificationSettings end");
-
+    HistogramBoolReport("NotificationKit.APICall.openNotificationSettings", true);
     return aniPromise;
 }
 

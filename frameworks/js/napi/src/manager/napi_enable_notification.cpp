@@ -271,6 +271,7 @@ napi_value NapiRequestEnableNotification(napi_env env, napi_callback_info info)
     ANS_LOGD("called");
     IsEnableParams params {};
     if (ParseRequestEnableParameters(env, info, params) == nullptr) {
+        Common::HistogramBoolReport("NotificationKit.APICall.requestEnableNotification", false);
         Common::NapiThrow(env, ERROR_PARAM_INVALID);
         return Common::NapiGetUndefined(env);
     }
@@ -278,6 +279,7 @@ napi_value NapiRequestEnableNotification(napi_env env, napi_callback_info info)
     AsyncCallbackInfoIsEnable *asynccallbackinfo = new (std::nothrow) AsyncCallbackInfoIsEnable {
             .env = env, .params = params, .newInterface = true};
     if (!asynccallbackinfo) {
+        Common::HistogramBoolReport("NotificationKit.APICall.requestEnableNotification", false);
         Common::NapiThrow(env, ERROR_INTERNAL_ERROR);
         return Common::JSParaError(env, params.callback);
     }
@@ -326,6 +328,7 @@ napi_value NapiRequestEnableNotification(napi_env env, napi_callback_info info)
         ANS_LOGD("called");
         if (data == nullptr) {
             ANS_LOGE("null data");
+            Common::HistogramBoolReport("NotificationKit.APICall.requestEnableNotification", false);
             return;
         }
         auto* asynccallbackinfo = static_cast<AsyncCallbackInfoIsEnable*>(data);
@@ -342,6 +345,7 @@ napi_value NapiRequestEnableNotification(napi_env env, napi_callback_info info)
         if (errCode != ERR_ANS_DIALOG_POP_SUCCEEDED) {
             ANS_LOGE("pop failed code:%{public}d", errCode);
             NapiAsyncCompleteCallbackRequestEnableNotification(env, static_cast<void*>(asynccallbackinfo));
+            Common::HistogramBoolReport("NotificationKit.APICall.requestEnableNotification", false);
             return;
         }
         // Dialog is popped
@@ -352,8 +356,10 @@ napi_value NapiRequestEnableNotification(napi_env env, napi_callback_info info)
             ANS_LOGE("setDialogCallbackInterface error");
             asynccallbackinfo->info.errorCode = ERROR_INTERNAL_ERROR;
             NapiAsyncCompleteCallbackRequestEnableNotification(env, static_cast<void*>(asynccallbackinfo));
+            Common::HistogramBoolReport("NotificationKit.APICall.requestEnableNotification", false);
             return;
         }
+        Common::HistogramBoolReport("NotificationKit.APICall.requestEnableNotification", true);
     };
 
     // Asynchronous function call
