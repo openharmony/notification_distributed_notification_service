@@ -2054,6 +2054,7 @@ public:
         napi_value &result);
     static int32_t GetOsAccountLocalIdFromUid(const int32_t uid, int32_t &id);
     static napi_value SetNotificationSettings(const napi_env &env, uint32_t slotFlags, napi_value &result);
+    static void HistogramBoolReport(const std::string &name, const bool isSuccess);
 private:
     static const int32_t ARGS_ONE = 1;
     static const int32_t ARGS_TWO = 2;

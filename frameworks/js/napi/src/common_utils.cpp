@@ -16,6 +16,9 @@
 #include "common.h"
 #include "ans_inner_errors.h"
 #include "ans_log_wrapper.h"
+#ifdef ANS_FEATURE_API_METRICS_HISTOGRAM
+#include "histogram_plugin_macros.h"
+#endif
 #include "js_native_api.h"
 #include "js_native_api_types.h"
 #include "napi_common.h"
@@ -342,6 +345,13 @@ napi_value Common::NapiReturnFalseCbInner(napi_env env, napi_callback_info info,
     napi_create_promise(env, &deferred, &promise);
     SetPromise(env, deferred, 0, result, false);
     return promise;
+}
+
+void Common::HistogramBoolReport(const std::string &name, const bool isSuccess)
+{
+#ifdef ANS_FEATURE_API_METRICS_HISTOGRAM
+    HISTOGRAM_BOOLEAN(name.c_str(), isSuccess);
+#endif
 }
 }  // namespace NotificationNapi
 }  // namespace OHOS

@@ -28,6 +28,7 @@ napi_value NapiPublish(napi_env env, napi_callback_info info)
     TraceChainUtil traceChain = TraceChainUtil();
     ParametersInfoPublish params;
     if (ParseParameters(env, info, params) == nullptr) {
+        Common::HistogramBoolReport("NotificationKit.APICall.publish", false);
         Common::NapiThrow(env, ERROR_PARAM_INVALID);
         return Common::NapiGetUndefined(env);
     }
@@ -35,6 +36,7 @@ napi_value NapiPublish(napi_env env, napi_callback_info info)
     napi_value promise = nullptr;
     auto asynccallbackinfo = new (std::nothrow) AsyncCallbackInfoPublish {.env = env, .asyncWork = nullptr};
     if (!asynccallbackinfo) {
+        Common::HistogramBoolReport("NotificationKit.APICall.publish", false);
         ANS_LOGD("null asynccallbackinfo");
         Common::NapiThrow(env, ERROR_INTERNAL_ERROR);
         return Common::JSParaError(env, params.callback);
@@ -67,6 +69,8 @@ napi_value NapiPublish(napi_env env, napi_callback_info info)
             AsyncCallbackInfoPublish *asynccallbackinfo = static_cast<AsyncCallbackInfoPublish *>(data);
             if (asynccallbackinfo) {
                 Common::CreateReturnValue(env, asynccallbackinfo->info, Common::NapiGetNull(env));
+                Common::HistogramBoolReport(
+                    "NotificationKit.APICall.publish", asynccallbackinfo->info.errorCode == ERR_OK);
                 if (asynccallbackinfo->info.callback != nullptr) {
                     ANS_LOGD("Delete napiPublish callback reference.");
                     napi_delete_reference(env, asynccallbackinfo->info.callback);
@@ -74,6 +78,8 @@ napi_value NapiPublish(napi_env env, napi_callback_info info)
                 napi_delete_async_work(env, asynccallbackinfo->asyncWork);
                 delete asynccallbackinfo;
                 asynccallbackinfo = nullptr;
+            } else {
+                Common::HistogramBoolReport("NotificationKit.APICall.publish", false);
             }
             ANS_LOGD("Publish napi_create_async_work complete end");
         },

@@ -35,6 +35,8 @@ struct OpenSettingsInfo {
 
 ani_object AniOpenSubscribeSettings(ani_env *env, ani_object content);
 ani_object AniOpenSubscribeSettingsWithResult(ani_env *env, ani_object content);
+bool ValidateAndPrepareOpenSettings(ani_env *env, ani_object content, std::shared_ptr<OpenSettingsInfo> &info,
+    ani_resolver &aniResolver, ani_object &aniPromise);
 bool GetOpenSettingsInfo(ani_env *env, ani_object content, std::shared_ptr<OpenSettingsInfo> &info);
 bool CreateSettingsUIExtension(std::shared_ptr<OHOS::AbilityRuntime::Context> context, std::string &bundleName,
     ani_env *env, std::shared_ptr<OpenSettingsInfo> &info);
