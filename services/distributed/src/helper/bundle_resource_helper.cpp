@@ -259,7 +259,7 @@ bool BundleResourceHelper::IsAncoApp(const std::string &bundleName, int32_t uid,
  
     userId = ZERO_USERID;
     AppExecFwk::BundleInfo bundleInfo;
-    if (!GetBundleInfoV9(bundleName, userId, bundleInfo)) {
+    if (GetBundleInfoV9(bundleName, userId, bundleInfo) != ERR_OK) {
         ANS_LOGW("Get Bundle bundleName %{public}s, %{public}d", bundleName.c_str(), userId);
         return false;
     }
