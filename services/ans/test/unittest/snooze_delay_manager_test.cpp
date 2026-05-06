@@ -235,19 +235,22 @@ HWTEST_F(AnsSnoozeDelayTest, ExcuteSnoozeNotification_00004, Function | SmallTes
     std::string hashCode = "test123";
     int64_t delayTime = NotificationAnalyticsUtil::GetCurrentTime() + 60000;
     sptr<NotificationRequest> request(new (std::nothrow) NotificationRequest());
-    sptr<Notification> notification(new (std::nothrow) Notification(request));
     auto normalContent = std::make_shared<NotificationNormalContent>();
     normalContent->SetContentType(1);
     auto content = std::make_shared<NotificationContent>(normalContent);
     request->SetContent(content);
+    request->SetRemoveAllowed(false);
+    sptr<Notification> notification(new (std::nothrow) Notification(request));
+    sptr<NotificationBundleOption> bundleOption = new NotificationBundleOption();
+    bundleOption->SetBundleName("testName");
     notification->SetKey(hashCode);
-    notification->SetRemoveAllowed(false);
     auto record1 = std::make_shared<NotificationRecord>();
     record1->request = request;
     record1->notification = notification;
+    record1->bundleOption = bundleOption;
     advancedNotificationService_->notificationList_.push_back(record1);
     ASSERT_EQ(advancedNotificationService_->ExcuteSnoozeNotification(hashCode, delayTime),
-        (int)ERR_ANS_NOTIFICATION_IS_UNALLOWED_REMOVEALLOWED);
+        (int)ERR_ANS_NOTIFICATION_SNOOZE_NOTALLOWED);
 }
 
 /**
@@ -568,6 +571,148 @@ HWTEST_F(AnsSnoozeDelayTest, RemoveAllFromSnoozeDelayListByUser_00001, Function 
     advancedNotificationService_->RemoveAllFromSnoozeDelayListByUser(100);
 
     ASSERT_EQ(advancedNotificationService_->snoozeDelayTimerList_.size(), 1);
+}
+
+/**
+ * @tc.name: IsSetSnooze_00001
+ * @tc.desc: Test IsSetSnooze
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(AnsSnoozeDelayTest, IsSetSnooze_00001, Function | SmallTest | Level1)
+{
+    advancedNotificationService_->snoozeDelayTimerList_.clear();
+    sptr<NotificationRequest> request(new (std::nothrow) NotificationRequest());
+    request->SetCreatorUserId(100);
+    int64_t delayTime = NotificationAnalyticsUtil::GetCurrentTime() + 60000;
+    request->SetSnoozeDelayTime(delayTime);
+    sptr<Notification> notification(new (std::nothrow) Notification(request));
+    notification->SetKey("test111");
+    sptr<NotificationBundleOption> bundleOption = new NotificationBundleOption();
+    bundleOption->SetBundleName("testBundle");
+    bundleOption->SetUid(100);
+
+    auto record = std::make_shared<NotificationRecord>();
+    record->request = request;
+    record->bundleOption = bundleOption;
+    record->notification = notification;
+    advancedNotificationService_->notificationList_.push_back(record);
+    advancedNotificationService_->snoozeDelayTimerList_.push_back(record);
+    ASSERT_EQ(advancedNotificationService_->IsSetSnooze("test123"), false);
+}
+
+/**
+ * @tc.name: IsSetSnooze_00002
+ * @tc.desc: Test IsSetSnooze
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(AnsSnoozeDelayTest, IsSetSnooze_00002, Function | SmallTest | Level1)
+{
+    advancedNotificationService_->snoozeDelayTimerList_.clear();
+    sptr<NotificationRequest> request(new (std::nothrow) NotificationRequest());
+    request->SetCreatorUserId(100);
+    int64_t delayTime = NotificationAnalyticsUtil::GetCurrentTime() + 60000;
+    request->SetSnoozeDelayTime(delayTime);
+    sptr<Notification> notification(new (std::nothrow) Notification(request));
+    notification->SetKey("test123_test");
+    sptr<NotificationBundleOption> bundleOption = new NotificationBundleOption();
+    bundleOption->SetBundleName("testBundle");
+    bundleOption->SetUid(100);
+
+    auto record = std::make_shared<NotificationRecord>();
+    record->request = request;
+    record->bundleOption = bundleOption;
+    record->notification = notification;
+    advancedNotificationService_->notificationList_.push_back(record);
+    ASSERT_EQ(advancedNotificationService_->IsSetSnooze("test123"), true);
+}
+
+/**
+ * @tc.name: IsSetSnooze_00003
+ * @tc.desc: Test IsSetSnooze
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(AnsSnoozeDelayTest, IsSetSnooze_00003, Function | SmallTest | Level1)
+{
+    advancedNotificationService_->snoozeDelayTimerList_.clear();
+    sptr<NotificationRequest> request(new (std::nothrow) NotificationRequest());
+    request->SetCreatorUserId(100);
+    int64_t delayTime = NotificationAnalyticsUtil::GetCurrentTime() + 60000;
+    request->SetSnoozeDelayTime(delayTime);
+    sptr<Notification> notification(new (std::nothrow) Notification(request));
+    notification->SetKey("test123_test");
+    sptr<NotificationBundleOption> bundleOption = new NotificationBundleOption();
+    bundleOption->SetBundleName("testBundle");
+    bundleOption->SetUid(100);
+
+    auto record = std::make_shared<NotificationRecord>();
+    record->request = request;
+    record->bundleOption = bundleOption;
+    record->notification = notification;
+    advancedNotificationService_->snoozeDelayTimerList_.push_back(record);
+    ASSERT_EQ(advancedNotificationService_->IsSetSnooze("test123"), true);
+}
+
+/**
+ * @tc.name: IsSetSnooze_00004
+ * @tc.desc: Test IsSetSnooze
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(AnsSnoozeDelayTest, IsSetSnooze_00004, Function | SmallTest | Level1)
+{
+    advancedNotificationService_->snoozeDelayTimerList_.clear();
+    advancedNotificationService_->notificationList_.clear();
+    sptr<NotificationRequest> request(new (std::nothrow) NotificationRequest());
+    request->SetCreatorUserId(100);
+    request->SetUpdateOnly(true);
+    int64_t delayTime = NotificationAnalyticsUtil::GetCurrentTime() + 60000;
+    request->SetSnoozeDelayTime(delayTime);
+    sptr<Notification> notification(new (std::nothrow) Notification(request));
+    notification->SetKey("test123_test");
+    sptr<NotificationBundleOption> bundleOption = new NotificationBundleOption();
+    bundleOption->SetBundleName("testBundle");
+    bundleOption->SetUid(100);
+
+    auto record = std::make_shared<NotificationRecord>();
+    record->request = request;
+    record->bundleOption = bundleOption;
+    record->notification = notification;
+
+    ASSERT_EQ(advancedNotificationService_->AssignToNotificationList(record),
+        (int)ERR_ANS_NOTIFICATION_NOT_EXISTS);
+}
+
+/**
+ * @tc.name: IsSetSnooze_00005
+ * @tc.desc: Test IsSetSnooze
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(AnsSnoozeDelayTest, IsSetSnooze_00005, Function | SmallTest | Level1)
+{
+    advancedNotificationService_->snoozeDelayTimerList_.clear();
+    advancedNotificationService_->notificationList_.clear();
+    sptr<NotificationRequest> request(new (std::nothrow) NotificationRequest());
+    request->SetCreatorUserId(100);
+    request->SetUpdateOnly(true);
+    int64_t delayTime = NotificationAnalyticsUtil::GetCurrentTime() + 60000;
+    request->SetSnoozeDelayTime(delayTime);
+    sptr<Notification> notification(new (std::nothrow) Notification(request));
+    notification->SetKey("test123_test");
+    sptr<NotificationBundleOption> bundleOption = new NotificationBundleOption();
+    bundleOption->SetBundleName("testBundle");
+    bundleOption->SetUid(100);
+
+    auto record = std::make_shared<NotificationRecord>();
+    record->request = request;
+    record->bundleOption = bundleOption;
+    record->notification = notification;
+    advancedNotificationService_->snoozeDelayTimerList_.push_back(record);
+    ASSERT_EQ(advancedNotificationService_->AssignToNotificationList(record),
+        (int)ERR_OK);
 }
 }  // namespace Notification
 }  // namespace OHOS
