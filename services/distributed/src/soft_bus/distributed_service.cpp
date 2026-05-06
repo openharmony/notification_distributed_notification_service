@@ -473,7 +473,7 @@ void DistributedService::SyncInstalledBundle(const std::string& bundleName, bool
         } else {
             AppExecFwk::BundleInfo bundleInfo;
             if (DelayedSingleton<BundleResourceHelper>::GetInstance()->GetBundleInfoV9(bundleName,
-                userId, bundleInfo)) {
+                userId, bundleInfo) == ERR_OK) {
                 ANS_LOGI("Sync same bundle %{public}d %{public}s.", bundleInfo.applicationInfo.uid, bundleName.c_str());
                 return;
             }
