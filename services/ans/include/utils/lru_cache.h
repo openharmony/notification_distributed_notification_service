@@ -301,11 +301,12 @@ public:
 
     /**
      * @brief Force eviction of all expired entries.
+     * @return Number of entries evicted.
      */
-    void EvictExpired()
+    size_t EvictExpired()
     {
         if (!config_.enableTTL || nodeTimestamps_.empty()) {
-            return;
+            return 0;
         }
 
         auto now = Clock::now();
@@ -318,10 +319,12 @@ public:
             }
         }
 
+        size_t evictedCount = expiredKeys.size();
         for (const auto& key : expiredKeys) {
             Remove(key);
             ++expireCount_;
         }
+        return evictedCount;
     }
 
     /**

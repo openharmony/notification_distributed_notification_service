@@ -3170,6 +3170,8 @@ int32_t NotificationPreferences::GetKvFromDb(
 void NotificationPreferences::StartCacheExpiryTask()
 {
     constexpr uint64_t HEARTBEAT_INTERVAL_US = 120 * 1000 * 1000;  // 120 seconds
+    ANS_LOGI("LRU Cache expiry task started with interval %{public}u seconds (TTL: 2 minutes)",
+             static_cast<uint32_t>(HEARTBEAT_INTERVAL_US / 1000000));
 
     cacheExpiryTask_ = ffrt::submit_h([this]() {
         std::lock_guard<ffrt::mutex> lock(preferenceMutex_);
@@ -3181,8 +3183,10 @@ void NotificationPreferences::StartCacheExpiryTask()
         size_t hitCount = 0;
         size_t missCount = 0;
         preferencesInfo_.GetCacheStats(hitCount, missCount);
-        ANS_LOGD("LRU Cache stats - hits: %{public}zu, misses: %{public}zu, size: %{public}zu",
-                 hitCount, missCount, preferencesInfo_.GetCacheSize());
+        ANS_LOGI("LRU Cache periodic stats - hits: %{public}zu, misses: %{public}zu, "
+                 "size: %{public}zu, hit_rate: %{public}.2f%%",
+                 hitCount, missCount, preferencesInfo_.GetCacheSize(),
+                 (hitCount + missCount > 0) ? (100.0 * hitCount / (hitCount + missCount)) : 0.0);
 
         // Reschedule next eviction check
         StartCacheExpiryTask();
