@@ -121,7 +121,6 @@ public:
             ++missCount_;
             return false;
         }
-
         if (config_.enableTTL) {
             auto age = Clock::now() - nodeTimestamps_[key];
             if (age > config_.ttl) {
@@ -130,7 +129,6 @@ public:
                 return false;
             }
         }
-
         Touch(it);
         value = it->second.value;
         ++hitCount_;
@@ -149,14 +147,12 @@ public:
         if (it == cache_.end()) {
             return false;
         }
-
         if (config_.enableTTL) {
             auto age = Clock::now() - nodeTimestamps_.at(key);
             if (age > config_.ttl) {
                 return false;
             }
         }
-
         value = it->second.value;
         return true;
     }
@@ -169,18 +165,15 @@ public:
     void Put(const K& key, V&& value)
     {
         auto it = cache_.find(key);
-
         if (it != cache_.end()) {
             it->second.value = std::move(value);
             Touch(it);
             nodeTimestamps_[key] = Clock::now();
             return;
         }
-
         if (cache_.size() >= config_.maxSize) {
             EvictLRU();
         }
-
         lruList_.emplace_front(key);
         cache_[key] = Node{ std::move(value), lruList_.begin() };
         nodeTimestamps_[key] = Clock::now();
@@ -194,18 +187,15 @@ public:
     void Put(const K& key, const V& value)
     {
         auto it = cache_.find(key);
-
         if (it != cache_.end()) {
             it->second.value = value;
             Touch(it);
             nodeTimestamps_[key] = Clock::now();
             return;
         }
-
         if (cache_.size() >= config_.maxSize) {
             EvictLRU();
         }
-
         lruList_.emplace_front(key);
         cache_[key] = Node{ value, lruList_.begin() };
         nodeTimestamps_[key] = Clock::now();
@@ -221,7 +211,6 @@ public:
         if (it == cache_.end()) {
             return false;
         }
-
         lruList_.erase(it->second.listIt);
         cache_.erase(it);
         nodeTimestamps_.erase(key);
@@ -308,17 +297,14 @@ public:
         if (!config_.enableTTL || nodeTimestamps_.empty()) {
             return 0;
         }
-
         auto now = Clock::now();
         auto threshold = now - config_.ttl;
-
         std::vector<K> expiredKeys;
         for (const auto& entry : nodeTimestamps_) {
             if (entry.second < threshold) {
                 expiredKeys.push_back(entry.first);
             }
         }
-
         size_t evictedCount = expiredKeys.size();
         for (const auto& key : expiredKeys) {
             Remove(key);

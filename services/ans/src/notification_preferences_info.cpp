@@ -869,16 +869,10 @@ void NotificationPreferencesInfo::GetCacheStats(size_t& hitCount, size_t& missCo
 
 void NotificationPreferencesInfo::EvictExpiredCache()
 {
-    size_t beforeSize = bundleCache_.Size();
     size_t evictedCount = bundleCache_.EvictExpired();
-    size_t afterSize = bundleCache_.Size();
-    
     if (evictedCount > 0) {
-        ANS_LOGI("LRU cache expired eviction: evicted %{public}zu entries, "
-                 "size changed from %{public}zu to %{public}zu",
-                 evictedCount, beforeSize, afterSize);
-    } else {
-        ANS_LOGD("LRU cache expiry check: no expired entries, current size %{public}zu", afterSize);
+        ANS_LOGI("LRU cache expired eviction: evicted %{public}zu entries",
+            evictedCount);
     }
 }
 }  // namespace Notification
