@@ -2360,6 +2360,17 @@ ErrCode AnsNotification::SetAdditionConfig(const std::string &key, const std::st
     return proxy->SetAdditionConfig(key, value);
 }
 
+ErrCode AnsNotification::UpdateInnerConfig(const std::string &configKey, const std::string &configValue)
+{
+    sptr<IAnsManager> proxy = GetAnsManagerProxy();
+    if (!proxy) {
+        ANS_LOGE("Get ans manager proxy fail.");
+        return ERR_ANS_SERVICE_NOT_CONNECTED;
+    }
+
+    return proxy->UpdateInnerConfig(configKey, configValue);
+}
+
 ErrCode AnsNotification::SetBundlePriorityConfig(const NotificationBundleOption &bundleOption, const std::string &value)
 {
     ANS_LOGD("called");

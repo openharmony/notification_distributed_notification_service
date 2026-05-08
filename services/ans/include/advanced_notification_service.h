@@ -1614,6 +1614,26 @@ public:
     ErrCode SetAdditionConfig(const std::string &key, const std::string &value) override;
 
     /**
+     * @brief Update inner config.
+     *        Requires caller to be native process and have OHOS_PERMISSION_NOTIFICATION_AGENT_CONTROLLER permission.
+     *
+     * @param configKey Indicates the config key.
+     * @param configValue Indicates the config value.
+     * @return Returns update result.
+     */
+    ErrCode UpdateInnerConfig(const std::string &configKey, const std::string &configValue) override;
+
+    /**
+     * @brief Update voice summary count with daily limit check.
+     *        Limit frequency to 30 times per day for add_voice_summary_count key.
+     *        Uses current foreground active user's userId for database operations.
+     *
+     * @param configKey Indicates the config key, should be "add_voice_summary_count".
+     * @return Returns ERR_OK if within limit, ERR_ANS_VOICE_SUMMARY_COUNT_EXCEEDED if exceeds limit.
+     */
+    ErrCode UpdateVoiceUpdate(const std::string &configKey);
+
+    /**
      * @brief Set priority config of bundle for intelligent identification.
      *
      * @param bundleOption Indicates the bundle name and uid of the application.
