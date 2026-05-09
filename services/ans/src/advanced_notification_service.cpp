@@ -87,6 +87,7 @@
 #include "advanced_notdisturb_enabled_observer.h"
 #include "advanced_notdisturb_white_list_observer.h"
 #include "advanced_datashare_observer.h"
+#include "notification_extension_wrapper.h"
 
 namespace OHOS {
 namespace Notification {
@@ -822,6 +823,10 @@ AnsStatus __attribute__((weak)) AdvancedNotificationService::PublishPreparedNoti
         isThirdparty = false;
     } else {
         isThirdparty = true;
+    }
+    if (!EXTENTION_WRAPPER->NotificationContentControl(request)) {
+        ANS_LOGE("NotificationContentControl fail");
+        return AnsStatus(ERR_ANS_NOT_ALLOWED, "NotificationContentControl fail");
     }
     auto record = MakeNotificationRecord(request, bundleOption);
     if (record == nullptr) {
