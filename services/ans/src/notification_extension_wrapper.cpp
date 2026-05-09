@@ -162,6 +162,12 @@ void ExtensionWrapper::InitExtentionWrapper()
         ANS_LOGE("extension wrapper symbol failed, error: %{public}s", dlerror());
         return;
     }
+    notificationContentControl_ = (NOTIFICATION_CONTENT_CONTROL)dlsym(extensionWrapperHandle_,
+        "NotificationContentControl");
+    if (notificationContentControl_ == nullptr) {
+        ANS_LOGE("extension wrapper symbol failed, error: %{public}s", dlerror());
+        return;
+    }
     ANS_LOGI("extension wrapper init success");
 }
 
@@ -346,6 +352,15 @@ bool ExtensionWrapper::NotificationDialogControl()
     bool result = notificationDialogControl_();
     ANS_LOGI("result = %{public}d", result);
     return result;
+}
+
+bool ExtensionWrapper::NotificationContentControl(const sptr<NotificationRequest> &request)
+{
+    if (notificationContentControl_ == nullptr) {
+        ANS_LOGE("NotificationContentControl wrapper symbol failed");
+        return true;
+    }
+    return notificationContentControl_(request);
 }
 
 int32_t ExtensionWrapper::convertToDelType(int32_t deleteReason)
