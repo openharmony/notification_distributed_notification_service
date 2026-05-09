@@ -120,23 +120,12 @@ static std::array kitManagerFunctions = {
         reinterpret_cast<void *>(AniIsSilentReminderEnabled)},
     ani_native_function {"nativeSetNotificationSnooze", nullptr,
         reinterpret_cast<void *>(AniSetNotificationSnooze)},
-#ifdef ANS_FEATURE_NOTIFICATION_STATISTICS
     ani_native_function {"nativeGetNotificationStatisticsByBundle", nullptr,
         reinterpret_cast<void *>(AniGetNotificationStatisticsByBundle)},
-#else
-    ani_native_function {"nativeGetNotificationStatisticsByBundle", nullptr,
-        reinterpret_cast<void *>(ThrowSystemCapErr)},
-#endif
-#ifdef DISABLE_NOTIFICATION_FEATURE_ENABLE
     ani_native_function {"nativedisableNotificationFeature", nullptr,
         reinterpret_cast<void *>(AniDisableNotificationFeature)},
     ani_native_function {"nativeDisableNotificationFeatureWithId", nullptr,
         reinterpret_cast<void *>(AniDisableNotificationFeatureWithId)},
-#else
-    ani_native_function {"nativedisableNotificationFeature", nullptr, reinterpret_cast<void *>(ThrowSystemCapErr)},
-    ani_native_function {"nativeDisableNotificationFeatureWithId", nullptr,
-        reinterpret_cast<void *>(ThrowSystemCapErr)},
-#endif
 #ifdef ANS_FEATURE_BADGE_MANAGER
     ani_native_function {"nativeDisplayBadge", nullptr, reinterpret_cast<void *>(AniDisplayBadge)},
     ani_native_function {"nativeIsBadgeDisplayed", nullptr, reinterpret_cast<void *>(AniIsBadgeDisplayed)},
