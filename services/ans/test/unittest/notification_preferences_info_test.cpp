@@ -938,5 +938,91 @@ HWTEST_F(NotificationPreferencesInfoTest, GetNotificationStatisticsAll_0100, Tes
     std::vector<NotificationStatistics> statisticsVec = preferencesInfo->GetNotificationStatisticsAll();
     EXPECT_EQ(statisticsVec.size(), 1);
 }
+
+HWTEST_F(NotificationPreferencesInfoTest, SetBundleInfo_CacheWorks_00001, Function | SmallTest | Level1)
+{
+    std::shared_ptr<NotificationPreferencesInfo> preferencesInfo = std::make_shared<NotificationPreferencesInfo>();
+    NotificationPreferencesInfo::BundleInfo bundleInfo;
+    bundleInfo.SetBundleName("testBundle");
+    bundleInfo.SetBundleUid(100);
+
+    preferencesInfo->SetBundleInfo(bundleInfo);
+
+    // Verify cache size increased
+    EXPECT_EQ(preferencesInfo->GetCacheSize(), 1);
+}
+
+HWTEST_F(NotificationPreferencesInfoTest, GetBundleInfo_CacheHit_00001, Function | SmallTest | Level1)
+{
+    std::shared_ptr<NotificationPreferencesInfo> preferencesInfo = std::make_shared<NotificationPreferencesInfo>();
+    NotificationPreferencesInfo::BundleInfo bundleInfo;
+    bundleInfo.SetBundleName("testBundle");
+    bundleInfo.SetBundleUid(100);
+    preferencesInfo->SetBundleInfoFromDb(bundleInfo, "testBundle100");
+
+    sptr<NotificationBundleOption> bundleOption = new NotificationBundleOption("testBundle", 100);
+    NotificationPreferencesInfo::BundleInfo retrievedInfo;
+    bool result = preferencesInfo->GetBundleInfo(bundleOption, retrievedInfo);
+
+    ASSERT_TRUE(result);
+    EXPECT_EQ(preferencesInfo->GetCacheSize(), 1);
+
+    // Verify cache stats show hit
+    size_t hitCount = 0, missCount = 0;
+    preferencesInfo->GetCacheStats(hitCount, missCount);
+    EXPECT_EQ(hitCount, 1);
+    EXPECT_EQ(missCount, 0);
+}
+
+HWTEST_F(NotificationPreferencesInfoTest, GetBundleInfo_CacheMiss_00001, Function | SmallTest | Level1)
+{
+    std::shared_ptr<NotificationPreferencesInfo> preferencesInfo = std::make_shared<NotificationPreferencesInfo>();
+    sptr<NotificationBundleOption> bundleOption = new NotificationBundleOption("nonExistent", 999);
+    NotificationPreferencesInfo::BundleInfo retrievedInfo;
+    bool result = preferencesInfo->GetBundleInfo(bundleOption, retrievedInfo);
+
+    ASSERT_FALSE(result);
+
+    // Verify cache stats show miss
+    size_t hitCount = 0, missCount = 0;
+    preferencesInfo->GetCacheStats(hitCount, missCount);
+    EXPECT_EQ(hitCount, 0);
+    EXPECT_EQ(missCount, 1);
+}
+
+HWTEST_F(NotificationPreferencesInfoTest, RemoveBundleInfo_CacheRemove_00001, Function | SmallTest | Level1)
+{
+    std::shared_ptr<NotificationPreferencesInfo> preferencesInfo = std::make_shared<NotificationPreferencesInfo>();
+    NotificationPreferencesInfo::BundleInfo bundleInfo;
+    preferencesInfo->SetBundleInfoFromDb(bundleInfo, "testBundle100");
+
+    EXPECT_EQ(preferencesInfo->GetCacheSize(), 1);
+
+    sptr<NotificationBundleOption> bundleOption = new NotificationBundleOption("testBundle", 100);
+    bool removeResult = preferencesInfo->RemoveBundleInfo(bundleOption);
+
+    ASSERT_TRUE(removeResult);
+    EXPECT_EQ(preferencesInfo->GetCacheSize(), 0);
+}
+
+HWTEST_F(NotificationPreferencesInfoTest, ClearBundleInfo_CacheClear_00001, Function | SmallTest | Level1)
+{
+    std::shared_ptr<NotificationPreferencesInfo> preferencesInfo = std::make_shared<NotificationPreferencesInfo>();
+    NotificationPreferencesInfo::BundleInfo bundleInfo;
+    preferencesInfo->SetBundleInfoFromDb(bundleInfo, "testBundle100");
+    preferencesInfo->SetBundleInfoFromDb(bundleInfo, "testBundle200");
+
+    EXPECT_EQ(preferencesInfo->GetCacheSize(), 2);
+
+    preferencesInfo->ClearBundleInfo();
+
+    EXPECT_EQ(preferencesInfo->GetCacheSize(), 0);
+}
+
+HWTEST_F(NotificationPreferencesInfoTest, GetCacheSize_InitialZero_00001, Function | SmallTest | Level1)
+{
+    std::shared_ptr<NotificationPreferencesInfo> preferencesInfo = std::make_shared<NotificationPreferencesInfo>();
+    EXPECT_EQ(preferencesInfo->GetCacheSize(), 0);
+}
 }
 }

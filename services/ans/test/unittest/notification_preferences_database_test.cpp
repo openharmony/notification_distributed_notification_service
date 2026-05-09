@@ -1987,8 +1987,8 @@ HWTEST_F(NotificationPreferencesDatabaseTest, ParseBundleFromDistureDB_0100, Tes
     std::unordered_map<std::string, std::string> values;
     values["test"] =  "test";
     preferncesDB_->ParseBundleFromDistureDB(preferencesInfo, values, userId);
-    EXPECT_EQ(1, preferencesInfo.infos_.size());
-    preferencesInfo.infos_.clear();
+    EXPECT_EQ(1, preferencesInfo.GetCacheSize());
+    preferencesInfo.ClearBundleInfo();
 }
 
 /**
