@@ -793,6 +793,15 @@ void __attribute__((weak)) NotificationAnalyticsUtil::ReportNotificationEvent(co
     if (!request->GetOwnerBundleName().empty()) {
         want.SetBundle(request->GetOwnerBundleName());
     }
+
+    if (request->GetUnifiedGroupInfo() != nullptr &&
+        request->GetUnifiedGroupInfo()->GetExtraInfo() != nullptr) {
+        std::shared_ptr<AAFwk::WantParams> extraInfo = request->GetUnifiedGroupInfo()->GetExtraInfo();
+        std::string pushType = extraInfo->GetWantParams("pushData").GetStringParam("pushType");
+        if (!pushType.empty()) {
+            want.SetParam("pushType", pushType);
+        }
+    }
     IN_PROCESS_CALL_WITHOUT_RET(AddListCache(want, eventCode));
 }
 
