@@ -336,8 +336,6 @@ AdvancedNotificationService::AdvancedNotificationService()
     notificationSlotFilter_ = std::make_shared<NotificationSlotFilter>();
     StartFilters();
 
-    RecoverLiveViewFromDb();
-
     ISystemEvent iSystemEvent = {
         std::bind(&AdvancedNotificationService::onBundleRemovedByUserId,
             this, std::placeholders::_1, std::placeholders::_2),

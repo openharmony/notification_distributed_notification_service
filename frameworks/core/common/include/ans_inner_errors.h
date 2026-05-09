@@ -166,7 +166,7 @@ const int32_t ERROR_GEOFENCE_ENABLED             = 1600025;    // Geofencing dis
 const int32_t ERROR_LOCATION_CLOSED              = 1600026;    // The location switch is off.
 const int32_t ERROR_AWARNESS_SUGGESTIONS_CLOSED  =
     1600027;    // The "Awareness & suggestions" switch of the location-based service is off.
-const int32_t ERR_NOTIFICATION_NOT_SUPPORT       = 1600028;    // The notification is not supported.
+const int32_t ERR_NOTIFICATION_NOT_SUPPORT       = 1600028;    // This notification is not supported.
 const int32_t ERROR_NETWORK_UNREACHABLE          = 2300007;    // Network unreachable.
 const int32_t ERROR_BUNDLE_NOT_FOUND             = 17700001;   // The specified bundle name was not found.
 
