@@ -34,6 +34,7 @@
 #include "hitrace_util.h"
 #include "uri.h"
 #include "uri_permission_manager_client.h"
+#include "notification_extension_wrapper.h"
 
 namespace OHOS {
 namespace Notification {
@@ -344,6 +345,10 @@ ErrCode AdvancedNotificationService::PublishNotificationForIndirectProxy(const s
     int32_t uid = request->GetCreatorUid();
     request->SetOwnerUid(uid);
     request->SetOwnerBundleName(bundle);
+    if (!EXTENTION_WRAPPER->NotificationContentControl(request)) {
+        ANS_LOGE("NotificationContentControl fail, bundle = %{public}s", bundle.c_str());
+        return ERR_ANS_NOT_ALLOWED;
+    }
     std::shared_ptr<NotificationRecord> record = std::make_shared<NotificationRecord>();
     record->request = request;
     record->isThirdparty = false;
