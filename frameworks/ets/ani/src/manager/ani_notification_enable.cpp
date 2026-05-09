@@ -561,7 +561,6 @@ ani_object AniDisableNotificationFeatureWithId(ani_env *env, ani_boolean disable
     }
     std::vector<std::string> bundles;
     if (!NotificationSts::GetStringArrayByAniObj(env, bundleList, bundles)) {
-        ANS_LOGE("Parse bundleList failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
@@ -591,9 +590,9 @@ ani_object AniDisableNotificationFeatureWithId(ani_env *env, ani_boolean disable
         },
         HandleNotificationEnabledCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
     if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
-        NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
+        ANS_LOGE("CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     if (asyncCallbackInfo->info.callback == nullptr) {
         return promise;
