@@ -15,6 +15,7 @@
 
 #include "notification_preferences.h"
 
+#include <chrono>
 #include <fstream>
 #include <memory>
 #include <mutex>
@@ -61,6 +62,7 @@ NotificationPreferences::NotificationPreferences()
         NotificationAnalyticsUtil::ReportModifyEvent(message);
     }
     InitSettingFromDisturbDB();
+    StartCacheExpiryTask();
 }
 
 std::shared_ptr<NotificationPreferences> NotificationPreferences::GetInstance()
@@ -3164,5 +3166,28 @@ int32_t NotificationPreferences::GetKvFromDb(
     return preferncesDB_->GetKvFromDb(key, value, userId, retCode);
 }
 #endif
+
+void NotificationPreferences::StartCacheExpiryTask()
+{
+    constexpr uint64_t HEARTBEAT_INTERVAL_US = 120 * 1000 * 1000;  // 120 seconds
+
+    cacheExpiryTask_ = ffrt::submit_h([this]() {
+        std::lock_guard<ffrt::mutex> lock(preferenceMutex_);
+
+        // Use LRU cache's built-in TTL eviction
+        preferencesInfo_.EvictExpiredCache();
+
+        // Reschedule next eviction check
+        StartCacheExpiryTask();
+    }, {}, {}, ffrt::task_attr().delay(HEARTBEAT_INTERVAL_US));
+}
+
+void NotificationPreferences::StopCacheExpiryTask()
+{
+    if (cacheExpiryTask_) {
+        ffrt::skip(cacheExpiryTask_);
+        cacheExpiryTask_ = nullptr;
+    }
+}
 }  // namespace Notification
 }  // namespace OHOS

@@ -18,6 +18,7 @@
 
 #include "refbase.h"
 #include "singleton.h"
+#include "ffrt_inner.h"
 
 #include "notification_do_not_disturb_date.h"
 #include "notification_preferences_database.h"
@@ -63,6 +64,9 @@ public:
     ErrCode DeleteStatisticsByBundle(const int32_t userId, const std::string &bundleName, int32_t packageId);
 
     ErrCode TimerCleanExperData();
+
+    void StartCacheExpiryTask();
+    void StopCacheExpiryTask();
 
     ErrCode QueryStatisticsByBundle(const sptr<NotificationBundleOption>& bundle,
         int32_t &recentCount, int64_t &lastTime);
@@ -810,6 +814,7 @@ private:
     bool isKioskMode_ = false;
     bool isKioskTrustListUpdate_ = false;
     bool isRestrictedTrustListUpdate_ = false;
+    ffrt::task_handle cacheExpiryTask_ = nullptr;
 };
 }  // namespace Notification
 }  // namespace OHOS
