@@ -135,7 +135,7 @@ ani_object AniGetNotificationStatisticsByBundle(ani_env *env, ani_object obj)
     if (asyncCallbackInfo->info.callback == nullptr) {
         return promise;
     }
-    return nullptr;
+    return NotificationSts::GetNullObject(env);
 #else
     return NotificationSts::AniJumpCbError(env, nullptr, OHOS::Notification::ERROR_SYSTEM_CAP_ERROR);
 #endif

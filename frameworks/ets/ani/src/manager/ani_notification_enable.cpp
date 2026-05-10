@@ -130,7 +130,6 @@ void HandleNotificationEnabledCallbackComplete(ani_env* env, WorkStatus status, 
 
 ani_object AniIsNotificationEnabled(ani_env *env, ani_object callback)
 {
-    ANS_LOGD("AniIsNotificationEnabled called");
     auto asyncCallbackInfo = new (std::nothrow)AsyncCallbackEnabledInfo{.asyncWork = nullptr};
     if (!asyncCallbackInfo) {
         ANS_LOGE("asyncCallbackInfo is null");
@@ -146,7 +145,7 @@ ani_object AniIsNotificationEnabled(ani_env *env, ani_object callback)
         asyncCallbackInfo->info, promise);
     ani_status aniStatus = env->GetVM(&asyncCallbackInfo->vm);
     if (aniStatus != ANI_OK) {
-        ANS_LOGE("GetVM failed, status: %{public}d", aniStatus);\
+        ANS_LOGE("GetVM failed, status: %{public}d", aniStatus);
         DeleteCallBackInfo(env, asyncCallbackInfo);
         return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
@@ -168,7 +167,7 @@ ani_object AniIsNotificationEnabled(ani_env *env, ani_object callback)
     if (asyncCallbackInfo->info.callback == nullptr) {
         return promise;
     }
-    return nullptr;
+    return NotificationSts::GetNullObject(env);
 }
 
 ani_object AniIsNotificationEnabledWithId(ani_env *env, ani_int userId, ani_object callback)
@@ -210,7 +209,7 @@ ani_object AniIsNotificationEnabledWithId(ani_env *env, ani_int userId, ani_obje
     if (asyncCallbackInfo->info.callback == nullptr) {
         return promise;
     }
-    return nullptr;
+    return NotificationSts::GetNullObject(env);
 }
 
 ani_object AniIsNotificationEnabledWithBundleOption(ani_env *env, ani_object bundleOption, ani_object callback)
@@ -256,7 +255,7 @@ ani_object AniIsNotificationEnabledWithBundleOption(ani_env *env, ani_object bun
     if (asyncCallbackInfo->info.callback == nullptr) {
         return promise;
     }
-    return nullptr;
+    return NotificationSts::GetNullObject(env);
 }
 
 ani_object AniSetNotificationEnable(ani_env *env, ani_object bundleOption, ani_boolean enable, ani_object callback)
@@ -305,12 +304,13 @@ ani_object AniSetNotificationEnable(ani_env *env, ani_object bundleOption, ani_b
     if (asyncCallbackInfo->info.callback == nullptr) {
         return promise;
     }
-    return nullptr;
+    return NotificationSts::GetNullObject(env);
 }
 
 ani_object AniSetSyncNotificationEnabledWithoutApp(ani_env *env, ani_int userId, ani_boolean enabled,
     ani_object callback)
 {
+#ifdef ANS_FEATURE_ORIGINAL_DISTRIBUTED
     auto asyncCallbackInfo = new (std::nothrow)AsyncCallbackEnabledInfo{.asyncWork = nullptr};
     if (!asyncCallbackInfo) {
         ANS_LOGE("asyncCallbackInfo is null");
@@ -350,12 +350,14 @@ ani_object AniSetSyncNotificationEnabledWithoutApp(ani_env *env, ani_int userId,
     if (asyncCallbackInfo->info.callback == nullptr) {
         return promise;
     }
-    return nullptr;
+    return NotificationSts::GetNullObject(env);
+#else
+    return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_SYSTEM_CAP_ERROR);
+#endif
 }
 
 ani_object AniGetAllNotificationEnabledBundles(ani_env *env, ani_object callback)
 {
-    ANS_LOGD("AniGetAllNotificationEnabledBundles called");
     auto asyncCallbackInfo = new (std::nothrow)AsyncCallbackEnabledInfo{.asyncWork = nullptr};
     if (!asyncCallbackInfo) {
         ANS_LOGE("asyncCallbackInfo is null");
@@ -393,12 +395,11 @@ ani_object AniGetAllNotificationEnabledBundles(ani_env *env, ani_object callback
     if (asyncCallbackInfo->info.callback == nullptr) {
         return promise;
     }
-    return nullptr;
+    return NotificationSts::GetNullObject(env);
 }
 
 ani_object AniGetAllNotificationEnabledBundlesByUserId(ani_env *env, ani_int userId, ani_object callback)
 {
-    ANS_LOGD("AniGetAllNotificationEnabledBundlesByUserId called");
     auto asyncCallbackInfo = new (std::nothrow)AsyncCallbackEnabledInfo{.asyncWork = nullptr};
     if (!asyncCallbackInfo) {
         ANS_LOGE("asyncCallbackInfo is null");
@@ -437,7 +438,7 @@ ani_object AniGetAllNotificationEnabledBundlesByUserId(ani_env *env, ani_int use
     if (asyncCallbackInfo->info.callback == nullptr) {
         return promise;
     }
-    return nullptr;
+    return NotificationSts::GetNullObject(env);
 }
 
 ani_boolean AniIsNotificationEnabledSync(ani_env *env)
@@ -455,6 +456,7 @@ ani_boolean AniIsNotificationEnabledSync(ani_env *env)
 
 ani_object AniGetSyncNotificationEnabledWithoutApp(ani_env *env, ani_int userId, ani_object callback)
 {
+#ifdef ANS_FEATURE_ORIGINAL_DISTRIBUTED
     auto asyncCallbackInfo = new (std::nothrow)AsyncCallbackEnabledInfo{.asyncWork = nullptr};
     if (!asyncCallbackInfo) {
         ANS_LOGE("asyncCallbackInfo is null");
@@ -493,7 +495,10 @@ ani_object AniGetSyncNotificationEnabledWithoutApp(ani_env *env, ani_int userId,
     if (asyncCallbackInfo->info.callback == nullptr) {
         return promise;
     }
-    return nullptr;
+    return NotificationSts::GetNullObject(env);
+#else
+    return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_SYSTEM_CAP_ERROR);
+#endif
 }
 
 ani_object AniDisableNotificationFeature(ani_env *env, ani_boolean disabled, ani_object bundleList,
@@ -544,7 +549,7 @@ ani_object AniDisableNotificationFeature(ani_env *env, ani_boolean disabled, ani
     if (asyncCallbackInfo->info.callback == nullptr) {
         return promise;
     }
-    return nullptr;
+    return NotificationSts::GetNullObject(env);
 #else
     return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_SYSTEM_CAP_ERROR);
 #endif
@@ -597,7 +602,7 @@ ani_object AniDisableNotificationFeatureWithId(ani_env *env, ani_boolean disable
     if (asyncCallbackInfo->info.callback == nullptr) {
         return promise;
     }
-    return nullptr;
+    return NotificationSts::GetNullObject(env);
 #else
     return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_SYSTEM_CAP_ERROR);
 #endif
