@@ -1514,12 +1514,7 @@ export default namespace notificationManager {
         if (callback == null) {
             throw errorParamInvalid;
         }
-        try {
-            nativeDisplayBadge(bundle, enable, callback);
-        } catch (err) {
-            let error: BusinessError = err as BusinessError;
-            throw error;
-        }
+        nativeDisplayBadge(bundle, enable, callback);
     }
 
     export function displayBadge(bundle: BundleOption, enable: boolean): Promise<void> {
@@ -1528,12 +1523,7 @@ export default namespace notificationManager {
             throw error;
         }
         let result: Promise<void>;
-        try {
-            result = nativeDisplayBadge(bundle, enable, undefined);
-        } catch (err) {
-            let error: BusinessError = err as BusinessError;
-            throw error;
-        }
+        result = nativeDisplayBadge(bundle, enable, undefined);
         return result;
     }
 
@@ -1542,12 +1532,7 @@ export default namespace notificationManager {
         if (error.code !== ERROR_OK) {
             throw error;
         }
-        try {
-            nativeIsBadgeDisplayed(bundle, callback);
-        } catch (err) {
-            let error: BusinessError = err as BusinessError;
-            throw error;
-        }
+        nativeIsBadgeDisplayed(bundle, callback);
     }
 
     export function isBadgeDisplayed(bundle: BundleOption): Promise<boolean> {
@@ -1556,12 +1541,7 @@ export default namespace notificationManager {
             throw error;
         }
         let result: Promise<boolean>;
-        try {
-            result = nativeIsBadgeDisplayed(bundle, undefined);
-        } catch (err) {
-            let error: BusinessError = err as BusinessError;
-            throw error;
-        }
+        result = nativeIsBadgeDisplayed(bundle, undefined);
         return result;
     }
 
@@ -1823,12 +1803,7 @@ export default namespace notificationManager {
 
     export function getBadgeNumber(): Promise<long> {
         let result: Promise<long>;
-        try {
-            result = nativeGetBadgeNumber(undefined);
-        } catch (err) {
-            let error: BusinessError = err as BusinessError;
-            throw error;
-        }
+        result = nativeGetBadgeNumber(undefined);
         return result;
     }
 
@@ -1864,22 +1839,12 @@ export default namespace notificationManager {
         if (callback == null) {
            throw errorParamInvalid;
         }
-        try {
-            nativeSetBadgeNumber(badgeNumber, callback);
-        } catch (err) {
-            let error: BusinessError = err as BusinessError;
-            throw error;
-        }
+        nativeSetBadgeNumber(badgeNumber, callback);
     }
 
     export function setBadgeNumber(badgeNumber: int): Promise<void> {
         let result: Promise<void>;
-        try {
-            result = nativeSetBadgeNumber(badgeNumber, undefined);
-        } catch (err) {
-            let error: BusinessError = err as BusinessError;
-            throw error;
-        }
+        result = nativeSetBadgeNumber(badgeNumber, undefined);
         return result;
     }
 
@@ -1890,12 +1855,7 @@ export default namespace notificationManager {
             throw error;
         }
         let result: Promise<void>;
-        try {
-            result = nativeSetBadgeNumberByBundle(bundle, badgeNumber, undefined);
-        } catch (err) {
-            let error: BusinessError = err as BusinessError;
-            throw error;
-        }
+        result = nativeSetBadgeNumberByBundle(bundle, badgeNumber, undefined);
         return result;
     }
 
@@ -2964,12 +2924,7 @@ export default namespace notificationManager {
             throw errorParamInvalid;
         }
         let result: Promise<void>;
-        try {
-            result = nativeSetBadgeDisplayStatusByBundles(badges, undefined);
-        } catch (err) {
-            let error: BusinessError = err as BusinessError;
-            throw error;
-        }
+        result = nativeSetBadgeDisplayStatusByBundles(badges, undefined);
         return result;
     }
 
@@ -2978,12 +2933,7 @@ export default namespace notificationManager {
             throw errorParamInvalid;
         }
         let result: Promise<Map<BundleOption, boolean>>;
-        try {
-            result = nativeGetBadgeDisplayStatusByBundles(bundles, undefined);
-        } catch (err) {
-            let error: BusinessError = err as BusinessError;
-            throw error;
-        }
+        result = nativeGetBadgeDisplayStatusByBundles(bundles, undefined);
         return result;
     }
 

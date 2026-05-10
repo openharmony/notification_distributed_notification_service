@@ -68,7 +68,6 @@ bool SetCallbackObject(ani_env* env, ani_object callback, AsyncCallbackBadgeInfo
     if (!NotificationSts::IsUndefine(env, callback)) {
         ani_ref globalRef;
         if (env->GlobalReference_Create(static_cast<ani_ref>(callback), &globalRef) != ANI_OK) {
-            NotificationSts::ThrowInternerErrorWithLogE(env, "create callback ref failed");
             return false;
         }
         asyncCallbackInfo->info.callback = globalRef;
@@ -136,28 +135,26 @@ void HandleBadgeCallbackComplete(ani_env* env, WorkStatus status, void* data)
 
 ani_object AniDisplayBadge(ani_env *env, ani_object obj, ani_boolean enable, ani_object callback)
 {
-    ANS_LOGD("AniDisplayBadge called");
+#ifdef ANS_FEATURE_BADGE_MANAGER
     auto asyncCallbackInfo = new (std::nothrow)AsyncCallbackBadgeInfo{.asyncWork = nullptr};
     if (!asyncCallbackInfo) {
-        NotificationSts::ThrowInternerErrorWithLogE(env, "asyncCallbackInfo is null");
-        return nullptr;
+        ANS_LOGE("asyncCallbackInfo is null");
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     if (!NotificationSts::UnwrapBundleOption(env, obj, asyncCallbackInfo->option)) {
-        NotificationSts::ThrowInternerErrorWithLogE(env, "UnwrapBundleOption failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     ani_status vmStatus = env->GetVM(&asyncCallbackInfo->vm);
     if (vmStatus != ANI_OK) {
         ANS_LOGE("GetVM failed, status: %{public}d", vmStatus);
-        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     asyncCallbackInfo->isEnable = NotificationSts::AniBooleanToBool(enable);
     if (!SetCallbackObject(env, callback, asyncCallbackInfo)) {
         DeleteCallBackInfo(env, asyncCallbackInfo);
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
@@ -173,39 +170,40 @@ ani_object AniDisplayBadge(ani_env *env, ani_object obj, ani_boolean enable, ani
         },
         HandleBadgeCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
     if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
-        NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
+        ANS_LOGE("CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     if (asyncCallbackInfo->info.callback == nullptr) {
         return promise;
     }
-    return nullptr;
+    return NotificationSts::GetNullObject(env);
+#else
+    return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_SYSTEM_CAP_ERROR);
+#endif
 }
 
 ani_object AniIsBadgeDisplayed(ani_env *env, ani_object obj, ani_object callback)
 {
-    ANS_LOGD("AniIsBadgeDisplayed call");
+#ifdef ANS_FEATURE_BADGE_MANAGER
     auto asyncCallbackInfo = new (std::nothrow)AsyncCallbackBadgeInfo{.asyncWork = nullptr};
     if (!asyncCallbackInfo) {
-        NotificationSts::ThrowInternerErrorWithLogE(env, "asyncCallbackInfo is null");
-        return nullptr;
+        ANS_LOGE("asyncCallbackInfo is null");
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     if (!NotificationSts::UnwrapBundleOption(env, obj, asyncCallbackInfo->option)) {
-        NotificationSts::ThrowInternerErrorWithLogE(env, "UnwrapBundleOption failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     ani_status vmStatus = env->GetVM(&asyncCallbackInfo->vm);
     if (vmStatus != ANI_OK) {
         ANS_LOGE("GetVM failed, status: %{public}d", vmStatus);
-        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     if (!SetCallbackObject(env, callback, asyncCallbackInfo)) {
         DeleteCallBackInfo(env, asyncCallbackInfo);
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
@@ -221,35 +219,37 @@ ani_object AniIsBadgeDisplayed(ani_env *env, ani_object obj, ani_object callback
         },
         HandleBadgeCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
     if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
-        NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
+        ANS_LOGE("CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     if (asyncCallbackInfo->info.callback == nullptr) {
         return promise;
     }
-    return nullptr;
+    return NotificationSts::GetNullObject(env);
+#else
+    return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_SYSTEM_CAP_ERROR);
+#endif
 }
 
 ani_object AniSetBadgeNumber(ani_env *env, ani_int badgeNumber, ani_object callback)
 {
-    ANS_LOGD("AniSetBadgeNumber call");
+#ifdef ANS_FEATURE_BADGE_MANAGER
     auto asyncCallbackInfo = new (std::nothrow)AsyncCallbackBadgeInfo{.asyncWork = nullptr};
     if (!asyncCallbackInfo) {
-        NotificationSts::ThrowInternerErrorWithLogE(env, "asyncCallbackInfo is null");
-        return nullptr;
+        ANS_LOGE("asyncCallbackInfo is null");
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     ani_status vmStatus = env->GetVM(&asyncCallbackInfo->vm);
     if (vmStatus != ANI_OK) {
         ANS_LOGE("GetVM failed, status: %{public}d", vmStatus);
-        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
         delete asyncCallbackInfo;
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     asyncCallbackInfo->badgeNumber = badgeNumber;
     if (!SetCallbackObject(env, callback, asyncCallbackInfo)) {
         DeleteCallBackInfo(env, asyncCallbackInfo);
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
 
     ani_object promise;
@@ -266,40 +266,41 @@ ani_object AniSetBadgeNumber(ani_env *env, ani_int badgeNumber, ani_object callb
         },
         HandleBadgeCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
     if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
-        NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
+        ANS_LOGE("CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     if (asyncCallbackInfo->info.callback == nullptr) {
         return promise;
     }
-    return nullptr;
+    return NotificationSts::GetNullObject(env);
+#else
+    return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_SYSTEM_CAP_ERROR);
+#endif
 }
 
 ani_object AniSetBadgeNumberByBundle(ani_env *env, ani_object obj, ani_int badgeNumber, ani_object callback)
 {
-    ANS_LOGD("AniSetBadgeNumberByBundle call");
+#ifdef ANS_FEATURE_BADGE_MANAGER
     auto asyncCallbackInfo = new (std::nothrow)AsyncCallbackBadgeInfo{.asyncWork = nullptr};
     if (!asyncCallbackInfo) {
-        NotificationSts::ThrowInternerErrorWithLogE(env, "asyncCallbackInfo is null");
-        return nullptr;
+        ANS_LOGE("asyncCallbackInfo is null");
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     if (!NotificationSts::UnwrapBundleOption(env, obj, asyncCallbackInfo->option)) {
-        NotificationSts::ThrowInternerErrorWithLogE(env, "UnwrapBundleOption failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     ani_status status = env->GetVM(&asyncCallbackInfo->vm);
     if (status != ANI_OK) {
         ANS_LOGE("GetVM failed, status: %{public}d", status);
-        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     asyncCallbackInfo->badgeNumber = badgeNumber;
     if (!SetCallbackObject(env, callback, asyncCallbackInfo)) {
         DeleteCallBackInfo(env, asyncCallbackInfo);
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
@@ -314,39 +315,40 @@ ani_object AniSetBadgeNumberByBundle(ani_env *env, ani_object obj, ani_int badge
         },
         HandleBadgeCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
     if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
-        NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
+        ANS_LOGE("CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     if (asyncCallbackInfo->info.callback == nullptr) {
         return promise;
     }
-    return nullptr;
+    return NotificationSts::GetNullObject(env);
+#else
+    return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_SYSTEM_CAP_ERROR);
+#endif
 }
 
 ani_object AniSetBadgeDisplayStatusByBundles(ani_env *env, ani_object obj, ani_object callback)
 {
-    ANS_LOGD("AniSetBadgeDisplayStatusByBundles call");
+#ifdef ANS_FEATURE_BADGE_MANAGER
     auto asyncCallbackInfo = new (std::nothrow)AsyncCallbackBadgeInfo{.asyncWork = nullptr};
     if (!asyncCallbackInfo) {
-        NotificationSts::ThrowInternerErrorWithLogE(env, "asyncCallbackInfo is null");
-        return nullptr;
+        ANS_LOGE("asyncCallbackInfo is null");
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     if (NotificationSts::UnwrapBundleOptionMap(env, obj, asyncCallbackInfo->options) != ANI_OK) {
-        NotificationSts::ThrowInternerErrorWithLogE(env, "UnwrapBundleOptionMap faild");
         DeleteCallBackInfo(env, asyncCallbackInfo);
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     ani_status status = env->GetVM(&asyncCallbackInfo->vm);
     if (status != ANI_OK) {
         ANS_LOGE("GetVM failed, status: %{public}d", status);
-        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     if (!SetCallbackObject(env, callback, asyncCallbackInfo)) {
         DeleteCallBackInfo(env, asyncCallbackInfo);
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
@@ -362,39 +364,40 @@ ani_object AniSetBadgeDisplayStatusByBundles(ani_env *env, ani_object obj, ani_o
         },
         HandleBadgeCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
     if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
-        NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
+        ANS_LOGE("CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     if (asyncCallbackInfo->info.callback == nullptr) {
         return promise;
     }
-    return nullptr;
+    return NotificationSts::GetNullObject(env);
+#else
+    return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_SYSTEM_CAP_ERROR);
+#endif
 }
 
 ani_object AniGetBadgeDisplayStatusByBundles(ani_env *env, ani_object obj, ani_object callback)
 {
-    ANS_LOGD("AniGetBadgeDisplayStatusByBundles call");
+#ifdef ANS_FEATURE_BADGE_MANAGER
     auto asyncCallbackInfo = new (std::nothrow)AsyncCallbackBadgeInfo{.asyncWork = nullptr};
     if (!asyncCallbackInfo) {
-        NotificationSts::ThrowInternerErrorWithLogE(env, "asyncCallbackInfo is null");
-        return nullptr;
+        ANS_LOGE("asyncCallbackInfo is null");
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     if (!NotificationSts::UnwrapArrayBundleOption(env, obj, asyncCallbackInfo->bundles)) {
-        NotificationSts::ThrowInternerErrorWithLogE(env, "UnwrapArrayBundleOption faild");
         DeleteCallBackInfo(env, asyncCallbackInfo);
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     ani_status status = env->GetVM(&asyncCallbackInfo->vm);
     if (status != ANI_OK) {
         ANS_LOGE("GetVM failed, status: %{public}d", status);
-        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     if (!SetCallbackObject(env, callback, asyncCallbackInfo)) {
         DeleteCallBackInfo(env, asyncCallbackInfo);
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
@@ -410,34 +413,36 @@ ani_object AniGetBadgeDisplayStatusByBundles(ani_env *env, ani_object obj, ani_o
         },
         HandleBadgeCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
     if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
-        NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
+        ANS_LOGE("CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     if (asyncCallbackInfo->info.callback == nullptr) {
         return promise;
     }
-    return nullptr;
+    return NotificationSts::GetNullObject(env);
+#else
+    return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_SYSTEM_CAP_ERROR);
+#endif
 }
 
 ani_object AniGetBadgeNumber(ani_env *env, ani_object callback)
 {
-    ANS_LOGD("AniGetBadgeNumber call");
+#ifdef ANS_FEATURE_BADGE_MANAGER
     auto asyncCallbackInfo = new (std::nothrow)AsyncCallbackBadgeInfo{.asyncWork = nullptr};
     if (!asyncCallbackInfo) {
-        NotificationSts::ThrowInternerErrorWithLogE(env, "asyncCallbackInfo is null");
-        return nullptr;
+        ANS_LOGE("asyncCallbackInfo is null");
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     if (!SetCallbackObject(env, callback, asyncCallbackInfo)) {
         DeleteCallBackInfo(env, asyncCallbackInfo);
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     ani_status status = env->GetVM(&asyncCallbackInfo->vm);
     if (status != ANI_OK) {
         ANS_LOGE("GetVM failed, status: %{public}d", status);
-        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
@@ -453,32 +458,42 @@ ani_object AniGetBadgeNumber(ani_env *env, ani_object callback)
         },
         HandleBadgeCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
     if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
-        NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
+        ANS_LOGE("CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     if (asyncCallbackInfo->info.callback == nullptr) {
         return promise;
     }
-    return nullptr;
+    return NotificationSts::GetNullObject(env);
+#else
+    return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERROR_SYSTEM_CAP_ERROR);
+#endif
 }
 
 void AniOnBadgeNumberQuery(ani_env *env, ani_fn_object fn)
 {
-    ANS_LOGD("AniOnBadgeNumberQuery called");
+#ifdef ANS_FEATURE_BADGE_MANAGER
     OHOS::NotificationSts::StsBadgeQueryCallBackManager::GetInstance()->AniOnBadgeNumberQuery(env, fn);
+#else
+    NotificationSts::ThrowErrorWithCode(env, OHOS::Notification::ERROR_SYSTEM_CAP_ERROR);
+#endif
 }
 
 void AniOffBadgeNumberQuery(ani_env *env)
 {
-    ANS_LOGD("AniOffBadgeNumberQuery called");
+#ifdef ANS_FEATURE_BADGE_MANAGER
     OHOS::NotificationSts::StsBadgeQueryCallBackManager::GetInstance()->AniOffBadgeNumberQuery(env);
+#else
+    NotificationSts::ThrowErrorWithCode(env, OHOS::Notification::ERROR_SYSTEM_CAP_ERROR);
+#endif
 }
 
 void AniHandleBadgeNumberPromise(ani_env *env, ani_object bundle, ani_long num)
 {
-    ANS_LOGD("AniHandleBadgeNumberPromise called");
+#ifdef ANS_FEATURE_BADGE_MANAGER
     OHOS::NotificationSts::StsBadgeQueryCallBackManager::GetInstance()->AniHandleBadgeNumberPromise(env, bundle, num);
+#endif
 }
 }
 }
