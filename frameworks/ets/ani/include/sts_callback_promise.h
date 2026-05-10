@@ -36,6 +36,12 @@ void CreateReturnData(ani_env *env, const CallbackPromiseInfo &info);
 void SetCallback(ani_env *env, const ani_ref &callback, const int32_t &errorCode, const ani_object &result);
 
 void SetPromise(ani_env *env, const ani_resolver &resolver, const int32_t &errorCode, const ani_object &result);
+
+void AniPromiseReject(ani_env *env, const ani_resolver &resolver, const int32_t &errorCode);
+
+void AniPromiseResolve(ani_env *env, const ani_resolver &resolver, const ani_object &result);
+
+ani_object AniJumpCbError(ani_env *env, const ani_ref &callback, const int32_t &errorCode);
 } // namespace NotificationSts
 } // OHOS
 #endif

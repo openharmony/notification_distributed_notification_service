@@ -84,19 +84,44 @@ void SetCallback(ani_env *env, const ani_ref &callback, const int32_t &errorCode
 
 void SetPromise(ani_env *env, const ani_resolver &resolver, const int32_t &errorCode, const ani_object &result)
 {
-    ANS_LOGD("start");
+    if (errorCode == ERR_OK) {
+        AniPromiseResolve(env, resolver, result);
+    } else {
+        AniPromiseReject(env, resolver, errorCode);
+    }
+}
+
+void AniPromiseReject(ani_env *env, const ani_resolver &resolver, const int32_t &errorCode)
+{
+    ani_status status = ANI_OK;
+    ani_object errorObj = CreateError(env, errorCode, FindAnsErrMsg(errorCode));
+    status = env->PromiseResolver_Reject(resolver, static_cast<ani_error>(errorObj));
+    if (ANI_OK != status) {
+        ANS_LOGE("AniPromiseReject failed,status = %{public}d", status);
+    }
+}
+
+void AniPromiseResolve(ani_env *env, const ani_resolver &resolver, const ani_object &result)
+{
     ani_object data = (result == nullptr) ? GetNullObject(env) : result;
     ani_status status = ANI_OK;
-    if (errorCode == ERR_OK) {
-        status = env->PromiseResolver_Resolve(resolver, data);
-    } else {
-        ani_object errorObj = CreateError(env, errorCode, FindAnsErrMsg(errorCode));
-        status = env->PromiseResolver_Reject(resolver, static_cast<ani_error>(errorObj));
-    }
+    status = env->PromiseResolver_Resolve(resolver, data);
     if (ANI_OK != status) {
-        ANS_LOGE("SetPromise failed,status = %{public}d", status);
+        ANS_LOGE("AniPromiseResolve failed,status = %{public}d", status);
     }
-    ANS_LOGD("end");
+}
+
+ani_object AniJumpCbError(ani_env *env, const ani_ref &callback, const int32_t &errorCode)
+{
+    if (callback == nullptr) {
+        ani_object promise;
+        ani_resolver resolve = nullptr;
+        env->Promise_New(&resolve, &promise);
+        AniPromiseReject(env, resolve, errorCode);
+        return promise;
+    }
+    SetCallback(env, callback, errorCode, nullptr);
+    return GetNullObject(env);
 }
 } // namespace NotificationSts
 } // OHOS

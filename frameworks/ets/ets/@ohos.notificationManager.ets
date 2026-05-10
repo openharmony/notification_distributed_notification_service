@@ -1044,12 +1044,7 @@ export default namespace notificationManager {
             throw error;
         }
         let result: Promise<void>;
-        try {
-            result = nativeSetNotificationEnable(bundle, enable, undefined);
-        } catch (err) {
-            let error: BusinessError = err as BusinessError;
-            throw error;
-        }
+        result = nativeSetNotificationEnable(bundle, enable, undefined);
         return result;
     }
 
@@ -1062,12 +1057,7 @@ export default namespace notificationManager {
         if (callback == null) {
             throw errorParamInvalid;
         }
-        try {
-            nativeSetNotificationEnable(bundle, enable, callback);
-        } catch (err) {
-            let error: BusinessError = err as BusinessError;
-            throw error;
-        }
+        nativeSetNotificationEnable(bundle, enable, callback);
     }
 
     export function isNotificationEnabled(bundleOption: BundleOption, callback: AsyncCallback<boolean>): void
@@ -1079,12 +1069,7 @@ export default namespace notificationManager {
         if (callback == null) {
             throw errorParamInvalid;
         }
-        try {
-            nativeIsNotificationEnabledWithBundleOption(bundleOption, callback);
-        } catch (err) {
-            let error: BusinessError = err as BusinessError;
-            throw error;
-        }
+        nativeIsNotificationEnabledWithBundleOption(bundleOption, callback);
     }
 
     export function isNotificationEnabled(bundleOption: BundleOption): Promise<boolean>
@@ -1094,12 +1079,7 @@ export default namespace notificationManager {
             throw error;
         }
         let result: Promise<boolean>;
-        try {
-            result = nativeIsNotificationEnabledWithBundleOption(bundleOption, undefined);
-        } catch (err) {
-            let error: BusinessError = err as BusinessError;
-            throw error;
-        }
+        result = nativeIsNotificationEnabledWithBundleOption(bundleOption, undefined);
         return result;
     }
 
@@ -1108,23 +1088,13 @@ export default namespace notificationManager {
         if (callback == null) {
             throw errorParamInvalid;
         }
-        try {
-            nativeIsNotificationEnabledWithId(userId, callback);
-        } catch (err) {
-            let error: BusinessError = err as BusinessError;
-            throw error;
-        }
+        nativeIsNotificationEnabledWithId(userId, callback);
     }
 
     export function isNotificationEnabled(userId: int): Promise<boolean>
     {
         let result: Promise<boolean>;
-        try {
-            result = nativeIsNotificationEnabledWithId(userId, undefined);
-        } catch (err) {
-            let error: BusinessError = err as BusinessError;
-            throw error;
-        }
+        result = nativeIsNotificationEnabledWithId(userId, undefined);
         return result;
     }
 
@@ -1133,23 +1103,13 @@ export default namespace notificationManager {
         if (callback == null) {
             throw errorParamInvalid;
         }
-        try {
-            nativeIsNotificationEnabled(callback);
-        } catch (err) {
-            let error: BusinessError = err as BusinessError;
-            throw error;
-        }
+        nativeIsNotificationEnabled(callback);
     }
 
     export function isNotificationEnabled(): Promise<boolean>
     {
         let result: Promise<boolean>;
-        try {
-            result = nativeIsNotificationEnabled(undefined);
-        } catch (err) {
-            let error: BusinessError = err as BusinessError;
-            throw error;
-        }
+        result = nativeIsNotificationEnabled(undefined);
         return result;
     }
 
@@ -1845,24 +1805,14 @@ export default namespace notificationManager {
     export function getAllNotificationEnabledBundles(): Promise<Array<BundleOption>>
     {
         let result: Promise<Array<BundleOption>>;
-        try {
-            result = nativeGetAllNotificationEnabledBundles(undefined);
-        } catch (err) {
-            let error: BusinessError = err as BusinessError;
-            throw error;
-        }
+        result = nativeGetAllNotificationEnabledBundles(undefined);
         return result;
     }
 
     export function getAllNotificationEnabledBundles(userId : int): Promise<Array<BundleOption>>
     {
         let result: Promise<Array<BundleOption>>;
-        try {
-            result = nativeGetAllNotificationEnabledBundlesByUserId(userId, undefined);
-        } catch (err) {
-            let error: BusinessError = err as BusinessError;
-            throw error;
-        }
+        result = nativeGetAllNotificationEnabledBundlesByUserId(userId, undefined);
         return result;
     }
 
@@ -2509,12 +2459,7 @@ export default namespace notificationManager {
             }
         });
         let result: Promise<void>;
-        try {
-            result = nativedisableNotificationFeature(disabled, bundleList, undefined);
-        } catch (err) {
-            let error: BusinessError = err as BusinessError;
-            throw error;
-        }
+        result = nativedisableNotificationFeature(disabled, bundleList, undefined);
         return result;
     }
 
@@ -2659,34 +2604,19 @@ export default namespace notificationManager {
         if (callback == null) {
             throw errorParamInvalid;
         }
-        try {
-            nativeSetSyncNotificationEnabledWithoutApp(userId, enable, callback);
-        } catch (err) {
-            let error: BusinessError = err as BusinessError;
-            callback(error, undefined);
-        }
+        nativeSetSyncNotificationEnabledWithoutApp(userId, enable, callback);
     }
 
     export function setSyncNotificationEnabledWithoutApp(userId: int, enable: boolean): Promise<void>
     {
         let result: Promise<void>;
-        try {
-            result = nativeSetSyncNotificationEnabledWithoutApp(userId, enable, undefined);
-        } catch (err) {
-            let error: BusinessError = err as BusinessError;
-            return Promise.reject(error);
-        }
+        result = nativeSetSyncNotificationEnabledWithoutApp(userId, enable, undefined);
         return result;
     }
 
     export function getSyncNotificationEnabledWithoutApp(userId: int): Promise<boolean> {
         let result: Promise<boolean>;
-        try {
-            result = nativeGetSyncNotificationEnabledWithoutApp(userId, undefined);
-        } catch (err) {
-            let error: BusinessError = err as BusinessError;
-            return Promise.reject(error);
-        }
+        result = nativeGetSyncNotificationEnabledWithoutApp(userId, undefined);
         return result;
     }
 
@@ -2695,12 +2625,7 @@ export default namespace notificationManager {
         if (callback == null) {
             throw errorParamInvalid;
         }
-        try {
-            nativeGetSyncNotificationEnabledWithoutApp(userId, callback);
-        } catch (err) {
-            let error: BusinessError = err as BusinessError;
-            callback(error, undefined);
-        }
+        nativeGetSyncNotificationEnabledWithoutApp(userId, callback);
     }
 
     export function getNotificationSetting(): Promise<NotificationSetting> {
@@ -2865,12 +2790,7 @@ export default namespace notificationManager {
             throw errorParamInvalid;
         }
         let result: Promise<void>;
-        try {
-            result = nativeDisableNotificationFeatureWithId(disabled, bundleList, userId, undefined);
-        } catch (err) {
-            let error: BusinessError = err as BusinessError;
-            throw error;
-        }
+        result = nativeDisableNotificationFeatureWithId(disabled, bundleList, userId, undefined);
         return result;
     }
 
@@ -3150,24 +3070,19 @@ export default namespace notificationManager {
         lastTime: long;
         recentCount: int;
     }
-     	 
+
     class NotificationStatisticsInner implements NotificationStatistics {
         public bundle: BundleOption = { bundle: '' };
         public lastTime: long = 0;
         public recentCount: int = 0;
     }
-     	 
+
     export function getNotificationStatisticsByBundle(bundles: BundleOption[]): Promise<NotificationStatistics[]> {
         if (!bundles || bundles.length == 0) {
             throw errorParamInvalid;
         }
         let result: Promise<Array<NotificationStatistics>>;
-        try {
-            result = nativeGetNotificationStatisticsByBundle(bundles);
-        } catch (err) {
-            let error: BusinessError = err as BusinessError;
-            throw error;
-        }
+        result = nativeGetNotificationStatisticsByBundle(bundles);
         return result;
     }
 
