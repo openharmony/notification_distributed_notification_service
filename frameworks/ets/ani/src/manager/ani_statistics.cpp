@@ -99,16 +99,15 @@ void HandleStatisticsFunctionCallbackComplete(ani_env* env, WorkStatus status, v
 
 ani_object AniGetNotificationStatisticsByBundle(ani_env *env, ani_object obj)
 {
-    ANS_LOGD("AniGetNotificationStatisticsByBundle called");
+#ifdef ANS_FEATURE_NOTIFICATION_STATISTICS
     auto asyncCallbackInfo = new (std::nothrow)AsyncCallbackStatistics{.asyncWork = nullptr};
     if (!asyncCallbackInfo) {
-        NotificationSts::ThrowInternerErrorWithLogE(env, "asyncCallbackInfo is null");
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, nullptr, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     if (!NotificationSts::UnwrapArrayBundleOption(env, obj, asyncCallbackInfo->bundles)) {
-        NotificationSts::ThrowInternerErrorWithLogE(env, "UnwrapBundleOption failed");
+        ANS_LOGE("UnwrapArrayBundleOption failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, nullptr, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     ani_object promise;
     NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
@@ -116,9 +115,8 @@ ani_object AniGetNotificationStatisticsByBundle(ani_env *env, ani_object obj)
     ani_status aniStatus = env->GetVM(&asyncCallbackInfo->vm);
     if (aniStatus != ANI_OK) {
         ANS_LOGE("GetVM failed, status: %{public}d", aniStatus);
-        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, nullptr, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     WorkStatus status = CreateAsyncWork(env,
         [](ani_env* env, void* data) {
@@ -130,14 +128,17 @@ ani_object AniGetNotificationStatisticsByBundle(ani_env *env, ani_object obj)
         },
         HandleStatisticsFunctionCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
     if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
-        NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
+        ANS_LOGE("CreateAsyncWork or QueueAsyncWork failed");
         DeleteCallBackInfo(env, asyncCallbackInfo);
-        return nullptr;
+        return NotificationSts::AniJumpCbError(env, nullptr, OHOS::Notification::ERROR_INTERNAL_ERROR);
     }
     if (asyncCallbackInfo->info.callback == nullptr) {
         return promise;
     }
     return nullptr;
+#else
+    return NotificationSts::AniJumpCbError(env, nullptr, OHOS::Notification::ERROR_SYSTEM_CAP_ERROR);
+#endif
 }
 }
 }
