@@ -3872,5 +3872,240 @@ HWTEST_F(NotificationPreferencesTest, SetAncoApplicationUserIdWithBundleOption_0
         });
     }
 }
+
+// ========== Collaboration Block List Tests ==========
+
+/**
+ * @tc.name: SetCollaborationBlockList_00001
+ * @tc.desc: Test SetCollaborationBlockList with normal block list
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesTest, SetCollaborationBlockList_00001, Function | SmallTest | Level1)
+{
+    NotificationPreferences notificationPreferences;
+    notificationPreferences.preferncesDB_ = std::make_shared<NotificationPreferencesDatabase>();
+    
+    std::string blockListJson = "{\"userId\":100,\"bundleList\":[{\"bundleName\":\"com.example.blocked1\",\"index\":1},{\"bundleName\":\"com.example.blocked2\",\"index\":2}]}";
+    
+    auto ret = notificationPreferences.SetCollaborationBlockList(blockListJson);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: SetCollaborationBlockList_00002
+ * @tc.desc: Test SetCollaborationBlockList with empty bundleList (no apps blocked)
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesTest, SetCollaborationBlockList_00002, Function | SmallTest | Level1)
+{
+    NotificationPreferences notificationPreferences;
+    notificationPreferences.preferncesDB_ = std::make_shared<NotificationPreferencesDatabase>();
+    
+    std::string emptyBlockListJson = "{\"userId\":100,\"bundleList\":[]}";
+    auto ret = notificationPreferences.SetCollaborationBlockList(emptyBlockListJson);
+    EXPECT_EQ(ret, ERR_OK);
+    
+    std::string testBundleName = "com.test.bundle";
+    int32_t testUid = 100 * 1000000 + 1000;
+    bool isAllowed = notificationPreferences.IsCollaborationAllowed(testBundleName, testUid);
+    EXPECT_EQ(isAllowed, true);
+}
+
+/**
+ * @tc.name: SetCollaborationBlockList_00003
+ * @tc.desc: Test SetCollaborationBlockList with repeated setting override
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesTest, SetCollaborationBlockList_00003, Function | SmallTest | Level1)
+{
+    NotificationPreferences notificationPreferences;
+    notificationPreferences.preferncesDB_ = std::make_shared<NotificationPreferencesDatabase>();
+    
+    std::string firstBlockListJson = "{\"userId\":100,\"bundleList\":[{\"bundleName\":\"com.bundle1\",\"index\":1}]}";
+    auto ret = notificationPreferences.SetCollaborationBlockList(firstBlockListJson);
+    EXPECT_EQ(ret, ERR_OK);
+    
+    std::string secondBlockListJson = "{\"userId\":100,\"bundleList\":[{\"bundleName\":\"com.bundle2\",\"index\":2}]}";
+    ret = notificationPreferences.SetCollaborationBlockList(secondBlockListJson);
+    EXPECT_EQ(ret, ERR_OK);
+    
+    int32_t uid1 = 100 * 1000000 + 1000 + 1;
+    bool isAllowed = notificationPreferences.IsCollaborationAllowed("com.bundle1", uid1);
+    EXPECT_EQ(isAllowed, true);
+    
+    int32_t uid2 = 100 * 1000000 + 1000 + 2;
+    isAllowed = notificationPreferences.IsCollaborationAllowed("com.bundle2", uid2);
+    EXPECT_EQ(isAllowed, false);
+}
+
+/**
+ * @tc.name: SetCollaborationBlockList_00004
+ * @tc.desc: Test SetCollaborationBlockList with missing userId field
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesTest, SetCollaborationBlockList_00004, Function | SmallTest | Level1)
+{
+    NotificationPreferences notificationPreferences;
+    
+    std::string invalidJson = "{\"bundleList\":[{\"bundleName\":\"com.example\",\"index\":1}]}";
+    auto ret = notificationPreferences.SetCollaborationBlockList(invalidJson);
+    EXPECT_EQ(ret, ERR_ANS_INVALID_PARAM);
+}
+
+/**
+ * @tc.name: SetCollaborationBlockList_00005
+ * @tc.desc: Test SetCollaborationBlockList with invalid userId (userId <= 0)
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesTest, SetCollaborationBlockList_00005, Function | SmallTest | Level1)
+{
+    NotificationPreferences notificationPreferences;
+    
+    std::string invalidJson = "{\"userId\":0,\"bundleList\":[{\"bundleName\":\"com.example\",\"index\":1}]}";
+    auto ret = notificationPreferences.SetCollaborationBlockList(invalidJson);
+    EXPECT_EQ(ret, ERR_ANS_INVALID_PARAM);
+}
+
+/**
+ * @tc.name: SetCollaborationBlockList_00006
+ * @tc.desc: Test SetCollaborationBlockList with empty JSON data
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesTest, SetCollaborationBlockList_00006, Function | SmallTest | Level1)
+{
+    NotificationPreferences notificationPreferences;
+    
+    std::string emptyJson = "";
+    auto ret = notificationPreferences.SetCollaborationBlockList(emptyJson);
+    EXPECT_EQ(ret, ERR_ANS_INVALID_PARAM);
+}
+
+/**
+ * @tc.name: SetCollaborationBlockList_00007
+ * @tc.desc: Test SetCollaborationBlockList with malformed JSON string
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesTest, SetCollaborationBlockList_00007, Function | SmallTest | Level1)
+{
+    NotificationPreferences notificationPreferences;
+    
+    std::string malformedJson = "{\"userId\":100,\"bundleList\":[invalid";
+    auto ret = notificationPreferences.SetCollaborationBlockList(malformedJson);
+    EXPECT_EQ(ret, ERR_ANS_INVALID_PARAM);
+}
+
+/**
+ * @tc.name: SetCollaborationBlockList_00008
+ * @tc.desc: Test SetCollaborationBlockList with missing bundleList field
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesTest, SetCollaborationBlockList_00008, Function | SmallTest | Level1)
+{
+    NotificationPreferences notificationPreferences;
+    
+    std::string invalidJson = "{\"userId\":100}";
+    auto ret = notificationPreferences.SetCollaborationBlockList(invalidJson);
+    EXPECT_EQ(ret, ERR_ANS_INVALID_PARAM);
+}
+
+/**
+ * @tc.name: SetCollaborationBlockList_00009
+ * @tc.desc: Test SetCollaborationBlockList with bundleList item missing bundleName
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesTest, SetCollaborationBlockList_00009, Function | SmallTest | Level1)
+{
+    NotificationPreferences notificationPreferences;
+    notificationPreferences.preferncesDB_ = std::make_shared<NotificationPreferencesDatabase>();
+    
+    std::string blockListJson = "{\"userId\":100,\"bundleList\":[{\"index\":1}]}";
+    auto ret = notificationPreferences.SetCollaborationBlockList(blockListJson);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: SetCollaborationBlockList_00010
+ * @tc.desc: Test SetCollaborationBlockList with bundleName exceeding max length
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesTest, SetCollaborationBlockList_00010, Function | SmallTest | Level1)
+{
+    NotificationPreferences notificationPreferences;
+    notificationPreferences.preferncesDB_ = std::make_shared<NotificationPreferencesDatabase>();
+    
+    std::string longBundleName = "com.example.very.long.bundle.name.that.exceeds.the.maximum.allowed.length.specification";
+    std::string blockListJson = "{\"userId\":100,\"bundleList\":[{\"bundleName\":\"" + longBundleName + "\",\"index\":1}]}";
+    
+    auto ret = notificationPreferences.SetCollaborationBlockList(blockListJson);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: IsCollaborationAllowed_00001
+ * @tc.desc: Test IsCollaborationAllowed with blocked and allowed apps
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesTest, IsCollaborationAllowed_00001, Function | SmallTest | Level1)
+{
+    NotificationPreferences notificationPreferences;
+    notificationPreferences.preferncesDB_ = std::make_shared<NotificationPreferencesDatabase>();
+    
+    std::string blockListJson = "{\"userId\":100,\"bundleList\":[{\"bundleName\":\"com.example.blocked1\",\"index\":1},{\"bundleName\":\"com.example.blocked2\",\"index\":2}]}";
+    notificationPreferences.SetCollaborationBlockList(blockListJson);
+    
+    int32_t uid1 = 100 * 1000000 + 1000 + 1;
+    bool isAllowed1 = notificationPreferences.IsCollaborationAllowed("com.example.blocked1", uid1);
+    EXPECT_EQ(isAllowed1, false);
+    
+    int32_t uid2 = 100 * 1000000 + 1000 + 2;
+    bool isAllowed2 = notificationPreferences.IsCollaborationAllowed("com.example.blocked2", uid2);
+    EXPECT_EQ(isAllowed2, false);
+    
+    int32_t uid3 = 100 * 1000000 + 1000;
+    bool isAllowed3 = notificationPreferences.IsCollaborationAllowed("com.example.allowed", uid3);
+    EXPECT_EQ(isAllowed3, true);
+}
+
+/**
+ * @tc.name: IsCollaborationAllowed_00002
+ * @tc.desc: Test IsCollaborationAllowed with multi-user isolation
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesTest, IsCollaborationAllowed_00002, Function | SmallTest | Level1)
+{
+    NotificationPreferences notificationPreferences;
+    notificationPreferences.preferncesDB_ = std::make_shared<NotificationPreferencesDatabase>();
+    
+    std::string blockListJson = "{\"userId\":100,\"bundleList\":[{\"bundleName\":\"com.bundle1\",\"index\":1},{\"bundleName\":\"com.bundle2\",\"index\":2}]}";
+    auto ret = notificationPreferences.SetCollaborationBlockList(blockListJson);
+    EXPECT_EQ(ret, ERR_OK);
+    
+    int32_t uid1 = 100 * 1000000 + 1000 + 1;
+    bool isAllowed = notificationPreferences.IsCollaborationAllowed("com.bundle1", uid1);
+    EXPECT_EQ(isAllowed, false);
+    
+    int32_t uid2 = 100 * 1000000 + 1000 + 2;
+    isAllowed = notificationPreferences.IsCollaborationAllowed("com.bundle2", uid2);
+    EXPECT_EQ(isAllowed, false);
+    
+    int32_t uid3 = 100 * 1000000 + 1000;
+    isAllowed = notificationPreferences.IsCollaborationAllowed("com.bundle3", uid3);
+    EXPECT_EQ(isAllowed, true);
+}
+
+/**
+ * @tc.name: IsCollaborationAllowed_00003
+ * @tc.desc: Test IsCollaborationAllowed with empty bundleName
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesTest, IsCollaborationAllowed_00003, Function | SmallTest | Level1)
+{
+    NotificationPreferences notificationPreferences;
+    
+    int32_t uid = 100 * 1000000 + 1000;
+    bool isAllowed = notificationPreferences.IsCollaborationAllowed("", uid);
+    EXPECT_EQ(isAllowed, true);
+}
+
 }  // namespace Notification
 }  // namespace OHOS
