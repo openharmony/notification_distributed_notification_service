@@ -235,6 +235,7 @@ ohos_shared_library("libreminder") {
     "relational_store:native_rdb",
     "resource_management:global_resmgr",
     "time_service:time_client",
+    "icu:shared_icuuc",
   ]
   external_deps += component_external_deps
 
