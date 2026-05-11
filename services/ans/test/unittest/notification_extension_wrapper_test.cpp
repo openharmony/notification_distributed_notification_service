@@ -366,5 +366,71 @@ HWTEST_F(NotificationExtensionWrapperTest, SubscribeControl_ValidSubscribeContro
     // Assert
     EXPECT_TRUE(result);
 }
+
+/**
+ * @tc.name: NotificationContentControl_00001
+ * @tc.desc: Test NotificationContentControl when notificationContentControl_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationExtensionWrapperTest, NotificationContentControl_00001, TestSize.Level0)
+{
+    // Arrange
+    ExtensionWrapper wrapper;
+    wrapper.notificationContentControl_ = nullptr;
+    sptr<NotificationRequest> request = new NotificationRequest();
+
+    // Act
+    bool result = wrapper.NotificationContentControl(request);
+
+    // Assert
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: NotificationContentControl_00002
+ * @tc.desc: Test NotificationContentControl with valid notificationContentControl_ function
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationExtensionWrapperTest, NotificationContentControl_00002, TestSize.Level0)
+{
+    // Arrange
+    ExtensionWrapper wrapper;
+    auto mockNotificationContentControl = [](const sptr<NotificationRequest> &request) {
+        return true;
+    };
+    wrapper.notificationContentControl_ = mockNotificationContentControl;
+    sptr<NotificationRequest> request = new NotificationRequest();
+
+    // Act
+    bool result = wrapper.NotificationContentControl(request);
+
+    // Assert
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: NotificationContentControl_00003
+ * @tc.desc: Test NotificationContentControl when notificationContentControl_ returns false
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationExtensionWrapperTest, NotificationContentControl_00003, TestSize.Level0)
+{
+    // Arrange
+    ExtensionWrapper wrapper;
+    auto mockNotificationContentControl = [](const sptr<NotificationRequest> &request) {
+        return false;
+    };
+    wrapper.notificationContentControl_ = mockNotificationContentControl;
+    sptr<NotificationRequest> request = new NotificationRequest();
+
+    // Act
+    bool result = wrapper.NotificationContentControl(request);
+
+    // Assert
+    EXPECT_FALSE(result);
+}
 }   //namespace Notification
 }   //namespace OHOS
