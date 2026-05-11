@@ -8,7 +8,7 @@ tools:
   read: true
   glob: true
   grep: true
-  bash: true
+  bash: false
   webfetch: false
   task: true
 permission:
