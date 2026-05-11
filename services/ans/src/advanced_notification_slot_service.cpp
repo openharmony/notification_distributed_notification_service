@@ -19,6 +19,7 @@
 #include <iomanip>
 #include <sstream>
 
+#include "nlohmann/json.hpp"
 #include "access_token_helper.h"
 #include "ans_inner_errors.h"
 #include "ans_log_wrapper.h"
@@ -49,6 +50,9 @@ namespace Notification {
 namespace {
     constexpr char CALL_UI_BUNDLE[] = "com.ohos.callui";
     constexpr char LIVEVIEW_CONFIG_KEY[] = "APP_LIVEVIEW_CONFIG";
+    constexpr char ADD_VOICE_SUMMARY_COUNT_KEY[] = "add_voice_summary_count";
+    constexpr char NOTIFICATION_VOICE_SUMMARY_COUNT[] = "notification_voice_summary_count";
+    constexpr int32_t MAX_VOICE_SUMMARY_COUNT_PER_DAY = 30;
     constexpr uint32_t NOTIFICATION_SETTING_FLAG_BASE = 0x17;
     constexpr uint32_t NOTIFICATION_SETTING_SILENT = 0;
     constexpr int32_t MAX_LIVEVIEW_CONFIG_SIZE = 60;
@@ -62,6 +66,7 @@ namespace {
     constexpr uint64_t INTERVAL_CHECK_LIVEVIEW = 1000 * 1000;
     constexpr uint64_t BADGENUMBER_SHOW_FLAG = 0x40;
     constexpr uint64_t NOTIFICATION_ENABLED_FLAG = 0x80;
+    constexpr int64_t MILLISECONDS_PER_DAY = 24 * 3600 * 1000;
     const std::set<std::string> unAffectDevices = {
         NotificationConstant::LITEWEARABLE_DEVICE_TYPE,
         NotificationConstant::WEARABLE_DEVICE_TYPE
@@ -1393,6 +1398,77 @@ ErrCode AdvancedNotificationService::SetAdditionConfig(const std::string &key, c
     message.ErrorCode(result);
     NotificationAnalyticsUtil::ReportModifyEvent(message);
     return result;
+}
+
+ErrCode AdvancedNotificationService::UpdateVoiceUpdate(const std::string &configKey)
+{
+    int32_t userId = 0;
+    if (OsAccountManagerHelper::GetInstance().GetCurrentActiveUserId(userId) != ERR_OK) {
+        ANS_LOGE("GetCurrentActiveUserId failed");
+        return ERR_ANS_GET_ACTIVE_USER_FAILED;
+    }
+
+    int64_t currentTime = GetCurrentTime();
+    int64_t todayTimestamp = currentTime / MILLISECONDS_PER_DAY;
+    std::string storedData;
+    ErrCode result = NotificationPreferences::GetInstance()->GetKvFromDb(
+        NOTIFICATION_VOICE_SUMMARY_COUNT, storedData, userId);
+    
+    int32_t currentCount = 0;
+    int64_t storedTimestamp = todayTimestamp;
+    if (result == ERR_OK && !storedData.empty() && nlohmann::json::accept(storedData)) {
+        nlohmann::json jsonData = nlohmann::json::parse(storedData);
+        if (jsonData.contains("date") && jsonData["date"].is_number_integer()) {
+            storedTimestamp = jsonData["date"].get<int64_t>();
+        }
+        if (jsonData.contains("count") && jsonData["count"].is_number_integer()) {
+            currentCount = jsonData["count"].get<int32_t>();
+        }
+    }
+    
+    if (storedTimestamp == todayTimestamp) {
+        currentCount++;
+        if (currentCount > MAX_VOICE_SUMMARY_COUNT_PER_DAY) {
+            ANS_LOGW("Voice summary count exceeded limit: %{public}d", currentCount);
+            return ERR_ANS_VOICE_SUMMARY_COUNT_EXCEEDED;
+        }
+    } else {
+        currentCount = 1;
+        storedTimestamp = todayTimestamp;
+    }
+    
+    nlohmann::json newJsonData;
+    newJsonData["date"] = storedTimestamp;
+    newJsonData["count"] = currentCount;
+    std::string newData = newJsonData.dump();
+    
+    result = NotificationPreferences::GetInstance()->SetKvToDb(NOTIFICATION_VOICE_SUMMARY_COUNT, newData, userId);
+    ANS_LOGI("Update voice summary count result: %{public}d, %{public}d, %{public}s.",
+        result, userId, newData.c_str());
+    return ERR_OK;
+}
+
+ErrCode AdvancedNotificationService::UpdateInnerConfig(const std::string &configKey, const std::string &configValue)
+{
+    ANS_LOGI("UpdateInnerConfig: configKey=%{public}s, configValue=%{public}s", configKey.c_str(), configValue.c_str());
+    
+    bool isSubSystem = AccessTokenHelper::VerifyNativeToken(IPCSkeleton::GetCallingTokenID());
+    if (!isSubSystem) {
+        ANS_LOGE("Caller is not native process, not allowed to call UpdateInnerConfig");
+        return ERR_ANS_NON_SYSTEM_APP;
+    }
+    
+    if (!AccessTokenHelper::CheckPermission(OHOS_PERMISSION_NOTIFICATION_CONTROLLER)) {
+        ANS_LOGE("Permission denied, need OHOS_PERMISSION_NOTIFICATION_AGENT_CONTROLLER permission");
+        return ERR_ANS_PERMISSION_DENIED;
+    }
+
+    if (configKey.empty() || configKey != ADD_VOICE_SUMMARY_COUNT_KEY) {
+        ANS_LOGE("Invalid config key: %{public}s.", configKey.c_str());
+        return ERR_ANS_INVALID_PARAM;
+    }
+    
+    return UpdateVoiceUpdate(configKey);
 }
 
 ErrCode AdvancedNotificationService::SyncAdditionConfig(
