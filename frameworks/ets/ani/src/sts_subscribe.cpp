@@ -1114,8 +1114,8 @@ sptr<StsNotificationOperationInfo> GetOperationInfoForDistributeOperation(
             ANS_LOGD("operationInfo is valid");
             return nullptr;
         }
-        ANS_LOGD("OperationInfo %{public}s, %{public}s, %{public}d, %{public}d",
-            info->GetActionName().c_str(), info->GetUserInput().c_str(),
+        ANS_LOGD("OperationInfo %{public}s, %{public}d, %{public}d",
+            info->GetActionName().c_str(),
             info->GetOperationType(), info->GetBtnIndex());
     } else {
         info->SetOperationType(OperationType::DISTRIBUTE_OPERATION_JUMP);
