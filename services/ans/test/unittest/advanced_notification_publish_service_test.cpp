@@ -42,6 +42,7 @@
 #include "int_wrapper.h"
 #include "os_account_manager.h"
 #include "os_account_manager_helper.h"
+#include "notification_extension_wrapper.h"
 
 extern void MockIsOsAccountExists(bool exists);
 extern void MockGetOsAccountLocalIdFromUid(bool mockRet, uint8_t mockCase);
@@ -2517,6 +2518,30 @@ HWTEST_F(AnsPublishServiceTest, PublishNotificationForIndirectProxy_00002, Funct
     request->SetCreatorUid(0);
     auto ret = advancedNotificationService_->PublishNotificationForIndirectProxy(request);
     ASSERT_EQ(ret, (int)ERR_ANS_INVALID_UID);
+}
+
+/**
+ * @tc.name: PublishNotificationForIndirectProxy_00003
+ * @tc.desc: Test PublishNotificationForIndirectProxy,
+ *  NotificationContentControl return false, expected ERR_ANS_NOT_ALLOWED
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(AnsPublishServiceTest, PublishNotificationForIndirectProxy_00003, Function | SmallTest | Level1)
+{
+    sptr<NotificationRequest> request = new (std::nothrow) NotificationRequest();
+    request->SetCreatorUid(1);
+    request->SetCreatorBundleName("testBundle");
+
+    auto originalNotificationContentControl = EXTENTION_WRAPPER->notificationContentControl_;
+    EXTENTION_WRAPPER->notificationContentControl_ = [](const sptr<NotificationRequest> &request) {
+        return false;
+    };
+
+    auto ret = advancedNotificationService_->PublishNotificationForIndirectProxy(request);
+    ASSERT_EQ(ret, (int)ERR_ANS_NOT_ALLOWED);
+
+    EXTENTION_WRAPPER->notificationContentControl_ = originalNotificationContentControl;
 }
 
 /**
