@@ -211,6 +211,17 @@ ErrCode AdvancedNotificationService::CollaborateFilter(const sptr<NotificationRe
         ANS_LOGI("Collaborate filter check is false.");
         return ERR_OK;
     }
+    
+    // Check collaboration block list
+    std::string bundleName = request->GetCreatorBundleName();
+    int32_t uid = request->GetCreatorUid();
+    
+    if (!NotificationPreferences::GetInstance()->IsCollaborationAllowed(bundleName, uid)) {
+        ANS_LOGI("Collaboration blocked for bundle: %{public}s, uid: %{public}d", 
+                 bundleName.c_str(), uid);
+        return ERR_ANS_COLLABORATION_BLOCKED;
+    }
+    
     NotificationConstant::SWITCH_STATE switchEnabled = NotificationConstant::SWITCH_STATE::SYSTEM_DEFAULT_OFF;
     std::string localType = params->GetStringParam("notification_collaboration_localType");
     NotificationConstant::SlotType slotType = request->GetSlotType();

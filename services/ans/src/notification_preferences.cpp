@@ -3189,5 +3189,213 @@ void NotificationPreferences::StopCacheExpiryTask()
         cacheExpiryTask_ = nullptr;
     }
 }
+
+ErrCode NotificationPreferences::SetCollaborationBlockList(const std::string& blockListJson)
+{
+    ANS_LOGD("%{public}s", __FUNCTION__);
+    
+    // Step 1: Parse JSON and validate userId
+    std::set<std::pair<std::string, int32_t>> blockList;
+    int32_t userId = SUBSCRIBE_USER_INIT;
+    if (!ParseBlockListJson(blockListJson, blockList, userId)) {
+        ANS_LOGE("Failed to parse block list JSON or invalid userId");
+        return ERR_ANS_INVALID_PARAM;
+    }
+    
+    // Step 2: userId is already validated in ParseBlockListJson (exists in system)
+    
+    // Step 3: Save to database with userId
+    std::lock_guard<ffrt::mutex> lock(collaborationBlockListMutex_);
+    ErrCode result = ERR_OK;
+    
+    if (SetKvToDb(COLLABORATION_BLOCKLIST, blockListJson, userId) != ERR_OK) {
+        ANS_LOGE("Failed to save collaboration block list to database for userId %{public}d", userId);
+        result = ERR_ANS_PREFERENCES_NOTIFICATION_DB_OPERATION_FAILED;
+    } else {
+        // Step 4: Update memory cache for this userId
+        collaborationBlockListCache_[userId] = blockList;
+        collaborationBlockListLoadedMap_[userId] = true;  // Mark as loaded
+        ANS_LOGI("Set collaboration block list success, userId: %{public}d, size: %{public}zu", 
+                 userId, blockList.size());
+    }
+    
+    return result;
+}
+
+bool NotificationPreferences::IsCollaborationAllowed(const std::string& bundleName, int32_t uid)
+{
+    ANS_LOGD("%{public}s", __FUNCTION__);
+    
+    if (bundleName.empty()) {
+        // Empty bundleName means current bundle, always allowed
+        return true;
+    }
+    
+    // Extract userId from uid
+    int32_t userId = SUBSCRIBE_USER_INIT;
+    ErrCode ret = OsAccountManagerHelper::GetInstance().GetOsAccountLocalIdFromUid(uid, userId);
+    if (ret != ERR_OK || userId <= SUBSCRIBE_USER_INIT) {
+        ANS_LOGE("Failed to get userId from uid %{public}d, ret: %{public}d", uid, ret);
+        return true;  // Failed to get userId, allow by default
+    }
+    
+    // Extract appIndex from uid
+    int32_t appIndex = BundleManagerHelper::GetInstance()->GetAppIndexByUid(uid);
+    
+    // Use lock to protect all operations on std::map (thread safety)
+    std::lock_guard<ffrt::mutex> lock(collaborationBlockListMutex_);
+    
+    // Check if this user's block list is loaded
+    auto loadedIt = collaborationBlockListLoadedMap_.find(userId);
+    if (loadedIt == collaborationBlockListLoadedMap_.end() || !loadedIt->second) {
+        // Not loaded, load block list for this specific userId
+        LoadCollaborationBlockListFromDb(userId);
+    }
+    
+    // Query block list for this userId
+    auto userIt = collaborationBlockListCache_.find(userId);
+    if (userIt == collaborationBlockListCache_.end()) {
+        // No block list for this user, allow all
+        return true;
+    }
+    
+    // Check if bundle+appIndex is in this user's block list
+    auto key = std::make_pair(bundleName, appIndex);
+    auto blockIt = userIt->second.find(key);
+    if (blockIt != userIt->second.end()) {
+        ANS_LOGI("Bundle %{public}s with appIndex %{public}d (uid %{public}d) blocked for userId %{public}d", 
+                 bundleName.c_str(), appIndex, uid, userId);
+        return false;
+    }
+    
+    return true;
+}
+
+bool NotificationPreferences::ParseBlockListJson(const std::string& jsonData, 
+    std::set<std::pair<std::string, int32_t>>& blockList, int32_t& userId)
+{
+    ANS_LOGD("%{public}s", __FUNCTION__);
+    
+    // jsonData empty is an error scenario, not a valid scenario
+    if (jsonData.empty()) {
+        ANS_LOGE("Empty JSON data is invalid");
+        return false;
+    }
+    
+    // Parse JSON without throwing exceptions
+    if (!nlohmann::json::accept(jsonData)) {
+        ANS_LOGE("Invalid JSON string");
+        return false;
+    }
+    
+    nlohmann::json jsonObject = nlohmann::json::parse(jsonData, nullptr, false);
+    if (jsonObject.is_null() || jsonObject.is_discarded()) {
+        ANS_LOGE("Invalid JSON object or discarded");
+        return false;
+    }
+    
+    // Parse userId field (required)
+    if (!jsonObject.contains("userId") || !jsonObject["userId"].is_number_integer()) {
+        ANS_LOGE("JSON data missing userId field or not an integer");
+        return false;
+    }
+    
+    userId = jsonObject["userId"].get<int32_t>();
+    
+    // Validate userId: must be > SUBSCRIBE_USER_INIT and exist in system
+    if (userId <= SUBSCRIBE_USER_INIT) {
+        ANS_LOGE("Invalid userId: %{public}d (must be > 0)", userId);
+        return false;
+    }
+    
+    // Check if userId exists in system using OsAccountManagerHelper
+    if (!OsAccountManagerHelper::GetInstance().CheckUserExists(userId)) {
+        ANS_LOGE("UserId %{public}d does not exist in system", userId);
+        return false;
+    }
+    
+    // Check if bundleList field exists (required)
+    if (!jsonObject.contains("bundleList") || !jsonObject["bundleList"].is_array()) {
+        ANS_LOGE("JSON data missing bundleList field or not an array");
+        return false;
+    }
+    
+    // bundleList is empty array: valid scenario, means block nothing
+    // blockList will remain empty (no items added)
+    
+    // Parse each bundle in bundleList (if not empty)
+    for (const auto& item : jsonObject["bundleList"]) {
+        if (!item.is_object()) {
+            ANS_LOGW("Non-object item in bundleList, skipping");
+            continue;
+        }
+        
+        if (!item.contains("bundleName") || !item["bundleName"].is_string()) {
+            ANS_LOGW("Missing bundleName field in bundleList item, skipping");
+            continue;
+        }
+        
+        std::string bundleName = item["bundleName"].get<std::string>();
+        
+        // Validate bundleName
+        if (bundleName.empty() || bundleName.length() > 64) {
+            ANS_LOGW("Invalid bundleName in bundleList: %{public}s, skipping", bundleName.c_str());
+            continue;
+        }
+        
+        // Parse index (default to 0 if not present)
+        int32_t appIndex = 0;
+        if (item.contains("index") && item["index"].is_number_integer()) {
+            appIndex = item["index"].get<int32_t>();
+        }
+        
+        blockList.insert(std::make_pair(bundleName, appIndex));
+    }
+    
+    ANS_LOGI("Parsed block list successfully, userId: %{public}d, size: %{public}zu", userId, blockList.size());
+    return true;
+}
+
+void NotificationPreferences::LoadCollaborationBlockListFromDb(int32_t userId)
+{
+    ANS_LOGD("%{public}s, userId: %{public}d", __FUNCTION__, userId);
+    
+    // Note: This method is called with collaborationBlockListMutex_ (unique_lock) already held by the caller
+    // Do not lock again here to avoid deadlock
+    
+    // Load block list for this specific userId
+    std::string blockListData;
+    if (GetKvFromDb(COLLABORATION_BLOCKLIST, blockListData, userId) != ERR_OK) {
+        ANS_LOGW("No collaboration block list found for userId %{public}d, using empty list", userId);
+        collaborationBlockListCache_[userId] = std::set<std::pair<std::string, int32_t>>();
+        collaborationBlockListLoadedMap_[userId] = true;
+        return;
+    }
+    
+    // Parse JSON data
+    std::set<std::pair<std::string, int32_t>> blockList;
+    int32_t parsedUserId = SUBSCRIBE_USER_INIT;
+    if (!ParseBlockListJson(blockListData, blockList, parsedUserId)) {
+        ANS_LOGE("Failed to parse collaboration block list JSON for userId %{public}d, using empty list", userId);
+        collaborationBlockListCache_[userId] = std::set<std::pair<std::string, int32_t>>();
+        collaborationBlockListLoadedMap_[userId] = true;
+        return;
+    }
+    
+    // Verify parsed userId matches the requested userId
+    if (parsedUserId != userId) {
+        ANS_LOGW("Parsed userId %{public}d does not match requested userId %{public}d, using empty list", 
+                 parsedUserId, userId);
+        collaborationBlockListCache_[userId] = std::set<std::pair<std::string, int32_t>>();
+        collaborationBlockListLoadedMap_[userId] = true;
+        return;
+    }
+    
+    // Update cache for this userId
+    collaborationBlockListCache_[userId] = blockList;
+    collaborationBlockListLoadedMap_[userId] = true;
+    ANS_LOGI("Loaded collaboration block list for userId %{public}d, size: %{public}zu", 
+             userId, blockList.size());
+}
 }  // namespace Notification
 }  // namespace OHOS

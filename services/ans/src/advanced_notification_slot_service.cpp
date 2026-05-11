@@ -81,7 +81,8 @@ namespace {
         CAMPAIGN_NOTIFICATION_SWITCH_LIST_PKG_KEY,
         PROXY_PKG_KEY,
         KIOSK_APP_TRUST_LIST_KEY,
-        RESTRICTED_MODE_TRUST_LIST_KEY
+        RESTRICTED_MODE_TRUST_LIST_KEY,
+        COLLABORATION_BLOCKLIST
     };
 }
 
@@ -1389,6 +1390,13 @@ ErrCode AdvancedNotificationService::SetAdditionConfig(const std::string &key, c
             !NotificationPreferences::GetInstance()->SetRestrictedModeTrustList(value)) {
             result = ERR_ANS_INVALID_PARAM;
             return;
+        }
+        if (key == COLLABORATION_BLOCKLIST) {
+            result = NotificationPreferences::GetInstance()->SetCollaborationBlockList(value);
+            if (result != ERR_OK) {
+                ANS_LOGE("SetCollaborationBlockList failed: %{public}d", result);
+                return;
+            }
         }
         result = NotificationPreferences::GetInstance()->SetKvToDb(key, value, SUBSCRIBE_USER_INIT);
     }));
