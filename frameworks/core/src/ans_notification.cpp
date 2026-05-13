@@ -757,6 +757,9 @@ ErrCode AnsNotification::SubscribeNotificationV26(const std::shared_ptr<Notifica
     if (subscribeInfo != nullptr && !subscribeInfo->GetDeviceType().empty()) {
         subscriber->SetDeviceType(subscribeInfo->GetDeviceType());
     }
+    if (subscribeInfo != nullptr && subscribeInfo->GetPictureOption() != nullptr) {
+        subscriber->SetPictureOption(subscribeInfo->GetPictureOption());
+    }
     DelayedSingleton<AnsManagerDeathRecipient>::GetInstance()->SubscribeSAManager();
 
     if (subscribeInfo == nullptr) {
@@ -840,6 +843,9 @@ ErrCode AnsNotification::SubscribeNotification(
     }
     if (!subscribeInfo.GetDeviceType().empty()) {
         subscriberSptr->subscriber_.SetDeviceType(subscribeInfo.GetDeviceType());
+    }
+    if (subscribeInfo.GetPictureOption() != nullptr) {
+        subscriberSptr->subscriber_.SetPictureOption(subscribeInfo.GetPictureOption());
     }
     return proxy->Subscribe(subscriberSptr, sptrInfo, subscriber.GetSubscribedFlags());
 }
@@ -938,6 +944,9 @@ ErrCode AnsNotification::SubscribeNotification(const std::shared_ptr<Notificatio
     }
     if (subscribeInfo != nullptr && !subscribeInfo->GetDeviceType().empty()) {
         subscriber->SetDeviceType(subscribeInfo->GetDeviceType());
+    }
+    if (subscribeInfo != nullptr && subscribeInfo->GetPictureOption() != nullptr) {
+        subscriber->SetPictureOption(subscribeInfo->GetPictureOption());
     }
     DelayedSingleton<AnsManagerDeathRecipient>::GetInstance()->SubscribeSAManager();
 

@@ -14,6 +14,7 @@
  */
 #include "sts_subscribe.h"
 
+#include "subscriber_image_util.h"
 #include "ans_log_wrapper.h"
 #include "notification_helper.h"
 #include "sts_throw_erro.h"
@@ -137,6 +138,7 @@ void StsSubscriberInstance::OnConsumed(
         ANS_LOGE("AttachCurrentThread error. result: %{public}d.", aniResult);
         return;
     }
+    SubscriberImageUtil::ProcessPictureOption(request, GetPictureOption());
     std::vector<ani_ref> vec;
     ani_object obj;
     if (WarpSubscribeCallbackData(etsEnv, request, sortingMap, -1, obj)) {
