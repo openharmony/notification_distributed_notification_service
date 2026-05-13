@@ -1360,11 +1360,14 @@ HWTEST_F(AnsSlotServiceTest, UpdateVoiceUpdate_00002, Function | SmallTest | Lev
     MockIsVerfyPermisson(true);
     
     std::string configKey = "add_voice_summary_count";
-    int64_t currentTimestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::system_clock::now().time_since_epoch()).count() / (24 * 3600 * 1000);
+    auto now = std::chrono::system_clock::now();
+    time_t nowTime = std::chrono::system_clock::to_time_t(now);
+    struct tm localTime = {0};
+    localtime_r(&nowTime, &localTime);
+    int64_t currentDate = (localTime.tm_year + 1900) * 10000 + (localTime.tm_mon + 1) * 100 + localTime.tm_mday;
     
     nlohmann::json jsonData;
-    jsonData["date"] = currentTimestamp;
+    jsonData["date"] = currentDate;
     jsonData["count"] = 10;
     
     NotificationPreferences::GetInstance()->SetKvToDb(
@@ -1387,11 +1390,14 @@ HWTEST_F(AnsSlotServiceTest, UpdateVoiceUpdate_00003, Function | SmallTest | Lev
     MockIsVerfyPermisson(true);
     
     std::string configKey = "add_voice_summary_count";
-    int64_t currentTimestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::system_clock::now().time_since_epoch()).count() / (24 * 3600 * 1000);
+    auto now = std::chrono::system_clock::now();
+    time_t nowTime = std::chrono::system_clock::to_time_t(now);
+    struct tm localTime = {0};
+    localtime_r(&nowTime, &localTime);
+    int64_t currentDate = (localTime.tm_year + 1900) * 10000 + (localTime.tm_mon + 1) * 100 + localTime.tm_mday;
     
     nlohmann::json jsonData;
-    jsonData["date"] = currentTimestamp;
+    jsonData["date"] = currentDate;
     jsonData["count"] = 30;
     
     NotificationPreferences::GetInstance()->SetKvToDb(
@@ -1400,8 +1406,8 @@ HWTEST_F(AnsSlotServiceTest, UpdateVoiceUpdate_00003, Function | SmallTest | Lev
     auto ret = advancedNotificationService_->UpdateVoiceUpdate(configKey);
     ASSERT_EQ(ret, (int)ERR_ANS_VOICE_SUMMARY_COUNT_EXCEEDED);
     
-    int64_t oldTimestamp = 19000;
-    jsonData["date"] = oldTimestamp;
+    int64_t oldDate = 20200101;
+    jsonData["date"] = oldDate;
     jsonData["count"] = 30;
     
     NotificationPreferences::GetInstance()->SetKvToDb(
