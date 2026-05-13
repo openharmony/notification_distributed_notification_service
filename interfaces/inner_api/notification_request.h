@@ -1648,6 +1648,7 @@ private:
     void CopyBase(const NotificationRequest &other);
     void CopyOther(const NotificationRequest &other);
 
+    void ConvertObjectsToJsonOhters(nlohmann::json &jsonObject) const;
     bool ConvertGroupInfoToJson(nlohmann::json &jsonObject) const;
     bool ConvertObjectsToJson(nlohmann::json &jsonObject) const;
     ErrCode CheckVersion(const sptr<NotificationRequest> &oldRequest) const;
@@ -1660,6 +1661,7 @@ private:
     static void ConvertJsonToBool(NotificationRequest *target, const nlohmann::json &jsonObject);
     static void ConvertJsonToBoolExt(NotificationRequest *target, const nlohmann::json &jsonObject);
     static void ConvertJsonToPixelMap(NotificationRequest *target, const nlohmann::json &jsonObject);
+    static void ConvertJsonToWantAgent(NotificationRequest *target, const nlohmann::json &jsonObject);
     static bool ConvertJsonToNotificationContent(NotificationRequest *target, const nlohmann::json &jsonObject);
     static bool ConvertJsonToNotificationActionButton(NotificationRequest *target, const nlohmann::json &jsonObject);
     static bool ConvertJsonToNotificationDistributedOptions(

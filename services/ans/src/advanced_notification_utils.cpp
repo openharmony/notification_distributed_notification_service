@@ -524,6 +524,7 @@ void AdvancedNotificationService::OnBundleRemovedInner(
             RemoveDoNotDisturbProfileTrustList(bundleOption, userId);
         }
         DeleteDuplicateMsgs(bundleOption);
+        RemoveAllFromSnoozeDelayList(bundleOption);
 #ifdef ALL_SCENARIO_COLLABORATION
         DistributedBundleService::GetInstance().HandleSlaveBundleChange(bundleOption, false);
 #endif
@@ -664,6 +665,7 @@ void AdvancedNotificationService::OnBootSystemCompleted()
     ANS_LOGD("Called.");
     InitNotificationEnableList();
     TryStartReminderAgentService();
+    RecoverLiveViewFromDb();
 #ifdef ANS_FEATURE_NOTIFICATION_STATISTICS
     InitNotificationStatistics();
 #endif
