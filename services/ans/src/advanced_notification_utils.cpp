@@ -1187,7 +1187,8 @@ void AdvancedNotificationService::TriggerRemoveWantAgent(const sptr<Notification
     NOTIFICATION_HITRACE(HITRACE_TAG_NOTIFICATION);
     ANS_LOGD("%{public}s %{public}d %{public}d", __FUNCTION__, isThirdParty, removeReason);
 
-    if ((request == nullptr) || (request->GetRemovalWantAgent() == nullptr)) {
+    if ((request == nullptr) || (request->GetRemovalWantAgent() == nullptr) ||
+        (removeReason == NotificationConstant::SNOOZE_REASON_DELETE)) {
         return;
     }
 
