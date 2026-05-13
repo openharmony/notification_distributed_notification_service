@@ -66,11 +66,26 @@ namespace {
     constexpr uint64_t INTERVAL_CHECK_LIVEVIEW = 1000 * 1000;
     constexpr uint64_t BADGENUMBER_SHOW_FLAG = 0x40;
     constexpr uint64_t NOTIFICATION_ENABLED_FLAG = 0x80;
-    constexpr int64_t MILLISECONDS_PER_DAY = 24 * 3600 * 1000;
     const std::set<std::string> unAffectDevices = {
         NotificationConstant::LITEWEARABLE_DEVICE_TYPE,
         NotificationConstant::WEARABLE_DEVICE_TYPE
     };
+    constexpr int32_t YEAR_MULTIPLIER = 10000;
+    constexpr int32_t MONTH_MULTIPLIER = 100;
+    constexpr int32_t YEAR_BASE = 1900;
+
+    int64_t GetLocalDateInteger()
+    {
+        auto now = std::chrono::system_clock::now();
+        time_t nowTime = std::chrono::system_clock::to_time_t(now);
+        struct tm localTime = {0};
+        if (localtime_r(&nowTime, &localTime) == nullptr) {
+            ANS_LOGE("Failed to get local time");
+            return 0;
+        }
+        return (localTime.tm_year + YEAR_BASE) * YEAR_MULTIPLIER +
+            (localTime.tm_mon + 1) * MONTH_MULTIPLIER + localTime.tm_mday;
+    }
 
     static const std::vector<std::string> VALID_ADDITION_CONFIG = {
         CTRL_LIST_KEY,
@@ -1408,25 +1423,24 @@ ErrCode AdvancedNotificationService::UpdateVoiceUpdate(const std::string &config
         return ERR_ANS_GET_ACTIVE_USER_FAILED;
     }
 
-    int64_t currentTime = GetCurrentTime();
-    int64_t todayTimestamp = currentTime / MILLISECONDS_PER_DAY;
+    int64_t todayDate = GetLocalDateInteger();
     std::string storedData;
     ErrCode result = NotificationPreferences::GetInstance()->GetKvFromDb(
         NOTIFICATION_VOICE_SUMMARY_COUNT, storedData, userId);
     
     int32_t currentCount = 0;
-    int64_t storedTimestamp = todayTimestamp;
+    int64_t storedDate = todayDate;
     if (result == ERR_OK && !storedData.empty() && nlohmann::json::accept(storedData)) {
         nlohmann::json jsonData = nlohmann::json::parse(storedData);
         if (jsonData.contains("date") && jsonData["date"].is_number_integer()) {
-            storedTimestamp = jsonData["date"].get<int64_t>();
+            storedDate = jsonData["date"].get<int64_t>();
         }
         if (jsonData.contains("count") && jsonData["count"].is_number_integer()) {
             currentCount = jsonData["count"].get<int32_t>();
         }
     }
     
-    if (storedTimestamp == todayTimestamp) {
+    if (storedDate == todayDate) {
         currentCount++;
         if (currentCount > MAX_VOICE_SUMMARY_COUNT_PER_DAY) {
             ANS_LOGW("Voice summary count exceeded limit: %{public}d", currentCount);
@@ -1434,11 +1448,11 @@ ErrCode AdvancedNotificationService::UpdateVoiceUpdate(const std::string &config
         }
     } else {
         currentCount = 1;
-        storedTimestamp = todayTimestamp;
+        storedDate = todayDate;
     }
     
     nlohmann::json newJsonData;
-    newJsonData["date"] = storedTimestamp;
+    newJsonData["date"] = storedDate;
     newJsonData["count"] = currentCount;
     std::string newData = newJsonData.dump();
     
