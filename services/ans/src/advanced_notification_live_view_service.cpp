@@ -78,14 +78,15 @@ void AdvancedNotificationService::RecoverLiveViewFromDb(int32_t userId)
             if (IsCanRecoverSnooze(record)) {
                 continue;
             }
-            ansStatus = Filter(record, true);
-            if (!ansStatus.Ok()) {
-                ANS_LOGE("Filter record failed.");
-                NotificationAnalyticsUtil::ReportPublishFailedEvent(record->request, ansStatus.BuildMessage(true));
-                continue;
+            if (!record->bundleOption->GetBundleName().empty()) {
+                ansStatus = Filter(record, true);
+                if (!ansStatus.Ok()) {
+                    ANS_LOGE("Filter record failed.");
+                    NotificationAnalyticsUtil::ReportPublishFailedEvent(record->request, ansStatus.BuildMessage(true));
+                    continue;
+                }
             }
 
-            record->slot->SetAuthorizedStatus(NotificationSlot::AuthorizedStatus::AUTHORIZED);
             // Turn off ringtone and vibration during recovery process
             record->request->SetDistributedFlagBit(NotificationConstant::ReminderFlag::SOUND_FLAG, false);
             record->request->SetDistributedFlagBit(NotificationConstant::ReminderFlag::VIBRATION_FLAG, false);
@@ -98,6 +99,7 @@ void AdvancedNotificationService::RecoverLiveViewFromDb(int32_t userId)
             }
             UpdateRecentNotification(record->notification, false, 0);
             if (requestObj.request->IsCommonLiveView()) {
+                record->slot->SetAuthorizedStatus(NotificationSlot::AuthorizedStatus::AUTHORIZED);
                 CancelTimer(record->notification->GetFinishTimer());
                 CancelTimer(record->notification->GetUpdateTimer());
                 StartFinishTimer(record, requestObj.request->GetFinishDeadLine(),
@@ -313,7 +315,7 @@ bool AdvancedNotificationService::IsCanRecoverCommon(const sptr<NotificationRequ
         ANS_LOGE("The notification has expired.");
         return false;
     }
-
+    DuplicateMsgControl(request);
     return true;
 }
 
@@ -489,12 +491,14 @@ int32_t AdvancedNotificationService::GetBatchNotificationRequestsFromDb(
             continue;
         }
         auto jsonObject = nlohmann::json::parse(decryptValue);
-        auto *request = NotificationJsonConverter::ConvertFromJson<NotificationRequest>(jsonObject);
+        sptr<NotificationRequest> request =
+            NotificationJsonConverter::ConvertFromJson<NotificationRequest>(jsonObject);
         if (request == nullptr) {
             ANS_LOGE("Parse json string to request failed.");
             continue;
         }
-        auto *bundleOption = NotificationJsonConverter::ConvertFromJson<NotificationBundleOption>(jsonObject);
+        sptr<NotificationBundleOption> bundleOption =
+            NotificationJsonConverter::ConvertFromJson<NotificationBundleOption>(jsonObject);
         if (bundleOption == nullptr) {
             ANS_LOGE("Parse json string to bundle option failed.");
             (void)DoubleDeleteNotificationFromDb(request->GetKey(),
