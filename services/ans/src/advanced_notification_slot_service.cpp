@@ -96,7 +96,8 @@ namespace {
         CAMPAIGN_NOTIFICATION_SWITCH_LIST_PKG_KEY,
         PROXY_PKG_KEY,
         KIOSK_APP_TRUST_LIST_KEY,
-        RESTRICTED_MODE_TRUST_LIST_KEY
+        RESTRICTED_MODE_TRUST_LIST_KEY,
+        COLLABORATION_BLOCKLIST
     };
 }
 
@@ -1405,11 +1406,17 @@ ErrCode AdvancedNotificationService::SetAdditionConfig(const std::string &key, c
             result = ERR_ANS_INVALID_PARAM;
             return;
         }
+        if (key == COLLABORATION_BLOCKLIST) {
+            result = NotificationPreferences::GetInstance()->SetCollaborationBlockList(value);
+            if (result != ERR_OK) {
+                ANS_LOGE("SetCollaborationBlockList failed: %{public}d", result);
+                return;
+            }
+        }
         result = NotificationPreferences::GetInstance()->SetKvToDb(key, value, SUBSCRIBE_USER_INIT);
     }));
     ANS_COND_DO_ERR(submitResult != ERR_OK, return submitResult, "Set addition config.");
-    ANS_LOGI("Set addition config result: %{public}d, key: %{public}s, value: %{public}s",
-        result, key.c_str(), value.c_str());
+    ANS_LOGI("Set addition config result: %{public}d, key: %{public}s.", result, key.c_str());
     message.ErrorCode(result);
     NotificationAnalyticsUtil::ReportModifyEvent(message);
     return result;

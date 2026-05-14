@@ -12,8 +12,8 @@ tools:
   bash: true
   webfetch: false
 permission:
-  write: ask
-  edit: ask
+  write: allow
+  edit: allow
 ---
 # Feature-Verify-SubAgent — 独立验证
 
