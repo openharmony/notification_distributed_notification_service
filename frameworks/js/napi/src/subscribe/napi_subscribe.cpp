@@ -22,6 +22,7 @@
 #include <new>
 #include "distributed_operation_callback.h"
 #include "notification_operation_info.h"
+#include "picture_option.h"
 
 namespace OHOS {
 namespace NotificationNapi {
@@ -278,6 +279,12 @@ napi_value NapiSubscribe(napi_env env, napi_callback_info info)
                         sptr<OHOS::Notification::VoiceContentOption> voiceContentOption =
                             new (std::nothrow) OHOS::Notification::VoiceContentOption(true);
                         subscribeInfo->SetVoiceContentOption(voiceContentOption);
+                    }
+                    if (!asynccallbackinfo->subscriberInfo.pictureOption.preparseLiveViewPicList.empty()) {
+                        sptr<OHOS::Notification::PictureOption> pictureOption =
+                            new (std::nothrow) OHOS::Notification::PictureOption(
+                                asynccallbackinfo->subscriberInfo.pictureOption.preparseLiveViewPicList);
+                        subscribeInfo->SetPictureOption(pictureOption);
                     }
                     asynccallbackinfo->info.errorCode =
                         NotificationHelper::SubscribeNotification(asynccallbackinfo->objectInfo, subscribeInfo);
