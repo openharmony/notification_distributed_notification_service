@@ -9,7 +9,7 @@ tools:
   glob: true
   grep: true
   bash: true
-  webfetch: false
+  webfetch: true
   task: true
 permission:
   write: allow
