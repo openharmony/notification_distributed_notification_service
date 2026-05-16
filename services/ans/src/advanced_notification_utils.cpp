@@ -524,6 +524,7 @@ void AdvancedNotificationService::OnBundleRemovedInner(
             RemoveDoNotDisturbProfileTrustList(bundleOption, userId);
         }
         DeleteDuplicateMsgs(bundleOption);
+        RemoveAllFromSnoozeDelayList(bundleOption);
 #ifdef ALL_SCENARIO_COLLABORATION
         DistributedBundleService::GetInstance().HandleSlaveBundleChange(bundleOption, false);
 #endif
@@ -664,6 +665,7 @@ void AdvancedNotificationService::OnBootSystemCompleted()
     ANS_LOGD("Called.");
     InitNotificationEnableList();
     TryStartReminderAgentService();
+    RecoverLiveViewFromDb();
 #ifdef ANS_FEATURE_NOTIFICATION_STATISTICS
     InitNotificationStatistics();
 #endif
@@ -1185,7 +1187,8 @@ void AdvancedNotificationService::TriggerRemoveWantAgent(const sptr<Notification
     NOTIFICATION_HITRACE(HITRACE_TAG_NOTIFICATION);
     ANS_LOGD("%{public}s %{public}d %{public}d", __FUNCTION__, isThirdParty, removeReason);
 
-    if ((request == nullptr) || (request->GetRemovalWantAgent() == nullptr)) {
+    if ((request == nullptr) || (request->GetRemovalWantAgent() == nullptr) ||
+        (removeReason == NotificationConstant::SNOOZE_REASON_DELETE)) {
         return;
     }
 

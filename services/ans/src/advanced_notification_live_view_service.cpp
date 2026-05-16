@@ -78,14 +78,15 @@ void AdvancedNotificationService::RecoverLiveViewFromDb(int32_t userId)
             if (IsCanRecoverSnooze(record)) {
                 continue;
             }
-            ansStatus = Filter(record, true);
-            if (!ansStatus.Ok()) {
-                ANS_LOGE("Filter record failed.");
-                NotificationAnalyticsUtil::ReportPublishFailedEvent(record->request, ansStatus.BuildMessage(true));
-                continue;
+            if (!record->bundleOption->GetBundleName().empty()) {
+                ansStatus = Filter(record, true);
+                if (!ansStatus.Ok()) {
+                    ANS_LOGE("Filter record failed.");
+                    NotificationAnalyticsUtil::ReportPublishFailedEvent(record->request, ansStatus.BuildMessage(true));
+                    continue;
+                }
             }
 
-            record->slot->SetAuthorizedStatus(NotificationSlot::AuthorizedStatus::AUTHORIZED);
             // Turn off ringtone and vibration during recovery process
             record->request->SetDistributedFlagBit(NotificationConstant::ReminderFlag::SOUND_FLAG, false);
             record->request->SetDistributedFlagBit(NotificationConstant::ReminderFlag::VIBRATION_FLAG, false);
@@ -98,6 +99,7 @@ void AdvancedNotificationService::RecoverLiveViewFromDb(int32_t userId)
             }
             UpdateRecentNotification(record->notification, false, 0);
             if (requestObj.request->IsCommonLiveView()) {
+                record->slot->SetAuthorizedStatus(NotificationSlot::AuthorizedStatus::AUTHORIZED);
                 CancelTimer(record->notification->GetFinishTimer());
                 CancelTimer(record->notification->GetUpdateTimer());
                 StartFinishTimer(record, requestObj.request->GetFinishDeadLine(),
@@ -112,6 +114,9 @@ void AdvancedNotificationService::RecoverLiveViewFromDb(int32_t userId)
                 }
             } else {
                 StartAutoDeletedTimer(record);
+                record->request->SetDistributedFlagBit(NotificationConstant::ReminderFlag::LOCKSCREEN_FLAG, false);
+                record->request->SetDistributedFlagBit(NotificationConstant::ReminderFlag::BANNER_FLAG, false);
+                record->request->SetDistributedFlagBit(NotificationConstant::ReminderFlag::LIGHTSCREEN_FLAG, false);
             }
         }
 
@@ -310,7 +315,7 @@ bool AdvancedNotificationService::IsCanRecoverCommon(const sptr<NotificationRequ
         ANS_LOGE("The notification has expired.");
         return false;
     }
-
+    DuplicateMsgControl(request);
     return true;
 }
 
@@ -441,6 +446,7 @@ int32_t AdvancedNotificationService::GetBatchNotificationRequestsFromDb(
     std::vector<NotificationRequestDb> &requests, int32_t userId)
 {
     std::unordered_map<std::string, std::string> dbRecords;
+    std::unordered_map<std::string, int32_t> dbRecordUsers;
     std::vector<int32_t> userIds;
     int ret = ERR_OK;
     if (userId == -1) {
@@ -454,22 +460,29 @@ int32_t AdvancedNotificationService::GetBatchNotificationRequestsFromDb(
         return ret;
     }
     for (const int32_t userId : userIds) {
+        std::unordered_map<std::string, std::string> records;
         int32_t result =
-            NotificationPreferences::GetInstance()->GetBatchKvsFromDb(REQUEST_STORAGE_KEY_PREFIX, dbRecords, userId);
+            NotificationPreferences::GetInstance()->GetBatchKvsFromDb(REQUEST_STORAGE_KEY_PREFIX, records, userId);
         int32_t secureResult =
             NotificationPreferences::GetInstance()->GetBatchKvsFromDb(
-                REQUEST_STORAGE_SECURE_KEY_PREFIX, dbRecords, userId);
+                REQUEST_STORAGE_SECURE_KEY_PREFIX, records, userId);
         if (result != ERR_OK && secureResult != ERR_OK) {
             ANS_LOGE("Get batch notification request failed.");
             return result;
         }
+        for (const auto& pair : records) {
+            dbRecords[pair.first] = pair.second;
+            dbRecordUsers[pair.first] = userId;
+        }
     }
     for (const auto &iter : dbRecords) {
         std::string decryptValue = iter.second;
+        int32_t dbUserId = dbRecordUsers[iter.first];
         if (iter.first.rfind(REQUEST_STORAGE_SECURE_KEY_PREFIX, 0) == 0) {
             ErrCode errorCode = AesGcmHelper::Decrypt(decryptValue, iter.second);
             if (errorCode != ERR_OK) {
                 ANS_LOGE("GetBatchNotificationRequestsFromDb decrypt error %{public}d", errorCode);
+                NotificationPreferences::GetInstance()->DeleteKvFromDb(iter.first, dbUserId);
                 continue;
             }
         }
@@ -478,12 +491,14 @@ int32_t AdvancedNotificationService::GetBatchNotificationRequestsFromDb(
             continue;
         }
         auto jsonObject = nlohmann::json::parse(decryptValue);
-        auto *request = NotificationJsonConverter::ConvertFromJson<NotificationRequest>(jsonObject);
+        sptr<NotificationRequest> request =
+            NotificationJsonConverter::ConvertFromJson<NotificationRequest>(jsonObject);
         if (request == nullptr) {
             ANS_LOGE("Parse json string to request failed.");
             continue;
         }
-        auto *bundleOption = NotificationJsonConverter::ConvertFromJson<NotificationBundleOption>(jsonObject);
+        sptr<NotificationBundleOption> bundleOption =
+            NotificationJsonConverter::ConvertFromJson<NotificationBundleOption>(jsonObject);
         if (bundleOption == nullptr) {
             ANS_LOGE("Parse json string to bundle option failed.");
             (void)DoubleDeleteNotificationFromDb(request->GetKey(),
