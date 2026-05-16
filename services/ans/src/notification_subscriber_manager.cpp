@@ -266,6 +266,7 @@ void NotificationSubscriberManager::BatchNotifyConsumed(const std::vector<sptr<N
     AppExecFwk::EventHandler::Callback batchNotifyConsumedFunc = std::bind(
         &NotificationSubscriberManager::BatchNotifyConsumedInner,
         this, newNotifications, notificationMap, record);
+    notificationSubQueue_->submit(batchNotifyConsumedFunc);
 #else
     AppExecFwk::EventHandler::Callback batchNotifyConsumedFunc = std::bind(
         &NotificationSubscriberManager::BatchNotifyConsumedInner,
