@@ -19,7 +19,7 @@
 namespace OHOS {
 namespace NotificationSts {
 constexpr const char *BUSINESS_ERROR_CLASS = "@ohos.base.BusinessError";
-constexpr const char *ERROR_CLASS_NAME = "std.core.Error";
+constexpr const char *ERROR_CLASS_NAME = "escompat.Error";
 
 void ThrowError(ani_env *env, ani_object err)
 {
@@ -62,7 +62,7 @@ ani_object WrapError(ani_env *env, const std::string &msg)
         return nullptr;
     }
     ani_method method = nullptr;
-    if ((status = env->Class_FindMethod(cls, "<ctor>", "C{std.core.String}C{std.core.ErrorOptions}:", &method)) !=
+    if ((status = env->Class_FindMethod(cls, "<ctor>", "C{std.core.String}C{escompat.ErrorOptions}:", &method)) !=
         ANI_OK) {
         ANS_LOGE("Class_FindMethod failed %{public}d", status);
         return nullptr;
@@ -97,7 +97,7 @@ ani_object CreateError(ani_env *env, int32_t errCode, const std::string &msg)
         return nullptr;
     }
     ani_method method = nullptr;
-    if ((status = env->Class_FindMethod(cls, "<ctor>", "iC{std.core.Error}:", &method)) != ANI_OK) {
+    if ((status = env->Class_FindMethod(cls, "<ctor>", "iC{escompat.Error}:", &method)) != ANI_OK) {
         ANS_LOGE("Class_FindMethod failed %{public}d", status);
         return nullptr;
     }
