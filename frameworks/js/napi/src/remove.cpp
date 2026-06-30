@@ -86,6 +86,8 @@ bool ParseHashcodeTypeParams(
             std::string str(strLen, '\0');
             NAPI_CALL_BASE(env, napi_get_value_string_utf8(env, argv[PARAM0], str.data(), strLen + 1, &strLen), false);
             params.hashcode = str;
+        } else {
+            params.hashcode = "";
         }
     } else if (valueType == napi_number) {
         int64_t number = 0;
