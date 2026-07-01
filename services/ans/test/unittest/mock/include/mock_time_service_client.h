@@ -19,6 +19,10 @@ namespace OHOS {
 namespace Notification {
 
 void MockCreateTimerFailed(bool mockCreateTimerFailed);
+void MockStartTimerFailed(bool mockStartTimerFailed);
+bool IsDestroyTimerCalled();
+int GetCreateTimerCallCount();
+void ResetTimeServiceMock();
 
 } // namespace Notification
 } // namespace OHOS
