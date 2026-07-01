@@ -609,8 +609,15 @@ void NotificationAnalyticsUtil::CreateLiveViewTimerExecute()
     };
 
     liveViewTimeInfo->SetCallbackInfo(triggerFunc);
-    timer->StartTimer(reportLiveViewMessageTimerId_, NotificationAnalyticsUtil::GetCurrentTime() +
+    bool ret = timer->StartTimer(reportLiveViewMessageTimerId_, NotificationAnalyticsUtil::GetCurrentTime() +
         LIVEVIEW_REPORT_INTERVAL);
+    if (!ret) {
+        ANS_LOGE("StartTimer failed for liveview, will destroy and recreate timer");
+        timer->DestroyTimer(reportLiveViewMessageTimerId_);
+        reportLiveViewMessageTimerId_ = 0;
+        g_reportLiveViewFlag = false;
+        return;
+    }
     g_reportLiveViewFlag = true;
 }
 
@@ -642,14 +649,22 @@ void NotificationAnalyticsUtil::ExecuteLiveViewReport()
     sptr<MiscServices::TimeServiceClient> timer = MiscServices::TimeServiceClient::GetInstance();
     if (timer == nullptr) {
         ANS_LOGE("null timer");
+        g_reportLiveViewFlag = false;
         return;
     }
     auto triggerFunc = [] {
         ExecuteLiveViewReport();
     };
     liveViewTimeInfo->SetCallbackInfo(triggerFunc);
-    timer->StartTimer(reportLiveViewMessageTimerId_, NotificationAnalyticsUtil::GetCurrentTime() +
+    bool ret = timer->StartTimer(reportLiveViewMessageTimerId_, NotificationAnalyticsUtil::GetCurrentTime() +
         LIVEVIEW_REPORT_INTERVAL);
+    if (!ret) {
+        ANS_LOGE("StartTimer failed for liveview report, will destroy and recreate timer");
+        timer->DestroyTimer(reportLiveViewMessageTimerId_);
+        reportLiveViewMessageTimerId_ = 0;
+        g_reportLiveViewFlag = false;
+        return;
+    }
     g_reportLiveViewFlag = true;
 }
 
@@ -1437,6 +1452,11 @@ void NotificationAnalyticsUtil::ExecuteSuccessCacheList()
     }
 
     CheckBadgeReport();
+    StartSuccessReportTimer();
+}
+
+void NotificationAnalyticsUtil::StartSuccessReportTimer()
+{
     auto triggerFunc = [] {
         NotificationAnalyticsUtil::ExecuteSuccessCacheList();
     };
@@ -1447,8 +1467,15 @@ void NotificationAnalyticsUtil::ExecuteSuccessCacheList()
         ANS_LOGE("Failed to start timer due to get TimeServiceClient is null.");
         return;
     }
-    aggregateTimer->StartTimer(reportAggregateTimeId, NotificationAnalyticsUtil::GetCurrentTime() +
+    bool ret = aggregateTimer->StartTimer(reportAggregateTimeId, NotificationAnalyticsUtil::GetCurrentTime() +
         SUCCESS_REPORT_CACHE_INTERVAL_TIME * NotificationConstant::SECOND_TO_MS);
+    if (!ret) {
+        ANS_LOGE("StartTimer failed for success cache, will destroy and recreate timer");
+        aggregateTimer->DestroyTimer(reportAggregateTimeId);
+        reportAggregateTimeId = 0;
+        g_successReportFlag = false;
+        return;
+    }
     g_successReportFlag = true;
 }
 
@@ -1474,8 +1501,15 @@ void NotificationAnalyticsUtil::ExecuteCacheList()
         ANS_LOGE("null timer or reportTimerId");
         return;
     }
-    timer->StartTimer(reportTimerId, NotificationAnalyticsUtil::GetCurrentTime() +
+    bool ret = timer->StartTimer(reportTimerId, NotificationAnalyticsUtil::GetCurrentTime() +
         REPORT_CACHE_INTERVAL_TIME * NotificationConstant::SECOND_TO_MS);
+    if (!ret) {
+        ANS_LOGE("StartTimer failed, will destroy and recreate timer");
+        timer->DestroyTimer(reportTimerId);
+        reportTimerId = 0;
+        g_reportFlag = false;
+        return;
+    }
     g_reportFlag = true;
 }
 
@@ -1694,8 +1728,15 @@ bool NotificationAnalyticsUtil::CreateSlotTimerExecute(const std::vector<int32_t
     };
 
     slotTimeInfo->SetCallbackInfo(triggerFunc);
-    timer->StartTimer(reportSlotEnabledTimerId_, NotificationAnalyticsUtil::GetCurrentTime() +
+    bool ret = timer->StartTimer(reportSlotEnabledTimerId_, NotificationAnalyticsUtil::GetCurrentTime() +
         DEFAULT_ERROR_EVENT_TIME * NotificationConstant::SECOND_TO_MS);
+    if (!ret) {
+        ANS_LOGE("StartTimer failed for slot, will destroy and recreate timer");
+        timer->DestroyTimer(reportSlotEnabledTimerId_);
+        reportSlotEnabledTimerId_ = 0;
+        g_reportSlotFlag = false;
+        return false;
+    }
     g_reportSlotFlag = true;
     return true;
 }
@@ -1720,8 +1761,15 @@ void NotificationAnalyticsUtil::ExecuteSlotReportList()
     };
 
     slotTimeInfo->SetCallbackInfo(triggerFunc);
-    timer->StartTimer(reportSlotEnabledTimerId_, NotificationAnalyticsUtil::GetCurrentTime() +
+    bool ret = timer->StartTimer(reportSlotEnabledTimerId_, NotificationAnalyticsUtil::GetCurrentTime() +
         DEFAULT_ERROR_EVENT_TIME * NotificationConstant::SECOND_TO_MS);
+    if (!ret) {
+        ANS_LOGE("StartTimer failed for slot report, will destroy and recreate timer");
+        timer->DestroyTimer(reportSlotEnabledTimerId_);
+        reportSlotEnabledTimerId_ = 0;
+        g_reportSlotFlag = false;
+        return;
+    }
     g_reportSlotFlag = true;
 }
 
