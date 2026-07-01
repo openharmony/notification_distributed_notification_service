@@ -22,11 +22,14 @@
 
 #define private public
 #include "advanced_notification_service.h"
+#include "advanced_datashare_helper.h"
 #include "ans_inner_errors.h"
 #include "ans_service_errors.h"
 #include "ans_log_wrapper.h"
 #include "ans_result_data_synchronizer.h"
 #include "accesstoken_kit.h"
+#include "mock_datashare.h"
+#include "notification_flags.h"
 #include "notification_preferences.h"
 #include "notification_constant.h"
 #include "notification_config_parse.h"
@@ -839,6 +842,90 @@ HWTEST_F(AnsSnoozeDelayTest, SetNextSnoozeTimer_001, Function | SmallTest | Leve
     advancedNotificationService_->snoozeDelayTimerList_.push_back(record);
     advancedNotificationService_->SetNextSnoozeTimer(NotificationAnalyticsUtil::GetCurrentTime());
     ASSERT_EQ(advancedNotificationService_->snoozeDelayTimerList_.size(), 0);
+}
+
+/**
+ * @tc.name: SnoozeNotificationConsumed_Dnd_00001
+ * @tc.desc: Test CheckDoNotDisturbProfile with bundleOption set (simulating fixed SnoozeNotificationConsumed).
+ *           Verifies DND silencing is applied when bundleOption is valid.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(AnsSnoozeDelayTest, SnoozeNotificationConsumed_Dnd_00001, Function | SmallTest | Level1)
+{
+    int32_t uid = 50;
+    sptr<NotificationRequest> request(new (std::nothrow) NotificationRequest());
+    sptr<NotificationBundleOption> bundleOption = new NotificationBundleOption("MyTestBundle", uid);
+    auto normalContent = std::make_shared<NotificationNormalContent>();
+    normalContent->SetContentType(1);
+    auto content = std::make_shared<NotificationContent>(normalContent);
+    request->SetContent(content);
+    request->SetNotificationControlFlags(0);
+    auto flags = std::make_shared<NotificationFlags>();
+    request->SetFlags(flags);
+    sptr<Notification> notification(new Notification(request));
+    notification->SetEnableSound(true);
+    notification->SetEnableVibration(true);
+    auto record = std::make_shared<NotificationRecord>();
+    record->request = request;
+    record->notification = notification;
+    record->bundleOption = bundleOption;
+
+    DelayedSingleton<AdvancedDatashareHelper>::GetInstance()->SetIsDataShareReady(true);
+    MockIsFailedToCreateDataShareHelper(false);
+    MockIsFailedToQueryDataShareResultSet(false);
+    MockIsFailedGoToFirstRow(0);
+    MockGetStringValue("1");
+
+    advancedNotificationService_->CheckDoNotDisturbProfile(record);
+
+    int32_t controlFlags = record->request->GetNotificationControlFlags();
+    EXPECT_TRUE((controlFlags & (1 << 14)) != 0);
+    EXPECT_FALSE(record->notification->EnableSound());
+    EXPECT_FALSE(record->notification->EnableVibrate());
+
+    DelayedSingleton<AdvancedDatashareHelper>::GetInstance()->SetIsDataShareReady(false);
+}
+
+/**
+ * @tc.name: SnoozeNotificationConsumed_Dnd_00002
+ * @tc.desc: Test SnoozeNotificationConsumed with DND mode enabled. Verifies the snooze flow
+ *           completes successfully and the notification remains in the list.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(AnsSnoozeDelayTest, SnoozeNotificationConsumed_Dnd_00002, Function | SmallTest | Level1)
+{
+    int32_t uid = 50;
+    sptr<NotificationRequest> request(new (std::nothrow) NotificationRequest());
+    sptr<NotificationBundleOption> bundleOption = new NotificationBundleOption("MyTestBundle", uid);
+    auto normalContent = std::make_shared<NotificationNormalContent>();
+    normalContent->SetContentType(1);
+    auto content = std::make_shared<NotificationContent>(normalContent);
+    request->SetContent(content);
+    auto flags = std::make_shared<NotificationFlags>();
+    request->SetFlags(flags);
+    sptr<Notification> notification(new Notification(request));
+    notification->SetKey("testDnd123");
+    auto record = std::make_shared<NotificationRecord>();
+    record->request = request;
+    record->notification = notification;
+    record->bundleOption = bundleOption;
+
+    advancedNotificationService_->notificationList_.clear();
+    advancedNotificationService_->notificationList_.push_back(record);
+
+    DelayedSingleton<AdvancedDatashareHelper>::GetInstance()->SetIsDataShareReady(true);
+    MockIsFailedToCreateDataShareHelper(false);
+    MockIsFailedToQueryDataShareResultSet(false);
+    MockIsFailedGoToFirstRow(0);
+    MockGetStringValue("1");
+
+    advancedNotificationService_->SnoozeNotificationConsumed(record);
+    ASSERT_EQ(advancedNotificationService_->notificationList_.size(), 1);
+
+    DelayedSingleton<AdvancedDatashareHelper>::GetInstance()->SetIsDataShareReady(false);
+    advancedNotificationService_->notificationList_.clear();
 }
 }  // namespace Notification
 }  // namespace OHOS
