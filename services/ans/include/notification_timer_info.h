@@ -16,9 +16,10 @@
 #ifndef BASE_NOTIFICATION_DISTRIBUTED_NOTIFICATION_TIMER_INFO_H
 #define BASE_NOTIFICATION_DISTRIBUTED_NOTIFICATION_TIMER_INFO_H
 
-#include "advanced_notification_service.h"
-#include "itimer_info.h"
 #include <functional>
+#include "advanced_notification_service.h"
+#include "ffrt.h"
+#include "itimer_info.h"
 namespace OHOS {
 namespace Notification {
 class NotificationTimerInfo : public MiscServices::ITimerInfo {
@@ -55,6 +56,7 @@ public:
     std::function<void()> GetCallBack();
 private:
     std::function<void()> callBack_ = nullptr;
+    ffrt::mutex callBackMutex_;
 };
 } // namespace OHOS
 } // namespace Notification
