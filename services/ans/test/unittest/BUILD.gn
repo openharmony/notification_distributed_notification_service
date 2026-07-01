@@ -3253,6 +3253,7 @@ ohos_unittest("common_utils_test") {
     "common_utils/aes_gcm_helper_test.cpp",
     "common_utils/notification_analytics_util_test.cpp",
     "mock/mock_common_event_manager.cpp",
+    "mock/mock_time_service_client.cpp",
   ]
   use_exceptions = true
 
@@ -3270,6 +3271,7 @@ ohos_unittest("common_utils_test") {
     "c_utils:utils",
     "ffrt:libffrt",
     "hilog:libhilog",
+    "time_service:time_client",
   ]
 
   subsystem_name = "${subsystem_name}"
