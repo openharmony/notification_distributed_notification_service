@@ -101,6 +101,23 @@ namespace {
         COLLABORATION_BLOCKLIST,
         VOICE_BROADCAST_CONFIG_RULE_KEY
     };
+
+    std::vector<sptr<NotificationBundleOption>> ResolveBundleOptionUids(
+        const std::vector<sptr<NotificationBundleOption>> &bundleOptions)
+    {
+        std::vector<sptr<NotificationBundleOption>> resolvedBundles;
+        resolvedBundles.reserve(bundleOptions.size());
+        for (const auto &option : bundleOptions) {
+            sptr<NotificationBundleOption> validBundle =
+                AdvancedNotificationService::GenerateValidBundleOption(option);
+            if (validBundle == nullptr) {
+                ANS_LOGE("Invalid or unresolvable bundle option, skipped.");
+                continue;
+            }
+            resolvedBundles.push_back(validBundle);
+        }
+        return resolvedBundles;
+    }
 }
 
 ErrCode AdvancedNotificationService::AddSlots(const std::vector<sptr<NotificationSlot>> &slots)
@@ -1070,11 +1087,17 @@ ErrCode AdvancedNotificationService::GetEnabledForBundleSlots(
             message.ErrorCode(ERR_ANS_INNER_INVALID_PARAM).BranchId(BRANCH_2));
         return ERR_ANS_INNER_INVALID_PARAM;
     }
-
+    auto resolvedBundles = ResolveBundleOptionUids(bundleOptions);
+    if (resolvedBundles.empty()) {
+        ANS_LOGD("No valid bundle options after uid resolution, return empty map.");
+        message.ErrorCode(ERR_OK).Message("GetEnabledForBundleSlots end").BranchId(BRANCH_3);
+        NotificationAnalyticsUtil::ReportModifyEvent(message);
+        return ERR_OK;
+    }
     ErrCode result = ERR_OK;
     auto submitResult = notificationSvrQueue_.SyncSubmit(std::bind([&]() {
         bool dbResult = NotificationPreferences::GetInstance()->GetEnabledForBundleSlots(
-            bundleOptions, slotType, slotEnabled);
+            resolvedBundles, slotType, slotEnabled);
         if (!dbResult) {
             result = ERR_ANS_INNER_PREFERENCES_NOTIFICATION_DB_OPERATION_FAILED;
             return;
