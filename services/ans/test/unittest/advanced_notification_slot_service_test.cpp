@@ -1571,5 +1571,75 @@ HWTEST_F(AnsSlotServiceTest, GetEnabledForBundleSlots_00005, Function | SmallTes
     EXPECT_EQ(slotEnabled.size(), 0u);
 }
 
+/**
+ * @tc.name: GetEnabledForBundleSlots_00006
+ * @tc.desc: Test GetEnabledForBundleSlots with bundle option whose uid is not filled (uid<=0).
+ *           The unresolvable bundle is skipped and returns ERR_OK with empty map.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(AnsSlotServiceTest, GetEnabledForBundleSlots_00006, Function | SmallTest | Level1)
+{
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE);
+    MockIsSystemApp(true);
+    MockIsVerfyPermisson(true);
+
+    std::vector<sptr<NotificationBundleOption>> bundleOptions;
+    bundleOptions.push_back(new NotificationBundleOption("SlotsUidNotFilled_00006", 0));
+    int32_t slotType = static_cast<int32_t>(NotificationConstant::SlotType::SOCIAL_COMMUNICATION);
+    std::map<sptr<NotificationBundleOption>, bool> slotEnabled;
+    auto ret = advancedNotificationService_->GetEnabledForBundleSlots(
+        bundleOptions, slotType, slotEnabled);
+    ASSERT_EQ(ret, (int)ERR_OK);
+    EXPECT_EQ(slotEnabled.size(), 0u);
+}
+
+/**
+ * @tc.name: GetEnabledForBundleSlots_00007
+ * @tc.desc: Test GetEnabledForBundleSlots with a valid-uid bundle and a uid-not-filled bundle.
+ *           The valid bundle is queried and returned; the unresolvable one is skipped.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(AnsSlotServiceTest, GetEnabledForBundleSlots_00007, Function | SmallTest | Level1)
+{
+    MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE);
+    MockIsSystemApp(true);
+    MockIsVerfyPermisson(true);
+
+    const std::string bundleNameValid = "SlotsValidBundle_00007";
+    const int32_t bundleUidValid = 10007;
+    const NotificationConstant::SlotType slotType = NotificationConstant::SlotType::SERVICE_REMINDER;
+    const int32_t slotTypeInt = static_cast<int32_t>(slotType);
+
+    sptr<NotificationBundleOption> bundleValid =
+        new NotificationBundleOption(bundleNameValid, bundleUidValid);
+    sptr<NotificationSlot> slot = new NotificationSlot(slotType);
+    slot->SetEnable(true);
+    std::vector<sptr<NotificationSlot>> slots;
+    slots.push_back(slot);
+    ASSERT_EQ(NotificationPreferences::GetInstance()->AddNotificationSlots(bundleValid, slots),
+        (int)ERR_OK);
+
+    std::vector<sptr<NotificationBundleOption>> bundleOptions;
+    bundleOptions.push_back(bundleValid);
+    bundleOptions.push_back(new NotificationBundleOption("SlotsUidNotFilled_00007", 0));
+    std::map<sptr<NotificationBundleOption>, bool> slotEnabled;
+    auto ret = advancedNotificationService_->GetEnabledForBundleSlots(
+        bundleOptions, slotTypeInt, slotEnabled);
+    ASSERT_EQ(ret, (int)ERR_OK);
+    ASSERT_EQ(slotEnabled.size(), 1u);
+
+    bool foundValid = false;
+    for (const auto &entry : slotEnabled) {
+        if (entry.first != nullptr && entry.first->GetBundleName() == bundleNameValid &&
+            entry.first->GetUid() == bundleUidValid) {
+            EXPECT_TRUE(entry.second);
+            foundValid = true;
+        }
+    }
+    EXPECT_TRUE(foundValid);
+}
+
 }  // namespace Notification
 }  // namespace OHOS
