@@ -20,6 +20,9 @@ namespace OHOS {
 namespace Notification {
 namespace {
 bool g_mockCreateTimerFailed = false;
+bool g_mockStartTimerFailed = false;
+bool g_destroyTimerCalled = false;
+int g_createTimerCallCount = 0;
 }
 
 void MockCreateTimerFailed(bool mockCreateTimerFailed)
@@ -27,19 +30,52 @@ void MockCreateTimerFailed(bool mockCreateTimerFailed)
     g_mockCreateTimerFailed = mockCreateTimerFailed;
 }
 
-} // namespace Notification
-} // namespace OHOS
+void MockStartTimerFailed(bool mockStartTimerFailed)
+{
+    g_mockStartTimerFailed = mockStartTimerFailed;
+}
 
-namespace OHOS {
+bool IsDestroyTimerCalled()
+{
+    return g_destroyTimerCalled;
+}
+
+int GetCreateTimerCallCount()
+{
+    return g_createTimerCallCount;
+}
+
+void ResetTimeServiceMock()
+{
+    g_mockCreateTimerFailed = false;
+    g_mockStartTimerFailed = false;
+    g_destroyTimerCalled = false;
+    g_createTimerCallCount = 0;
+}
+
+} // namespace Notification
+
 namespace MiscServices {
 
 uint64_t TimeServiceClient::CreateTimer(std::shared_ptr<ITimerInfo> timerOptions)
 {
+    Notification::g_createTimerCallCount++;
     if (Notification::g_mockCreateTimerFailed) {
         return 0;
     }
 
     return 1;
+}
+
+bool TimeServiceClient::StartTimer(uint64_t timerId, uint64_t triggerTime)
+{
+    return !Notification::g_mockStartTimerFailed;
+}
+
+bool TimeServiceClient::DestroyTimer(uint64_t timerId)
+{
+    Notification::g_destroyTimerCalled = true;
+    return true;
 }
 
 } // namespace MiscServices

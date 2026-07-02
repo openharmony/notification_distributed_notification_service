@@ -303,6 +303,8 @@ private:
     static void ExecuteCacheList();
 
     static void ExecuteSuccessCacheList();
+
+    static void StartSuccessReportTimer();
     
     static void ReportCommonEvent(const ReportCache& reportCache);
 

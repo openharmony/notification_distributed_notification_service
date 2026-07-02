@@ -53,11 +53,13 @@ void NotificationTimerInfo::OnTrigger()
 
 void NotificationTimerInfo::SetCallbackInfo(const std::function<void()> &callBack)
 {
+    std::lock_guard<ffrt::mutex> lock(callBackMutex_);
     callBack_ = callBack;
 }
 
 std::function<void()> NotificationTimerInfo::GetCallBack()
 {
+    std::lock_guard<ffrt::mutex> lock(callBackMutex_);
     return callBack_;
 }
 }
