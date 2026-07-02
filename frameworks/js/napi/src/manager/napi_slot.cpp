@@ -1152,7 +1152,7 @@ void AsyncCompleteCallbackBatchGetSlotEnabled(napi_env env, napi_status status, 
         napi_map_set_property(env, resultMap, jsKey, jsValue);
     }
     if (asyncCallbackInfo->slotEnabled.empty()) {
-        resultMap = Common::NapiGetNull(env);
+        ANS_LOGD("No slotEnabled found for the provided bundles, return empty map.");
     }
     Common::CreateReturnValue(env, asyncCallbackInfo->info, resultMap);
     napi_delete_async_work(env, asyncCallbackInfo->asyncWork);
