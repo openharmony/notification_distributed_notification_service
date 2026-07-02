@@ -160,7 +160,11 @@ void AdvancedNotificationService::SnoozeNotificationConsumed(const std::shared_p
     recordNew->request->SetBadgeNumber(0);
     recordNew->notification = new (std::nothrow) Notification(recordNew->request);
     ANS_COND_DO_ERR(recordNew->notification == nullptr, return, "Notification malloc error.");
-    CheckDoNotDisturbProfile(recordNew);
+    recordNew->bundleOption = record->bundleOption;
+    if (!recordNew->request->IsDoNotDisturbByPassed()) {
+        CheckDoNotDisturbProfile(recordNew);
+    }
+    ChangeNotificationByControlFlags(recordNew, false);
     NotificationConstant::SWITCH_STATE enableStatus = NotificationConstant::SWITCH_STATE::SYSTEM_DEFAULT_OFF;
     NotificationPreferences::GetInstance()->IsSilentReminderEnabled(record->bundleOption, enableStatus);
     if (enableStatus == NotificationConstant::SWITCH_STATE::USER_MODIFIED_ON ||
