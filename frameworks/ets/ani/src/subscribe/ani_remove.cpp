@@ -78,7 +78,7 @@ void AniRemoveForHashCode(ani_env *env, ani_string hashCode, ani_object reasonEn
         OHOS::NotificationSts::ThrowError(env, ERR_ANS_INNER_INVALID_PARAM, msg);
         return;
     }
-    std::string hashCodeStd = NotificationSts::GetResizeStr(tempStr, NotificationSts::STR_MAX_SIZE);
+    std::string hashCodeStd = NotificationSts::GetResizeStr(tempStr, NotificationSts::LONG_STR_MAX_SIZE);
     if (!NotificationSts::UnWarpReasonEnum(env, reasonEnum, reasonType)) {
         ANS_LOGE("enum convert failed");
         std::string msg = "UnWarpReasonEnum failed";
@@ -113,7 +113,7 @@ void AniRemoveForHashCodes(ani_env *env, ani_object hashCodes, ani_object reason
     }
     std::vector<std::string> hashCodesStd = {};
     for (auto hashcode : hashCodesTemp) {
-        hashCodesStd.emplace_back(NotificationSts::GetResizeStr(hashcode, NotificationSts::STR_MAX_SIZE));
+        hashCodesStd.emplace_back(NotificationSts::GetResizeStr(hashcode, NotificationSts::LONG_STR_MAX_SIZE));
     }
     if (!NotificationSts::UnWarpReasonEnum(env, reasonEnum, reasonType)) {
         ANS_LOGE("enum convert failed");
