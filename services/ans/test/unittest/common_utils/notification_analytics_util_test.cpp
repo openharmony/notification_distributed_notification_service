@@ -21,6 +21,7 @@
 #include "ans_service_errors.h"
 #include "notification_analytics_util.h"
 #include "mock_common_event_manager.h"
+#include "mock_time_service_client.h"
 #include "string_wrapper.h"
 #include "want_params_wrapper.h"
 #include "distributed_device_status.h"
@@ -39,7 +40,13 @@ public:
     static void SetUpTestCase() {};
     static void TearDownTestCase() {};
     void SetUp() {};
-    void TearDown() {};
+    void TearDown()
+    {
+        NotificationAnalyticsUtil::ExecuteCacheList();
+        NotificationAnalyticsUtil::ExecuteLiveViewReport();
+        NotificationAnalyticsUtil::ExecuteSlotReportList();
+        ResetTimeServiceMock();
+    };
 };
 
 /**
@@ -1406,6 +1413,138 @@ HWTEST_F(NotificationAnalyticsUtilTest, EventSceneId_SCENE_34_002, Function | Sm
     message.Message(errMessage);
     ASSERT_EQ(message.sceneId_, static_cast<uint32_t>(EventSceneId::SCENE_34));
     ASSERT_TRUE(message.message_.find("testBundle") != std::string::npos);
+}
+
+/**
+ * @tc.name: ExecuteCacheList_StartTimerFailed_001
+ * @tc.desc: Test ExecuteCacheList when StartTimer returns false. DestroyTimer should be called.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationAnalyticsUtilTest, ExecuteCacheList_StartTimerFailed_001, Function | SmallTest | Level1)
+{
+    MockStartTimerFailed(true);
+    EventFwk::Want want;
+    want.SetAction("notification.event.PUSH_AGENT");
+    NotificationAnalyticsUtil::AddListCache(want, 6);
+    EXPECT_TRUE(IsDestroyTimerCalled());
+}
+
+/**
+ * @tc.name: ExecuteCacheList_StartTimerSuccess_001
+ * @tc.desc: Test ExecuteCacheList when StartTimer returns true. DestroyTimer should not be called.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationAnalyticsUtilTest, ExecuteCacheList_StartTimerSuccess_001, Function | SmallTest | Level1)
+{
+    MockStartTimerFailed(false);
+    EventFwk::Want want;
+    want.SetAction("notification.event.PUSH_AGENT");
+    NotificationAnalyticsUtil::AddListCache(want, 6);
+    EXPECT_FALSE(IsDestroyTimerCalled());
+}
+
+/**
+ * @tc.name: ExecuteCacheList_SelfHealing_001
+ * @tc.desc: Test self-healing: StartTimer fails then succeeds on next AddListCache.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationAnalyticsUtilTest, ExecuteCacheList_SelfHealing_001, Function | SmallTest | Level1)
+{
+    MockStartTimerFailed(false);
+    NotificationAnalyticsUtil::ExecuteCacheList();
+
+    MockStartTimerFailed(true);
+    EventFwk::Want want;
+    want.SetAction("notification.event.PUSH_AGENT");
+    NotificationAnalyticsUtil::AddListCache(want, 6);
+    EXPECT_TRUE(IsDestroyTimerCalled());
+
+    int32_t countAfterFirst = GetCreateTimerCallCount();
+    ResetTimeServiceMock();
+    MockStartTimerFailed(false);
+    NotificationAnalyticsUtil::AddListCache(want, 6);
+    EXPECT_FALSE(IsDestroyTimerCalled());
+    EXPECT_GT(GetCreateTimerCallCount(), countAfterFirst);
+}
+
+/**
+ * @tc.name: StartSuccessReportTimer_StartTimerFailed_001
+ * @tc.desc: Test StartSuccessReportTimer when StartTimer returns false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationAnalyticsUtilTest, StartSuccessReportTimer_StartTimerFailed_001, Function | SmallTest | Level1)
+{
+    MockStartTimerFailed(false);
+    EventFwk::Want want;
+    want.SetAction("notification.event.PUSH_AGENT");
+    NotificationAnalyticsUtil::AddSuccessListCache(want, 7);
+
+    ResetTimeServiceMock();
+    MockStartTimerFailed(true);
+    NotificationAnalyticsUtil::StartSuccessReportTimer();
+    EXPECT_TRUE(IsDestroyTimerCalled());
+}
+
+/**
+ * @tc.name: StartSuccessReportTimer_StartTimerSuccess_001
+ * @tc.desc: Test StartSuccessReportTimer when StartTimer returns true.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationAnalyticsUtilTest, StartSuccessReportTimer_StartTimerSuccess_001, Function | SmallTest | Level1)
+{
+    MockStartTimerFailed(false);
+    NotificationAnalyticsUtil::StartSuccessReportTimer();
+    EXPECT_FALSE(IsDestroyTimerCalled());
+}
+
+/**
+ * @tc.name: CreateLiveViewTimerExecute_StartTimerFailed_001
+ * @tc.desc: Test CreateLiveViewTimerExecute when StartTimer returns false. DestroyTimer should be called.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationAnalyticsUtilTest, CreateLiveViewTimerExecute_StartTimerFailed_001, Function | SmallTest | Level1)
+{
+    MockStartTimerFailed(true);
+    NotificationAnalyticsUtil::CreateLiveViewTimerExecute();
+    EXPECT_TRUE(IsDestroyTimerCalled());
+}
+
+/**
+ * @tc.name: ExecuteLiveViewReport_StartTimerFailed_001
+ * @tc.desc: Test ExecuteLiveViewReport when liveViewMessages is empty. StartTimer not called.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationAnalyticsUtilTest, ExecuteLiveViewReport_StartTimerFailed_001, Function | SmallTest | Level1)
+{
+    MockStartTimerFailed(true);
+    EXPECT_NO_THROW(NotificationAnalyticsUtil::ExecuteLiveViewReport());
+    EXPECT_FALSE(IsDestroyTimerCalled());
+}
+
+/**
+ * @tc.name: CreateSlotTimerExecute_StartTimerFailed_001
+ * @tc.desc: Test CreateSlotTimerExecute when StartTimer returns false. Should return false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationAnalyticsUtilTest, CreateSlotTimerExecute_StartTimerFailed_001, Function | SmallTest | Level1)
+{
+    MockStartTimerFailed(true);
+    std::vector<int32_t> userIds = {0};
+    auto ret = NotificationAnalyticsUtil::CreateSlotTimerExecute(userIds);
+    EXPECT_FALSE(ret);
+    EXPECT_TRUE(IsDestroyTimerCalled());
+}
+
+/**
+ * @tc.name: ExecuteSlotReportList_StartTimerFailed_001
+ * @tc.desc: Test ExecuteSlotReportList when slotEnabledList_ is empty. StartTimer not called.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationAnalyticsUtilTest, ExecuteSlotReportList_StartTimerFailed_001, Function | SmallTest | Level1)
+{
+    MockStartTimerFailed(true);
+    EXPECT_NO_THROW(NotificationAnalyticsUtil::ExecuteSlotReportList());
+    EXPECT_FALSE(IsDestroyTimerCalled());
 }
 }
 }
