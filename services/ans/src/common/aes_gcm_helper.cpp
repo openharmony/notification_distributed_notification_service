@@ -24,6 +24,7 @@
 #include <cstdlib>
 #include "ans_service_errors.h"
 
+#include "openssl/crypto.h"
 #include "openssl/evp.h"
 #include "openssl/rand.h"
 
@@ -111,9 +112,11 @@ bool AesGcmHelper::GenerateKey(std::string &key)
     unsigned char aes_key[G_AES_GCM_KEY_LEN];
     if (!RAND_bytes(aes_key, G_AES_GCM_KEY_LEN)) {
         ANS_LOGE("Fail to randomly generate the key");
+        OPENSSL_cleanse(aes_key, sizeof(aes_key));
         return false;
     }
     key = std::string(reinterpret_cast<const char *>(aes_key), G_AES_GCM_KEY_LEN);
+    OPENSSL_cleanse(aes_key, sizeof(aes_key));
     std::string keyHex = Byte2Hex(key);
     if (!std::filesystem::exists(keyPath.parent_path())) {
         ANS_LOGE("Fail to save the key");
