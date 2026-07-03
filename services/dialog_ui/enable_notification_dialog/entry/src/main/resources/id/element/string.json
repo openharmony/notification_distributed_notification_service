@@ -23,7 +23,7 @@
         },
         {
             "name":"reason",
-            "value":"Ini mungkin mencakup notifikasi layar kunci, banner, lencana, suara, dan getar. Anda dapat mengubah ini di Pengaturan.",
+            "value":"Ini mungkin mencakup notifikasi layar kunci, banner, lambang, suara, dan getar. Anda dapat mengubah ini di Pengaturan.",
             "attr":{
                 "priority":"LT"
             }
