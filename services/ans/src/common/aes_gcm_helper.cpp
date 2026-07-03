@@ -231,6 +231,11 @@ bool AesGcmHelper::DecryptAesGcm(std::string &plainText, const std::string &ciph
         ANS_LOGE("DecryptAesGcm hex to byte error.");
         return false;
     }
+
+    if (cipherBytes.size() <= G_AES_GCM_IV_LEN + G_AES_GCM_TAG_LEN) {
+        ANS_LOGE("DecryptAesGcm cipher too short: %zu bytes", cipherBytes.size());
+        return false;
+    }
     const unsigned int bufferLen = cipherBytes.size() - G_AES_GCM_IV_LEN - G_AES_GCM_TAG_LEN;
     std::vector<unsigned char> buffer(bufferLen);
     std::vector<unsigned char> iv(G_AES_GCM_IV_LEN);
