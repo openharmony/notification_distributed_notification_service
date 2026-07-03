@@ -46,7 +46,7 @@ namespace OHOS {
 namespace Notification {
     bool DoSomethingInterestingWithMyAPI(FuzzedDataProvider *fuzzData)
     {
-        auto service = std::make_shared<AdvancedNotificationService>();
+        sptr<AdvancedNotificationService> service = new AdvancedNotificationService();
         sptr<AnsResultDataSynchronizerImpl> synchronizer = new AnsResultDataSynchronizerImpl();
         service->InitPublishProcess();
         service->CreateDialogManager();

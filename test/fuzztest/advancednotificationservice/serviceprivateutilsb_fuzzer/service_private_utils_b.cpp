@@ -46,7 +46,7 @@ namespace OHOS {
 namespace Notification {
     bool DoSomethingInterestingWithMyAPI(FuzzedDataProvider *fuzzData)
     {
-        auto service = std::make_shared<AdvancedNotificationService>();
+        sptr<AdvancedNotificationService> service = new AdvancedNotificationService();
         sptr<AnsResultDataSynchronizerImpl> synchronizer = new AnsResultDataSynchronizerImpl();
         service->InitPublishProcess();
         service->CreateDialogManager();
@@ -56,7 +56,6 @@ namespace Notification {
         int64_t timeNum = fuzzData->ConsumeIntegralInRange<int64_t>(1, 10000);
         bool enabled = fuzzData->ConsumeBool();
         std::string str = fuzzData->ConsumeRandomLengthString();
-        auto service = AdvancedNotificationService::GetInstance();
 
         // create request with geofence trigger
         sptr<NotificationRequest> request = new NotificationRequest();
@@ -127,7 +126,6 @@ namespace Notification {
         int32_t num = fuzzData->ConsumeIntegralInRange<int32_t>(1, 100);
         bool enabled = fuzzData->ConsumeBool();
         std::string str = fuzzData->ConsumeRandomLengthString();
-        auto service = AdvancedNotificationService::GetInstance();
 
         // test IsDisableNotification with bundleName only
         bool isDisabled = service->IsDisableNotification(str);
@@ -219,7 +217,6 @@ namespace Notification {
         std::string str = fuzzData->ConsumeRandomLengthString();
         std::string str2 = fuzzData->ConsumeRandomLengthString();
         std::string str3 = fuzzData->ConsumeRandomLengthString();
-        auto service = AdvancedNotificationService::GetInstance();
 
         // test ClearOverTimeRingToneInfo
         service->ClearOverTimeRingToneInfo();
