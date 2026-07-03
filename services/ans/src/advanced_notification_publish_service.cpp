@@ -1125,13 +1125,13 @@ ErrCode AdvancedNotificationService::PublishExtensionServiceStateChange(
     const sptr<NotificationBundleOption> &bundleOption, bool state,
     const std::vector<sptr<NotificationBundleOption>> &enabledBundles)
 {
-    ANS_LOGD("%{public}s: code=%{public}d, bundle=%{public}s, state=%{public}d",
-        __FUNCTION__, eventCode, bundleOption->GetBundleName().c_str(), state);
-
     if (bundleOption == nullptr) {
         ANS_LOGE("Invalid bundle option");
         return ERR_ANS_INNER_INVALID_PARAM;
     }
+
+    ANS_LOGD("%{public}s: code=%{public}d, bundle=%{public}s, state=%{public}d",
+        __FUNCTION__, eventCode, bundleOption->GetBundleName().c_str(), state);
 
     if (eventCode < NotificationConstant::USER_GRANTED_STATE ||
         eventCode > NotificationConstant::EXTENSION_ABILITY_REMOVED) {
