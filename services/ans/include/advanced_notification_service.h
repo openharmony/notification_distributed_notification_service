@@ -2254,7 +2254,6 @@ private:
     void CancelContinuousTaskNotificationFromTriggerNotificationList(const std::string &label, int32_t notificationId,
         int32_t uid);
     std::shared_ptr<NotificationRecord> GetRecordFromTriggerNotificationList(const GetRecordParameter &parameter);
-    void RemoveAllFromTriggerNotificationList(const sptr<NotificationBundleOption> &bundle);
     void RemoveNtfBySlotFromTriggerNotificationList(const sptr<NotificationBundleOption> &bundle,
         const sptr<NotificationSlot> &slot);
 #ifdef ANM_SUPPORT_DUMP

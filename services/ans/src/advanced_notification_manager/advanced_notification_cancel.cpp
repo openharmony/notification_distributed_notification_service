@@ -759,8 +759,6 @@ void AdvancedNotificationService::ExcuteRemoveAllNotificationsInner(const sptr<N
 void AdvancedNotificationService::GetRemoveListForRemoveAll(const sptr<NotificationBundleOption> &bundleOption,
     const sptr<NotificationBundleOption> &bundle, std::vector<std::shared_ptr<NotificationRecord>> &removeList)
 {
-    RemoveAllFromTriggerNotificationList(bundle);
-
     for (auto record : notificationList_) {
         bool isAllowedNotification = true;
         if (IsAllowedNotifyForBundle(bundleOption, isAllowedNotification) != ERR_OK) {
