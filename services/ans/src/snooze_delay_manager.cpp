@@ -146,6 +146,7 @@ void AdvancedNotificationService::SnoozeNotificationConsumed(const std::shared_p
         return;
     }
     record->request->SetDeliveryTime(GetCurrentTime());
+    record->request->SetCreateTime(GetCurrentTime());
     auto recordNew = std::make_shared<NotificationRecord>();
     recordNew->isNeedFlowCtrl = false;
     recordNew->request = new (std::nothrow) NotificationRequest(*(record->request));
