@@ -18,7 +18,7 @@
 4. **原子化服务发布入口校验**：在 `IsNeedPushCheck` 分支内 PushCheck 之后调用 `CheckCommonLiveViewRights`（覆盖原子化服务 CREATE 场景）
 5. **更新入口校验**：在 UpdateInNotificationList 函数内先调用 `UpdateLiveviewVoiceContent`，再调用 `CheckCommonLiveViewRights`（覆盖 INCREMENTAL_UPDATE / FULL_UPDATE 场景）
 6. **容错处理**：符号未加载时跳过校验（返回 ERR_OK），兼容旧版本 .so
-7. **错误码映射**：两个新内部错误码均映射为对外 `ERROR_NO_RIGHT` (1600014)
+7. **错误码映射**：`ERR_ANS_CUSTOM_EXTENSION_EXISTS_CHECK_FAILED` 映射为对外 `ERROR_LIVE_VIEW_EXTENSION_NOT_FOUND` (1600029)，`ERR_ANS_CUSTOM_EXTENSION_RIGHTS_CHECK_FAILED` 映射为对外 `ERROR_NO_RIGHT` (1600014)
 
 ### 1.3 实现范围
 
@@ -84,6 +84,7 @@ graph TB
     subgraph "错误码映射"
         ECE["ERR_ANS_CUSTOM_EXTENSION_EXISTS_CHECK_FAILED ★新增"] --> ETE["ErrorToExternal"]
         ECR["ERR_ANS_CUSTOM_EXTENSION_RIGHTS_CHECK_FAILED ★新增"] --> ETE
+        ETE --> ELVE["ERROR_LIVE_VIEW_EXTENSION_NOT_FOUND (1600029)"]
         ETE --> ENR["ERROR_NO_RIGHT (1600014)"]
     end
 
@@ -112,8 +113,8 @@ graph TB
 | `AllScenariosExtensionWrapper::CheckLiveViewRights()` | 新增方法 | 调用 libliveview.z.so 的 CheckLiveViewRights 函数进行权益校验 |
 | `AdvancedNotificationService::CheckCommonLiveViewRights()` | 新增辅助方法 | 封装 IsCommonLiveView 判断 + CheckLiveViewRights 调用，三个入口复用 |
 | `CHECK_LIVEVIEW_RIGHTS` | 新增 typedef | 函数指针类型：`ErrCode (*)(const sptr<NotificationRequest> &)` |
-| `ERR_ANS_CUSTOM_EXTENSION_EXISTS_CHECK_FAILED` | 新增错误码 | 标识符号不可用（供 libliveview.z.so 内部使用或未来扩展） |
-| `ERR_ANS_CUSTOM_EXTENSION_RIGHTS_CHECK_FAILED` | 新增错误码 | 标识权益校验失败（供 libliveview.z.so 内部使用或未来扩展） |
+| `ERR_ANS_CUSTOM_EXTENSION_EXISTS_CHECK_FAILED` | 新增错误码 | 标识符号不可用（供 libliveview.z.so 内部使用或未来扩展），映射为外部码 1600029 |
+| `ERR_ANS_CUSTOM_EXTENSION_RIGHTS_CHECK_FAILED` | 新增错误码 | 标识权益校验失败（供 libliveview.z.so 内部使用或未来扩展），映射为外部码 1600014 |
 
 ---
 
@@ -212,10 +213,11 @@ if (record->request->IsCommonLiveView()) {
 **ans_inner_errors.h**：ErrorCode enum 末尾新增
 - `ERR_ANS_CUSTOM_EXTENSION_EXISTS_CHECK_FAILED`
 - `ERR_ANS_CUSTOM_EXTENSION_RIGHTS_CHECK_FAILED`
+- 新增外部错误码常量 `ERROR_LIVE_VIEW_EXTENSION_NOT_FOUND = 1600029`
 
-**ans_inner_errors.cpp**：errorsConvert vector 末尾新增
-- `{ERR_ANS_CUSTOM_EXTENSION_EXISTS_CHECK_FAILED, ERROR_NO_RIGHT}`
-- `{ERR_ANS_CUSTOM_EXTENSION_RIGHTS_CHECK_FAILED, ERROR_NO_RIGHT}`
+**ans_service_errors.cpp**：SERVICE_ERROR_CONVERT_TABLE 新增两个映射
+- `{ERR_ANS_INNER_CUSTOM_EXTENSION_EXISTS_CHECK_FAILED, ERR_ANS_CUSTOM_EXTENSION_EXISTS_CHECK_FAILED, ERROR_LIVE_VIEW_EXTENSION_NOT_FOUND, "The system failed to find the ExtensionAbility instance for the custom Live View widget template."}`
+- `{ERR_ANS_INNER_CUSTOM_EXTENSION_RIGHTS_CHECK_FAILED, ERR_ANS_CUSTOM_EXTENSION_RIGHTS_CHECK_FAILED, ERROR_NO_RIGHT, "The right of liveView is not enabled."}`
 
 ---
 
@@ -250,7 +252,7 @@ if (record->request->IsCommonLiveView()) {
 | ARCH-DEC-002 | dlsym 策略 | 可选解析（符号不存在时不中断初始化） | 兼容旧版本 .so |
 | ARCH-DEC-003 | 校验插入位置 | PushCheck 之后、PublishPreparedNotification 之前 | 依赖 PushCheck 结果 |
 | ARCH-DEC-004 | 校验覆盖范围 | CREATE + UPDATE（不含 END） | 需求明确 |
-| ARCH-DEC-005 | 错误码映射 | 两个新内部错误码均映射为 ERROR_NO_RIGHT (1600014) | 需求明确 |
+| ARCH-DEC-005 | 错误码映射 | EXISTS_CHECK 映射为 ERROR_LIVE_VIEW_EXTENSION_NOT_FOUND (1600029)，RIGHTS_CHECK 映射为 ERROR_NO_RIGHT (1600014) | 需求明确，两个内部错误码映射为不同外部错误码以便区分 |
 
 ### 6.2 用户修改（偏离原始架构设计）
 
@@ -308,7 +310,7 @@ if (record->request->IsCommonLiveView()) {
 - `interfaces/kits/napi/` — 未修改
 - `interfaces/ndk/` — 未修改
 
-权益校验完全在服务端内部执行，对客户端透明。校验失败时 ArkTS 应用通过现有的 `ErrorToExternal` 映射收到 `ERROR_NO_RIGHT` (1600014)。
+权益校验完全在服务端内部执行，对客户端透明。校验失败时 ArkTS 应用通过 `ErrorToExternal` 映射收到 `ERROR_LIVE_VIEW_EXTENSION_NOT_FOUND` (1600029) 或 `ERROR_NO_RIGHT` (1600014)。
 
 ### 9.2 内部接口
 
@@ -381,5 +383,5 @@ if (record->request->IsCommonLiveView()) {
 ### 11.2 注意事项
 
 1. 权益校验依赖 libliveview.z.so 提供方确保 `CheckLiveViewRights` 函数导出并符合接口约定
-2. 校验失败时 ArkTS 应用收到 `ERROR_NO_RIGHT` (1600014)，无法区分是符号不可用还是权益规则判定失败（两个内部错误码映射为同一外部错误码）
+2. 校验失败时 ArkTS 应用收到 `ERROR_LIVE_VIEW_EXTENSION_NOT_FOUND` (1600029) 或 `ERROR_NO_RIGHT` (1600014)，可通过外部错误码区分是符号不可用还是权益规则判定失败
 3. 当前整体编译被预存的 `notification_preferences_database.cpp` 错误阻塞，需先修复该问题才能进行完整的编译验证和测试执行
