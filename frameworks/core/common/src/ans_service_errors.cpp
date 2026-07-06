@@ -205,7 +205,7 @@ static const std::vector<ServiceErrorConvertEntry> SERVICE_ERROR_CONVERT_TABLE =
     {ERR_ANS_INNER_VOICE_SUMMARY_COUNT_EXCEEDED,  ERR_ANS_VOICE_SUMMARY_COUNT_EXCEEDED,  ERROR_INTERNAL_ERROR,
         "Internal error. Possible cause: 1.IPC communication failed. 2.Memory operation error"},
     {ERR_ANS_INNER_DEVICE_NOT_SUPPORT,            ERR_ANS_DEVICE_NOT_SUPPORT,            ERROR_SYSTEM_CAP_ERROR,
-        "SystemCapability not found"},
+        "Capability not supported"},
     {ERR_ANS_INNER_NOT_IMPL_EXTENSIONABILITY, ERR_ANS_NOT_IMPL_EXTENSIONABILITY,
         ERROR_NOT_IMPL_EXTENSIONABILITY,
         "The application does not implement the NotificationSubscriberExtensionAbility"},
