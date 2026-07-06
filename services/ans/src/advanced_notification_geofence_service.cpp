@@ -1131,27 +1131,6 @@ std::shared_ptr<NotificationRecord> AdvancedNotificationService::GetRecordFromTr
     return nullptr;
 }
 
-void AdvancedNotificationService::RemoveAllFromTriggerNotificationList(const sptr<NotificationBundleOption> &bundle)
-{
-    if (bundle == nullptr) {
-        return;
-    }
-    std::lock_guard<ffrt::mutex> lock(triggerNotificationMutex_);
-    for (auto it = triggerNotificationList_.begin(); it != triggerNotificationList_.end();) {
-        if ((*it) == nullptr || (*it)->bundleOption == nullptr) {
-            ++it;
-            continue;
-        }
-        if ((*it)->bundleOption->GetBundleName() != bundle->GetBundleName() ||
-            (*it)->bundleOption->GetUid() != bundle->GetUid()) {
-            ProcForDeleteGeofenceLiveView(*it);
-            it = triggerNotificationList_.erase(it);
-        } else {
-            ++it;
-        }
-    }
-}
-
 void AdvancedNotificationService::RemoveNtfBySlotFromTriggerNotificationList(
     const sptr<NotificationBundleOption> &bundle, const sptr<NotificationSlot> &slot)
 {

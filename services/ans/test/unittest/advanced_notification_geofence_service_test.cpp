@@ -305,49 +305,6 @@ HWTEST_F(AnsGeofenceServiceTest, RemoveNotificationsFromTriggerNotificationList_
 }
 
 /**
- * @tc.number    : RemoveNotificationsFromTriggerNotificationList_006
- * @tc.name      : Remove all from trigger notification list.
- * @tc.desc      : Test RemoveAllFromTriggerNotificationList.
- */
-HWTEST_F(AnsGeofenceServiceTest, RemoveNotificationsFromTriggerNotificationList_006, Function | SmallTest | Level1)
-{
-    ASSERT_NE(advancedNotificationService_, nullptr);
-    advancedNotificationService_->RemoveAllFromTriggerNotificationList(nullptr);
-
-    advancedNotificationService_->triggerNotificationList_.clear();
-    advancedNotificationService_->triggerNotificationList_.emplace_back(nullptr);
-
-    auto record1 = std::make_shared<NotificationRecord>();
-    record1->bundleOption = nullptr;
-    advancedNotificationService_->triggerNotificationList_.emplace_back(record1);
-
-    auto record2 = std::make_shared<NotificationRecord>();
-    record2->bundleOption = sptr<NotificationBundleOption>::MakeSptr();
-    record2->bundleOption->SetBundleName("testBundleName");
-    record2->bundleOption->SetUid(TEST_VALID_ID);
-    advancedNotificationService_->triggerNotificationList_.emplace_back(record2);
-
-    auto record3 = std::make_shared<NotificationRecord>();
-    record3->bundleOption = sptr<NotificationBundleOption>::MakeSptr();
-    record3->bundleOption->SetBundleName("testBundleName");
-    record3->bundleOption->SetUid(TEST_INVALID_ID);
-    advancedNotificationService_->triggerNotificationList_.emplace_back(record3);
-
-    auto record4 = std::make_shared<NotificationRecord>();
-    record4->bundleOption = sptr<NotificationBundleOption>::MakeSptr();
-    record4->bundleOption->SetBundleName("invalidBundleName");
-    record4->bundleOption->SetUid(TEST_INVALID_ID);
-    advancedNotificationService_->triggerNotificationList_.emplace_back(record4);
-    ASSERT_EQ(advancedNotificationService_->triggerNotificationList_.size(), LIST_SIZE_FIVE);
-
-    auto bundle = sptr<NotificationBundleOption>::MakeSptr();
-    bundle->SetBundleName("testBundleName");
-    bundle->SetUid(TEST_VALID_ID);
-    advancedNotificationService_->RemoveAllFromTriggerNotificationList(bundle);
-    EXPECT_EQ(advancedNotificationService_->triggerNotificationList_.size(), LIST_SIZE_THREE);
-}
-
-/**
  * @tc.number    : RemoveNotificationsFromTriggerNotificationList_007
  * @tc.name      : Remove Ntf by slot from trigger notification list.
  * @tc.desc      : Test RemoveNtfBySlotFromTriggerNotificationList.
