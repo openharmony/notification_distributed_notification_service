@@ -41,6 +41,7 @@
 #include "notification_subscriber.h"
 #include "refbase.h"
 #include "bundle_manager_helper.h"
+#include "mock_accesstoken_kit.h"
 #include "mock_bundle_mgr.h"
 #include "notification_extension_wrapper.h"
 #include "notification_classification_mgr.h"
@@ -56,10 +57,6 @@ extern void MockQueryForgroundOsAccountId(bool mockRet, uint8_t mockCase);
 
 namespace OHOS {
 namespace Notification {
-extern void MockIsVerfyPermisson(bool isVerify);
-extern void MockGetTokenTypeFlag(ATokenTypeEnum mockRet);
-extern void MockIsSystemApp(bool isSystemApp);
-
 class AnsUtilsTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -267,7 +264,7 @@ HWTEST_F(AnsUtilsTest, GetActiveNotificationByFilter_00003, Function | SmallTest
     oldRequest->SetNotificationId(notificationId);
 
     oldRequest->SetLabel(label);
-    sptr<NotificationBundleOption> bundle = new NotificationBundleOption("test", 1);
+    sptr<NotificationBundleOption> bundle = new NotificationBundleOption("test", 101);
     auto record = advancedNotificationService_->MakeNotificationRecord(oldRequest, bundle);
     advancedNotificationService_->AssignToNotificationList(record);
 

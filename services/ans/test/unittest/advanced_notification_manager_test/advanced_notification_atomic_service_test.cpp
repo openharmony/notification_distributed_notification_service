@@ -29,18 +29,29 @@ extern void MockIsVerfyPermisson(bool isVerify);
 
 class AdvancedNotificationAtomicServiceTest : public testing::Test {
 public:
+    static void SetUpTestCase()
+    {
+        advancedNotificationService_ = new AdvancedNotificationService();
+    }
+    static void TearDownTestCase()
+    {
+        advancedNotificationService_->SelfClean();
+        constexpr int sleepMs = 500;
+        std::this_thread::sleep_for(std::chrono::milliseconds(sleepMs));
+        NotificationSubscriberManager::DestroyInstance();
+    }
     void SetUp() override
     {
         MockIsSystemApp(true);
         MockIsVerfyPermisson(true);
     }
     void TearDown() override {}
+
+private:
+    static sptr<AdvancedNotificationService> advancedNotificationService_;
 };
 
-static sptr<AdvancedNotificationService> GetService()
-{
-    return new AdvancedNotificationService();
-}
+sptr<AdvancedNotificationService> AdvancedNotificationAtomicServiceTest::advancedNotificationService_ = nullptr;
 
 /**
  * @tc.name: CheckAndPrepareNotificationInfoWithAtomicService_CheckUserIdFailed_00001
@@ -50,12 +61,11 @@ static sptr<AdvancedNotificationService> GetService()
  */
 HWTEST_F(AdvancedNotificationAtomicServiceTest, CheckUserIdParamsFailed_00001, Function | SmallTest | Level1)
 {
-    auto service = GetService();
     sptr<NotificationRequest> request = new NotificationRequest();
     request->SetCreatorUserId(0);
     sptr<NotificationBundleOption> bundle = new NotificationBundleOption("testBundle", 100);
     
-    auto result = service->CheckAndPrepareNotificationInfoWithAtomicService(request, bundle);
+    auto result = advancedNotificationService_->CheckAndPrepareNotificationInfoWithAtomicService(request, bundle);
     EXPECT_NE(result.GetErrCode(), ERR_OK);
 }
 
@@ -67,13 +77,12 @@ HWTEST_F(AdvancedNotificationAtomicServiceTest, CheckUserIdParamsFailed_00001, F
  */
 HWTEST_F(AdvancedNotificationAtomicServiceTest, OwnerUserIdInvalid_00001, Function | SmallTest | Level1)
 {
-    auto service = GetService();
     sptr<NotificationRequest> request = new NotificationRequest();
     request->SetCreatorUserId(100);
     request->SetOwnerUserId(-1);
     sptr<NotificationBundleOption> bundle = new NotificationBundleOption("testBundle", 100);
     
-    auto result = service->CheckAndPrepareNotificationInfoWithAtomicService(request, bundle);
+    auto result = advancedNotificationService_->CheckAndPrepareNotificationInfoWithAtomicService(request, bundle);
     EXPECT_NE(result.GetErrCode(), ERR_OK);
 }
 
@@ -85,14 +94,13 @@ HWTEST_F(AdvancedNotificationAtomicServiceTest, OwnerUserIdInvalid_00001, Functi
  */
 HWTEST_F(AdvancedNotificationAtomicServiceTest, EmptyOwnerBundleName_00001, Function | SmallTest | Level1)
 {
-    auto service = GetService();
     sptr<NotificationRequest> request = new NotificationRequest();
     request->SetCreatorUserId(100);
     request->SetOwnerUserId(100);
     request->SetOwnerBundleName("");
     sptr<NotificationBundleOption> bundle = new NotificationBundleOption("testBundle", 100);
     
-    auto result = service->CheckAndPrepareNotificationInfoWithAtomicService(request, bundle);
+    auto result = advancedNotificationService_->CheckAndPrepareNotificationInfoWithAtomicService(request, bundle);
     EXPECT_NE(result.GetErrCode(), ERR_OK);
 }
 
@@ -104,7 +112,6 @@ HWTEST_F(AdvancedNotificationAtomicServiceTest, EmptyOwnerBundleName_00001, Func
  */
 HWTEST_F(AdvancedNotificationAtomicServiceTest, InvalidDeliveryTime_00001, Function | SmallTest | Level1)
 {
-    auto service = GetService();
     sptr<NotificationRequest> request = new NotificationRequest();
     request->SetCreatorUserId(100);
     request->SetOwnerUserId(100);
@@ -112,7 +119,7 @@ HWTEST_F(AdvancedNotificationAtomicServiceTest, InvalidDeliveryTime_00001, Funct
     request->SetDeliveryTime(0);
     sptr<NotificationBundleOption> bundle = new NotificationBundleOption("testBundle", 100);
     
-    auto result = service->CheckAndPrepareNotificationInfoWithAtomicService(request, bundle);
+    auto result = advancedNotificationService_->CheckAndPrepareNotificationInfoWithAtomicService(request, bundle);
     EXPECT_EQ(result.GetErrCode(), ERR_OK);
 }
 
@@ -125,10 +132,9 @@ HWTEST_F(AdvancedNotificationAtomicServiceTest, InvalidDeliveryTime_00001, Funct
 HWTEST_F(AdvancedNotificationAtomicServiceTest,
     SetCreatorInfoWithAtomicService_NullExtendInfo_00001, Function | SmallTest | Level1)
 {
-    auto service = GetService();
     sptr<NotificationRequest> request = new NotificationRequest();
     
-    auto result = service->SetCreatorInfoWithAtomicService(request);
+    auto result = advancedNotificationService_->SetCreatorInfoWithAtomicService(request);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -140,10 +146,9 @@ HWTEST_F(AdvancedNotificationAtomicServiceTest,
  */
 HWTEST_F(AdvancedNotificationAtomicServiceTest, AtomicServicePublish_ValidRequest_00001, Function | SmallTest | Level1)
 {
-    auto service = GetService();
     sptr<NotificationRequest> request = new NotificationRequest();
     
-    auto result = service->AtomicServicePublish(request);
+    auto result = advancedNotificationService_->AtomicServicePublish(request);
     EXPECT_NE(result.GetErrCode(), ERR_OK);
 }
 }  // namespace Notification
