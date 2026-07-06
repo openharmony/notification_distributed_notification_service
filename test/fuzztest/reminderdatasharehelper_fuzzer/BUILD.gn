@@ -53,6 +53,7 @@ ohos_fuzztest("ReminderDataShareHelperFuzzTest") {
     "data_share:datashare_common",
     "data_share:datashare_consumer",
     "data_share:datashare_permission",
+    "ffrt:libffrt",
     "hilog:libhilog",
     "icu:shared_icuuc",
     "image_framework:image_native",

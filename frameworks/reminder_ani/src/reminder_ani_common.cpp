@@ -560,7 +560,6 @@ void Common::ParseRingChannel(const ::ohos::reminderAgentManager::manager::RingC
 void Common::ParseTimeZoneType(const reminderAgentManager::manager::TimeZoneType& timeZoneType,
     std::shared_ptr<Notification::ReminderRequest>& reminder)
 {
-    Notification::ReminderRequest::TimeZoneType tz = Notification::ReminderRequest::TimeZoneType::DEFAULT;
     switch (timeZoneType.get_key()) {
         case reminderAgentManager::manager::TimeZoneType::key_t::DEFAULT:
             reminder->SetTimeZoneType(Notification::ReminderRequest::TimeZoneType::DEFAULT);
