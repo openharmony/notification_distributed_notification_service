@@ -214,11 +214,11 @@ static const std::vector<ServiceErrorConvertEntry> SERVICE_ERROR_CONVERT_TABLE =
     {ERR_ANS_INNER_NOTIFICATION_SNOOZE_NOTALLOWED, ERR_ANS_NOTIFICATION_SNOOZE_NOTALLOWED, ERR_NOTIFICATION_NOT_SUPPORT,
         "This notification is not supported"},
     {ERR_ANS_INNER_CUSTOM_EXTENSION_EXISTS_CHECK_FAILED,
-        ERR_ANS_CUSTOM_EXTENSION_EXISTS_CHECK_FAILED, ERROR_NO_RIGHT,
-        "No permission"},
+        ERR_ANS_CUSTOM_EXTENSION_EXISTS_CHECK_FAILED, ERROR_LIVE_VIEW_EXTENSION_NOT_FOUND,
+        "The system failed to find the ExtensionAbility instance for the custom Live View widget template."},
     {ERR_ANS_INNER_CUSTOM_EXTENSION_RIGHTS_CHECK_FAILED,
         ERR_ANS_CUSTOM_EXTENSION_RIGHTS_CHECK_FAILED, ERROR_NO_RIGHT,
-        "No permission"},
+        "The right of liveView is not enabled."},
 };
 
 // ===== Conversion functions (all use single-pass table lookup) =====

@@ -124,12 +124,14 @@ HWTEST_F(AllScenariosExtensionWrapperTest, CheckLiveViewRights_004, Function | S
 
 /**
  * @tc.name: ErrorToExternal_CustomExtension_001
- * @tc.desc: Verify ErrorToExternal mapping for the two new error codes.
- *           Both should map to ERROR_NO_RIGHT (1600014).
+ * @tc.desc: Verify ErrorToExternal mapping for the two custom extension error codes.
+ *           EXISTS_CHECK maps to ERROR_LIVE_VIEW_EXTENSION_NOT_FOUND (1600029);
+ *           RIGHTS_CHECK maps to ERROR_NO_RIGHT (1600014).
  * @tc.type: FUNC
  */
 HWTEST_F(AllScenariosExtensionWrapperTest, ErrorToExternal_CustomExtension_001, Function | SmallTest | Level1)
 {
-    EXPECT_EQ(InnerErrorToExternal(ERR_ANS_INNER_CUSTOM_EXTENSION_EXISTS_CHECK_FAILED), ERROR_NO_RIGHT);
+    EXPECT_EQ(InnerErrorToExternal(ERR_ANS_INNER_CUSTOM_EXTENSION_EXISTS_CHECK_FAILED),
+        ERROR_LIVE_VIEW_EXTENSION_NOT_FOUND);
     EXPECT_EQ(InnerErrorToExternal(ERR_ANS_INNER_CUSTOM_EXTENSION_RIGHTS_CHECK_FAILED), ERROR_NO_RIGHT);
 }
