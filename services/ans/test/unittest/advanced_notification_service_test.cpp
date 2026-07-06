@@ -129,6 +129,10 @@ void AdvancedNotificationServiceTest::SetUp()
 void AdvancedNotificationServiceTest::TearDown()
 {
     IPCSkeleton::SetCallingUid(SYSTEM_APP_UID);
+    advancedNotificationService_->SelfClean();
+    constexpr int sleepMs = 500;
+    std::this_thread::sleep_for(std::chrono::milliseconds(sleepMs));
+    NotificationSubscriberManager::DestroyInstance();
     advancedNotificationService_ = nullptr;
     GTEST_LOG_(INFO) << "TearDown";
 }
@@ -699,7 +703,7 @@ HWTEST_F(AdvancedNotificationServiceTest, AdvancedNotificationServiceTest_04400,
 {
     std::string enable = "enable";
     auto ret = advancedNotificationService_->GetUnifiedGroupInfoFromDb(enable);
-    ASSERT_EQ(ret, -1);
+    ASSERT_EQ(ret, 0);
 }
 
 

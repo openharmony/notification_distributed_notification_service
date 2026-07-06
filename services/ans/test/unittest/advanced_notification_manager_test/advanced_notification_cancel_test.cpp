@@ -17,6 +17,7 @@
 #define private public
 #include "advanced_notification_service.h"
 #include "ans_service_errors.h"
+#include "mock_accesstoken_kit.h"
 #include "notification_bundle_option.h"
 #include "notification_request.h"
 #include "notification_classification_mgr.h"
@@ -28,13 +29,11 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Notification {
-extern void MockIsSystemApp(bool isSystemApp);
-extern void MockIsVerfyPermisson(bool isVerify);
-
 class AdvancedNotificationCancelTest : public testing::Test {
 public:
     void SetUp() override
     {
+        MockGetTokenTypeFlag(Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE);
         MockIsSystemApp(true);
         MockIsVerfyPermisson(true);
     }
