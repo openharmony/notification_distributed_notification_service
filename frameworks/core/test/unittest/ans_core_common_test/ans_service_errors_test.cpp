@@ -421,7 +421,7 @@ HWTEST_F(AnsServiceErrorsTest, GetExternalErrMessage_NotificationAndSpecial_001,
         GetExternalErrMessage(ERROR_REJECTED_WITH_DISABLE_NOTIFICATION));
     EXPECT_EQ("The specified bundle has no custom ringtone information",
         GetExternalErrMessage(ERROR_NO_CUSTOM_RINGTONE_INFO));
-    EXPECT_EQ("SystemCapability not found",
+    EXPECT_EQ("Capability not supported",
         GetExternalErrMessage(ERROR_SYSTEM_CAP_ERROR));
     EXPECT_EQ("The application does not implement the NotificationSubscriberExtensionAbility",
         GetExternalErrMessage(ERROR_NOT_IMPL_EXTENSIONABILITY));
@@ -633,7 +633,7 @@ HWTEST_F(AnsServiceErrorsTest, GetInnerErrMessage_InnerCodeMatch_001, TestSize.L
     EXPECT_EQ("Dialog is popping", GetInnerErrMessage(ERR_ANS_INNER_DIALOG_IS_POPPING));
     EXPECT_EQ("Geofencing disabled", GetInnerErrMessage(ERR_ANS_INNER_GEOFENCE_ENABLED));
     EXPECT_EQ("No permission", GetInnerErrMessage(ERR_ANS_INNER_PUSH_CHECK_FAILED));
-    EXPECT_EQ("SystemCapability not found", GetInnerErrMessage(ERR_ANS_INNER_DEVICE_NOT_SUPPORT));
+    EXPECT_EQ("Capability not supported", GetInnerErrMessage(ERR_ANS_INNER_DEVICE_NOT_SUPPORT));
     EXPECT_EQ("Invalid operation", GetInnerErrMessage(ERR_ANS_INNER_INVALID_OPERATION));
     EXPECT_EQ("The system failed to find the ExtensionAbility instance for the custom Live View widget template.",
         GetInnerErrMessage(ERR_ANS_INNER_CUSTOM_EXTENSION_EXISTS_CHECK_FAILED));
@@ -658,7 +658,7 @@ HWTEST_F(AnsServiceErrorsTest, GetInnerErrMessage_NativeCodeMatch_001, TestSize.
         GetInnerErrMessage(ERR_ANS_DISTRIBUTED_OPERATION_FAILED));
     EXPECT_EQ("Dialog is popping", GetInnerErrMessage(ERR_ANS_DIALOG_IS_POPPING));
     EXPECT_EQ("No permission", GetInnerErrMessage(ERR_ANS_PUSH_CHECK_FAILED));
-    EXPECT_EQ("SystemCapability not found", GetInnerErrMessage(ERR_ANS_DEVICE_NOT_SUPPORT));
+    EXPECT_EQ("Capability not supported", GetInnerErrMessage(ERR_ANS_DEVICE_NOT_SUPPORT));
 }
 
 /**
