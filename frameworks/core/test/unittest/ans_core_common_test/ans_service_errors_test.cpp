@@ -141,6 +141,11 @@ HWTEST_F(AnsServiceErrorsTest, InnerErrorToExternal_SpecialGroups_001, TestSize.
     EXPECT_EQ(ERROR_INTERNAL_ERROR, InnerErrorToExternal(ERR_ANS_INNER_DLP_HAP));
     EXPECT_EQ(ERR_NOTIFICATION_NOT_SUPPORT,
         InnerErrorToExternal(ERR_ANS_INNER_NOTIFICATION_SNOOZE_NOTALLOWED));
+    // 自定义扩展（实况窗权益校验）
+    EXPECT_EQ(ERROR_LIVE_VIEW_EXTENSION_NOT_FOUND,
+        InnerErrorToExternal(ERR_ANS_INNER_CUSTOM_EXTENSION_EXISTS_CHECK_FAILED));
+    EXPECT_EQ(ERROR_NO_RIGHT,
+        InnerErrorToExternal(ERR_ANS_INNER_CUSTOM_EXTENSION_RIGHTS_CHECK_FAILED));
 }
 
 /**
@@ -265,6 +270,10 @@ HWTEST_F(AnsServiceErrorsTest, InnerErrorToNative_SpecialGroups_001, TestSize.Le
     EXPECT_EQ(ERR_ANS_DLP_HAP, InnerErrorToNative(ERR_ANS_INNER_DLP_HAP));
     EXPECT_EQ(ERR_ANS_NOTIFICATION_SNOOZE_NOTALLOWED,
         InnerErrorToNative(ERR_ANS_INNER_NOTIFICATION_SNOOZE_NOTALLOWED));
+    EXPECT_EQ(ERR_ANS_CUSTOM_EXTENSION_EXISTS_CHECK_FAILED,
+        InnerErrorToNative(ERR_ANS_INNER_CUSTOM_EXTENSION_EXISTS_CHECK_FAILED));
+    EXPECT_EQ(ERR_ANS_CUSTOM_EXTENSION_RIGHTS_CHECK_FAILED,
+        InnerErrorToNative(ERR_ANS_INNER_CUSTOM_EXTENSION_RIGHTS_CHECK_FAILED));
 }
 
 /**
@@ -418,6 +427,8 @@ HWTEST_F(AnsServiceErrorsTest, GetExternalErrMessage_NotificationAndSpecial_001,
         GetExternalErrMessage(ERROR_NOT_IMPL_EXTENSIONABILITY));
     EXPECT_EQ("This notification is not supported",
         GetExternalErrMessage(ERR_NOTIFICATION_NOT_SUPPORT));
+    EXPECT_EQ("The system failed to find the ExtensionAbility instance for the custom Live View widget template.",
+        GetExternalErrMessage(ERROR_LIVE_VIEW_EXTENSION_NOT_FOUND));
 }
 
 /**
@@ -624,6 +635,10 @@ HWTEST_F(AnsServiceErrorsTest, GetInnerErrMessage_InnerCodeMatch_001, TestSize.L
     EXPECT_EQ("No permission", GetInnerErrMessage(ERR_ANS_INNER_PUSH_CHECK_FAILED));
     EXPECT_EQ("SystemCapability not found", GetInnerErrMessage(ERR_ANS_INNER_DEVICE_NOT_SUPPORT));
     EXPECT_EQ("Invalid operation", GetInnerErrMessage(ERR_ANS_INNER_INVALID_OPERATION));
+    EXPECT_EQ("The system failed to find the ExtensionAbility instance for the custom Live View widget template.",
+        GetInnerErrMessage(ERR_ANS_INNER_CUSTOM_EXTENSION_EXISTS_CHECK_FAILED));
+    EXPECT_EQ("The right of liveView is not enabled.",
+        GetInnerErrMessage(ERR_ANS_INNER_CUSTOM_EXTENSION_RIGHTS_CHECK_FAILED));
 }
 
 /**
