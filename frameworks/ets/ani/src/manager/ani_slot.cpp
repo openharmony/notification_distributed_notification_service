@@ -29,6 +29,7 @@ namespace NotificationManagerSts {
 using namespace arkts::concurrency_helpers;
 using namespace OHOS::Notification;
 using OHOS::Notification::AnsNotification;
+constexpr int32_t MAX_BUNDLE_OPTIONS_NUM = 1000;
 void DeleteCallBackInfoWithoutPromise(ani_env* env, AsyncCallbackSlotInfo* asyncCallbackInfo)
 {
     ANS_LOGD("Delete AsyncCallbackSlotInfo Without Promise");
@@ -1154,6 +1155,26 @@ void HandleSlotBundleCallbackComplete(ani_env* env, WorkStatus status, void* dat
     DeleteSlotBundleCallBackInfoWithoutPromise(envCurr, asyncCallbackInfo);
 }
 
+bool ParseSlotBundleParams(ani_env *env, ani_object bundlesObj, ani_enum_item typeEnum,
+    AsyncCallbackSlotBundleInfo *asyncCallbackInfo)
+{
+    ani_size bundleArrayLen = 0;
+    if (env->Array_GetLength(static_cast<ani_array>(bundlesObj), &bundleArrayLen) != ANI_OK) {
+        return false;
+    }
+    if (bundleArrayLen > static_cast<ani_size>(MAX_BUNDLE_OPTIONS_NUM)) {
+        return false;
+    }
+    if (!NotificationSts::UnwrapArrayBundleOption(env,
+        static_cast<ani_ref>(bundlesObj), asyncCallbackInfo->bundles)) {
+        return false;
+    }
+    if (!NotificationSts::SlotTypeEtsToC(env, typeEnum, asyncCallbackInfo->slotType)) {
+        return false;
+    }
+    return true;
+}
+
 ani_object AniIsNotificationSlotEnabledByBundles(ani_env *env, ani_object bundlesObj,
     ani_enum_item typeEnum, ani_object callback)
 {
@@ -1162,12 +1183,7 @@ ani_object AniIsNotificationSlotEnabledByBundles(ani_env *env, ani_object bundle
     if (!asyncCallbackInfo) {
         return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERR_ANS_INNER_TASK_ERR);
     }
-    if (!NotificationSts::UnwrapArrayBundleOption(env,
-        static_cast<ani_ref>(bundlesObj), asyncCallbackInfo->bundles)) {
-        DeleteSlotBundleCallBackInfo(env, asyncCallbackInfo);
-        return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERR_ANS_INNER_INVALID_PARAM);
-    }
-    if (!NotificationSts::SlotTypeEtsToC(env, typeEnum, asyncCallbackInfo->slotType)) {
+    if (!ParseSlotBundleParams(env, bundlesObj, typeEnum, asyncCallbackInfo)) {
         DeleteSlotBundleCallBackInfo(env, asyncCallbackInfo);
         return NotificationSts::AniJumpCbError(env, callback, OHOS::Notification::ERR_ANS_INNER_INVALID_PARAM);
     }
