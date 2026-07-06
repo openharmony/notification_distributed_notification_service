@@ -1074,6 +1074,38 @@ napi_value NapiGetNotificationSettings(napi_env env, napi_callback_info info)
 }
 
 const int32_t BATCH_GET_SLOT_ENABLED_BY_BUNDLES_MIN_PARA = 2;
+constexpr int32_t MAX_BUNDLE_OPTIONS_NUM = 1000;
+
+bool ParseBundleOptionsArray(const napi_env &env, napi_value arrayValue,
+    std::vector<NotificationBundleOption> &bundles)
+{
+    bool isArray = false;
+    napi_is_array(env, arrayValue, &isArray);
+    if (!isArray) {
+        std::string msg = "Argument 0 must be an array.";
+        Common::NapiThrow(env, ERR_ANS_INNER_INVALID_PARAM, msg);
+        return false;
+    }
+    uint32_t length = 0;
+    napi_get_array_length(env, arrayValue, &length);
+    if (length > static_cast<uint32_t>(MAX_BUNDLE_OPTIONS_NUM)) {
+        std::string msg = "The array length cannot exceed 1000.";
+        Common::NapiThrow(env, ERR_ANS_INNER_INVALID_PARAM, msg);
+        return false;
+    }
+    for (uint32_t i = 0; i < length; ++i) {
+        napi_value item = nullptr;
+        napi_get_element(env, arrayValue, i, &item);
+        NotificationBundleOption option;
+        if (!Common::GetBundleOption(env, item, option)) {
+            std::string msg = "Invalid BundleOption in array.";
+            Common::NapiThrow(env, ERR_ANS_INNER_INVALID_PARAM, msg);
+            return false;
+        }
+        bundles.push_back(std::move(option));
+    }
+    return true;
+}
 
 napi_value ParseParametersForBatchGetSlotEnabled(const napi_env &env, const napi_callback_info &info,
     AsyncCallbackInfoBatchGetSlotEnabled *asyncCallbackInfo)
@@ -1087,25 +1119,8 @@ napi_value ParseParametersForBatchGetSlotEnabled(const napi_env &env, const napi
         Common::NapiThrow(env, ERR_ANS_INNER_INVALID_PARAM, msg);
         return nullptr;
     }
-    bool isArray = false;
-    NAPI_CALL(env, napi_is_array(env, argv[PARAM0], &isArray));
-    if (!isArray) {
-        std::string msg = "Argument 0 must be an array.";
-        Common::NapiThrow(env, ERR_ANS_INNER_INVALID_PARAM, msg);
+    if (!ParseBundleOptionsArray(env, argv[PARAM0], asyncCallbackInfo->bundles)) {
         return nullptr;
-    }
-    uint32_t length = 0;
-    NAPI_CALL(env, napi_get_array_length(env, argv[PARAM0], &length));
-    for (uint32_t i = 0; i < length; ++i) {
-        napi_value item = nullptr;
-        NAPI_CALL(env, napi_get_element(env, argv[PARAM0], i, &item));
-        NotificationBundleOption option;
-        if (!Common::GetBundleOption(env, item, option)) {
-            std::string msg = "Invalid BundleOption in array.";
-            Common::NapiThrow(env, ERR_ANS_INNER_INVALID_PARAM, msg);
-            return nullptr;
-        }
-        asyncCallbackInfo->bundles.push_back(std::move(option));
     }
     napi_valuetype typeValType = napi_undefined;
     NAPI_CALL(env, napi_typeof(env, argv[PARAM1], &typeValType));

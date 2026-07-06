@@ -42,6 +42,7 @@ const ERROR_OK = 0;
 const ERROR_PARAM_INVALID = 401;
 const ERROR_INTERNAL_ERROR = 160001;
 const MAX_USER_ID = 10736;
+const MAX_BUNDLE_OPTIONS_NUM = 1000;
 
 const rejectInternalError: BusinessError<string> = {code: ERROR_INTERNAL_ERROR, data: "Internal error."};
 const callbackInternalError: BusinessError = {code: ERROR_INTERNAL_ERROR, data: undefined};
@@ -1228,7 +1229,7 @@ export default namespace notificationManager {
 
     export function isNotificationSlotEnabledByBundles(
         bundles: Array<BundleOption>, type: SlotType): Promise<Map<BundleOption, boolean>> {
-        if (!bundles || bundles.length == 0) {
+        if (!bundles || bundles.length == 0 || bundles.length > MAX_BUNDLE_OPTIONS_NUM) {
             throw errorParamInvalid;
         }
         let result: Promise<Map<BundleOption, boolean>>;
