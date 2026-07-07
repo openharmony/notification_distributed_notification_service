@@ -113,8 +113,15 @@ void AnsPublishServiceTest::SetUp()
 
 void AnsPublishServiceTest::TearDown()
 {
+    advancedNotificationService_->SelfClean();
+#ifdef NOTIFICATION_SMART_REMINDER_SUPPORTED
+    DelayedSingleton<SmartReminderCenter>::GetInstance()->currentReminderMethods_.clear();
+    DelayedSingleton<SmartReminderCenter>::GetInstance()->reminderMethods_.clear();
+#endif
+    advancedNotificationService_->publishProcess_.clear();
     constexpr int sleepMs = 500;
     std::this_thread::sleep_for(std::chrono::milliseconds(sleepMs));
+    NotificationSubscriberManager::DestroyInstance();
 #ifdef NOTIFICATION_SMART_REMINDER_SUPPORTED
     SmartReminderCenter::DestroyInstance();
 #endif
