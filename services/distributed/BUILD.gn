@@ -174,7 +174,7 @@ ohos_shared_library("libdans") {
     "relational_store:native_rdb",
     "samgr:samgr_proxy",
     "time_service:time_client",
-    "zlib:libz",
+    "zlib:shared_libz",
   ]
 
   if (ans_device_manager_enable &&
@@ -275,7 +275,7 @@ ohos_shared_library("libans_extension_service") {
     "relational_store:native_rdb",
     "samgr:samgr_proxy",
     "time_service:time_client",
-    "zlib:libz",
+    "zlib:shared_libz",
   ]
 
   if (ans_config_policy_enable) {
