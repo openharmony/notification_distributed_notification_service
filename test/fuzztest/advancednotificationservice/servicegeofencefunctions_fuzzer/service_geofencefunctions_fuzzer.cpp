@@ -295,7 +295,6 @@ namespace {
             bundle->SetBundleName(fuzzData->ConsumeRandomLengthString());
             bundle->SetUid(fuzzData->ConsumeIntegralInRange<int32_t>(0, INTEGRAL_RANGE_SIZE));
         }
-        service->RemoveAllFromTriggerNotificationList(bundle);
         sptr<NotificationSlot> slot;
         if (fuzzData->ConsumeBool()) {
             slot = nullptr;
@@ -455,7 +454,6 @@ namespace {
         service->GetRecordFromTriggerNotificationList(parameter1);
         record = GenerateTriggerNotificationRecord(fuzzData);
         service->triggerNotificationList_.push_back(record);
-        service->RemoveAllFromTriggerNotificationList(record->bundleOption);
         record = GenerateTriggerNotificationRecord(fuzzData);
         service->triggerNotificationList_.push_back(record);
         auto slot = sptr<NotificationSlot>::MakeSptr();
