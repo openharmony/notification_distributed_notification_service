@@ -140,4 +140,38 @@ HWTEST_F(ReminderDataManagerTest, CheckVibrationConfig_001, Level1)
     manager->systemSoundClient_ = std::move(client);
 #endif
 }
+
+/**
+ * @tc.name: GenDstBundleName_001
+ * @tc.desc: Test GenDstBundleName branch coverage
+ * @tc.type: FUNC
+ * @tc.require: issue#I9IIDE
+ */
+HWTEST_F(ReminderDataManagerTest, GenDstBundleName_001, Level1)
+{
+    std::string dstBundleName;
+    // branch: while loop skips (right - left > 1), right != npos
+    manager->GenDstBundleName(dstBundleName, "prefix/bundleName/suffix");
+    EXPECT_EQ(dstBundleName, "/bundleName");
+
+    // branch: while loop once (scheme://), right == npos
+    dstBundleName.clear();
+    manager->GenDstBundleName(dstBundleName, "datashareTest://com.acts.dataShareTest");
+    EXPECT_EQ(dstBundleName, "com.acts.dataShareTest");
+
+    // branch: while loop once, right != npos
+    dstBundleName.clear();
+    manager->GenDstBundleName(dstBundleName, "datashareTest://com.example.app/db/table");
+    EXPECT_EQ(dstBundleName, "com.example.app");
+
+    // branch: while loop multiple times (consecutive slashes)
+    dstBundleName.clear();
+    manager->GenDstBundleName(dstBundleName, "a///b");
+    EXPECT_EQ(dstBundleName, "b");
+
+    // branch: while loop once, trailing slash
+    dstBundleName.clear();
+    manager->GenDstBundleName(dstBundleName, "scheme://bundle/");
+    EXPECT_EQ(dstBundleName, "bundle");
+}
 }  // namespace OHOS::Notification

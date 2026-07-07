@@ -951,6 +951,7 @@ void ReminderDataManager::ShowActiveReminder(const EventFwk::Want &want)
         return;
     }
     if (HandleSysTimeChange(reminder)) {
+        StartRecentReminder();
         return;
     }
     ReportTimerEvent(targetTime, false);
