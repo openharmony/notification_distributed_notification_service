@@ -86,6 +86,10 @@ void AnsSnoozeDelayTest::TearDown()
     NotificationPreferences::GetInstance()->ClearNotificationInRestoreFactorySettings();
     advancedNotificationService_->timerImpl_.StopTimer();
     advancedNotificationService_->timerImpl_.DestroyTimer();
+    advancedNotificationService_->SelfClean();
+    constexpr int sleepMs = 500;
+    std::this_thread::sleep_for(std::chrono::milliseconds(sleepMs));
+    NotificationSubscriberManager::DestroyInstance();
     delete advancedNotificationService_;
     advancedNotificationService_ = nullptr;
     GTEST_LOG_(INFO) << "TearDown";
