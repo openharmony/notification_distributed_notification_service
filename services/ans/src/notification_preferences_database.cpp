@@ -2881,8 +2881,6 @@ bool NotificationPreferencesDatabase::GetNotificationSwitch(const std::string &s
                 break;
         }
     });
-    ANS_LOGI("GetNotificationSwitch key: %{public}s, state: %{public}d, result: %{public}d",
-        key.c_str(), static_cast<int32_t>(state), result);
     return result;
 }
 
