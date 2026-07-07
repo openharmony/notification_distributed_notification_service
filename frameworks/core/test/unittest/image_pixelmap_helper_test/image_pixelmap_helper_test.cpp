@@ -2002,5 +2002,29 @@ HWTEST_F(ImagePixelmapHelperTest, CreatePixelMap_00019, Function | SmallTest | L
         EXPECT_NE(helper.pixelMap_, nullptr);
     }
 }
+
+/**
+ * @tc.name: CreatePixelMap_00020
+ * @tc.desc: Test CreatePixelMap applies vpToPx scale (3x) to width and height.
+ * @tc.type: FUNC
+ * @tc.require: issueI8WRQ2
+ */
+HWTEST_F(ImagePixelmapHelperTest, CreatePixelMap_00020, Function | SmallTest | Level1)
+{
+    Notification::Mock::MockSetImageWidth(100);
+    Notification::Mock::MockSetImageHeight(150);
+    sptr<NotificationRequest> request = new NotificationRequest();
+    request->SetOwnerBundleName("com.test");
+    ImagePixelmapHelper helper(request, "test.png");
+    
+    helper.InitRawfileData();
+    helper.CreateImageSource();
+    ErrCode ret = helper.CreatePixelMap();
+    
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_NE(helper.pixelMap_, nullptr);
+    EXPECT_EQ(helper.imageWidth_, 100u);
+    EXPECT_EQ(helper.imageHeight_, 150u);
+}
 }  // namespace Notification
 }  // namespace OHOS

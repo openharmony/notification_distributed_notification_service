@@ -134,14 +134,15 @@ ErrCode ImagePixelmapHelper::CreatePixelMap()
         return ret;
     }
     constexpr uint32_t MAX_SIZE = 500;
-    uint32_t targetWidth = imageWidth_;
-    uint32_t targetHeight = imageHeight_;
-    if (imageWidth_ > MAX_SIZE || imageHeight_ > MAX_SIZE) {
-        float scale = std::min(static_cast<float>(MAX_SIZE) / imageWidth_,
-            static_cast<float>(MAX_SIZE) / imageHeight_);
-        targetWidth = static_cast<uint32_t>(imageWidth_ * scale);
-        targetHeight = static_cast<uint32_t>(imageHeight_ * scale);
-        ANS_LOGI("Start scale image width: %{public}u, height: %{public}u", targetWidth, targetHeight);
+    constexpr uint32_t VP_TO_PX_SCALE = 3;
+    uint32_t targetWidth = imageWidth_ * VP_TO_PX_SCALE;
+    uint32_t targetHeight = imageHeight_ * VP_TO_PX_SCALE;
+    if (targetWidth > MAX_SIZE || targetHeight > MAX_SIZE) {
+        float scale = std::min(static_cast<float>(MAX_SIZE) / targetWidth,
+            static_cast<float>(MAX_SIZE) / targetHeight);
+        targetWidth = static_cast<uint32_t>(targetWidth * scale);
+        targetHeight = static_cast<uint32_t>(targetHeight * scale);
+        ANS_LOGI("Start scale image width: %{public}u, height: %{public}u", imageWidth_, imageHeight_);
     }
 
     OH_DecodingOptions *ops = nullptr;
