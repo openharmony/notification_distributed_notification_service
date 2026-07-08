@@ -162,6 +162,7 @@ ohos_source_set("notification_subscriber_extension_common") {
     "hilog:libhilog",
     "ipc:ipc_napi",
     "napi:ace_napi",
+    "node:node_header_notice"
   ]
 
   subsystem_name = "notification"

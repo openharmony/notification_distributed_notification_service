@@ -156,6 +156,7 @@ ohos_shared_library("notification") {
     "json:nlohmann_json_static",
     "libuv:uv",
     "napi:ace_napi",
+    "node:node_header_notice",
     "os_account:os_account_innerkits",
     "relational_store:native_rdb",
     "resource_management:global_resmgr",
