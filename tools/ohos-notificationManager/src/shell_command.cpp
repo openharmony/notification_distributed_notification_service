@@ -37,7 +37,6 @@ ShellCommand::ShellCommand(int argc, char *argv[], std::string name)
     }
     for (int i = 2; i < argc; i++) {
         argList_.push_back(argv[i]);
-        resultReceiver_.append(argv_[i]).append("|");
     }
 }
 

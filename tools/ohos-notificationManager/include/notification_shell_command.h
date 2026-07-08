@@ -41,17 +41,11 @@ struct PublishOptions {
     std::string sound;
     std::string appMessageId;
     std::string priorityNotificationType;
-    std::string additionalParamsJson;
-    std::string actionButtonsJson;
     std::string flagsStr;
-    std::string templateJson;
     uint32_t badgeNumber = 0;
     int64_t autoDeletedTime = -1;
     bool isUpdateOnly = false;
     bool isAlertOneTime = false;
-    bool isTapDismissed = false;
-    bool isOngoing = false;
-    bool isUnremovable = false;
     bool helpRequested = false;
 };
 
@@ -90,10 +84,7 @@ private:
     ErrCode ValidatePublishRequiredOptions(const PublishOptions &opts);
     void ApplySimplePublishFields(const PublishOptions &opts, NotificationRequest &request);
     ErrCode ApplyPublishOptions(const PublishOptions &opts, NotificationRequest &request);
-    ErrCode ParseAndApplyActionButtons(const std::string &jsonStr, NotificationRequest &request);
     ErrCode ParseAndApplyNotificationFlags(const std::string &jsonStr, NotificationRequest &request);
-    ErrCode ParseAndApplyNotificationTemplate(const std::string &jsonStr, NotificationRequest &request);
-    ErrCode ParseAndApplyAdditionalParams(const std::string &jsonStr, NotificationRequest &request);
     ErrCode ParseHashcodes(const std::string &jsonStr, std::vector<std::string> &hashcodes);
 
     void SerializeNotification(const sptr<Notification> &notif, nlohmann::json &item);
