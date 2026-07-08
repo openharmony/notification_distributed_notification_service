@@ -135,6 +135,7 @@ ohos_shared_library("notificationmanager") {
     "image_framework:image",
     "ipc:ipc_single",
     "napi:ace_napi",
+    "node:node_header_notice",
     "os_account:os_account_innerkits",
     "relational_store:native_rdb",
   ]
