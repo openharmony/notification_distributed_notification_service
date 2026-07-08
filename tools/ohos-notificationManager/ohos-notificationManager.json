@@ -30,19 +30,17 @@
           "notificationId": {
             "type": "integer",
             "description": "通知ID",
-            "minimum": 0,
             "default": 0
           },
           "notificationContent": {
             "type": "string",
-            "description": "通知内容JSON字符串。所有类型公共必填: title(≤1024B), text(≤3072B)；公共可选: additionalText(≤3072B)；所有属性超长截取。type仅支持basic、long_text、multiline:\nbasic示例: {\"type\":\"basic\",\"title\":\"通知标题\",\"text\":\"通知内容\",\"additionalText\":\"附加文本\"}\nlong_text示例: {\"type\":\"long_text\",\"title\":\"通知标题\",\"text\":\"短内容\",\"longText\":\"长文本内容\",\"expandedTitle\":\"展开标题\",\"briefText\":\"摘要\",\"additionalText\":\"附加文本\"}\nmultiline示例: {\"type\":\"multiline\",\"title\":\"通知标题\",\"text\":\"通知内容\",\"expandedTitle\":\"展开标题\",\"briefText\":\"摘要\",\"lines\":[\"第一行\",\"第二行\",\"第三行\"],\"additionalText\":\"附加文本\"}",
-            "maxLength": 4096
+            "description": "通知内容JSON字符串。所有类型公共必填: title(≤1024B), text(≤3072B)；公共可选: additionalText(≤3072B)；所有属性超长截取。type仅支持basic、long_text、multiline:\nbasic示例: {\"type\":\"basic\",\"title\":\"通知标题\",\"text\":\"通知内容\",\"additionalText\":\"附加文本\"}\nlong_text: longText(≤3072B)、expandedTitle(≤1024B)、briefText(≤1024B)，超长截取。示例: {\"type\":\"long_text\",\"title\":\"通知标题\",\"text\":\"短内容\",\"longText\":\"长文本内容\",\"expandedTitle\":\"展开标题\",\"briefText\":\"摘要\",\"additionalText\":\"附加文本\"}\nmultiline: expandedTitle(≤1024B)、briefText(≤1024B)、lines(≤3个元素,每个≤1024B)，超长截取。示例: {\"type\":\"multiline\",\"title\":\"通知标题\",\"text\":\"通知内容\",\"expandedTitle\":\"展开标题\",\"briefText\":\"摘要\",\"lines\":[\"第一行\",\"第二行\",\"第三行\"],\"additionalText\":\"附加文本\"}"
           },
           "slotType": {
             "type": "integer",
-            "description": "通知渠道类型（0=社交通信, 1=服务提醒, 2=内容信息, 3=其他, 4=自定义, 6=客服消息, 7=紧急信息，不支持5=实况通知）",
+            "description": "通知渠道类型（0=社交通信, 1=服务提醒, 2=内容信息, 3=其他, 4=自定义, 6=客服消息，不支持5=实况通知、7=紧急信息）",
             "minimum": 0,
-            "maximum": 7,
+            "maximum": 6,
             "default": 3
           },
           "updateOnly": {
@@ -52,13 +50,12 @@
           },
           "appMessageId": {
             "type": "string",
-            "description": "应用消息ID，用于标识特定消息",
-            "maxLength": 256
+            "description": "应用消息ID，用于标识特定消息"
           },
           "priorityNotificationType": {
             "type": "string",
-            "description": "优先级通知类型，枚举值: alarm(闹钟定时器)、call(来电通话)、email(邮件)、err(后台错误/认证)、event(日历事件)、msg(短信即时消息)、navigation(地图导航)、progress(后台长时间进程)、promo(广告推广)、recommendation(及时推荐)、reminder(用户提醒)、service(后台服务)、social(社交更新)、status(设备状态)、sys(系统状态更新)、transport(媒体播放控制)",
-            "enum": ["alarm", "call", "email", "err", "event", "msg", "navigation", "progress", "promo", "recommendation", "reminder", "service", "social", "status", "sys", "transport"]
+            "description": "优先级通知类型，枚举值: OTHER(非优先级通知)、PRIMARY_CONTACT(重要联系人)、AT_ME(有人@我)、URGENT_MESSAGE(紧急消息)、SCHEDULE_REMINDER(日程提醒)",
+            "enum": ["OTHER", "PRIMARY_CONTACT", "AT_ME", "URGENT_MESSAGE", "SCHEDULE_REMINDER"]
           },
           "alertOneTime": {
             "type": "boolean",
@@ -67,63 +64,27 @@
           },
           "sound": {
             "type": "string",
-            "description": "自定义通知声音URI",
-            "maxLength": 204
+            "description": "自定义通知声音URI"
           },
           "badgeNumber": {
             "type": "integer",
-            "description": "通知角标增加数量（设置为在当前角标基础上增加的数字）",
-            "minimum": 0
-          },
-          "tapDismissed": {
-            "type": "boolean",
-            "description": "点击后自动消失",
-            "default": false
+            "description": "通知角标增加数量（设置为在当前角标基础上增加的数字，必须>=0）"
           },
           "autoDeletedTime": {
-            "type": "integer",
-            "description": "自动删除时间（毫秒）",
-            "minimum": 0
+            "type": "number",
+            "description": "自动删除时间（毫秒）"
           },
           "label": {
             "type": "string",
-            "description": "通知标签（不超过204字节）",
-            "maxLength": 204
+            "description": "通知标签（不超过204字节）"
           },
           "groupName": {
             "type": "string",
-            "description": "通知分组名称（不超过204字节，超长截取）",
-            "maxLength": 204
-          },
-          "additionalParams": {
-            "type": "string",
-            "description": "附加数据WantParams序列化字符串（键值对）",
-            "maxLength": 4096
-          },
-          "inProgress": {
-            "type": "boolean",
-            "description": "是否标记为进行中通知",
-            "default": false
-          },
-          "unRemovable": {
-            "type": "boolean",
-            "description": "是否标记为不可移除通知",
-            "default": false
-          },
-          "actionButtons": {
-            "type": "string",
-            "description": "操作按钮JSON数组字符串（仅支持title字段）",
-            "maxLength": 4096
+            "description": "通知分组名称（不超过204字节，超长截取）"
           },
           "notificationFlags": {
             "type": "string",
-            "description": "通知提醒标志JSON字符串。支持字段: soundEnabled(声音)、vibrationEnabled(振动)、bannerEnabled(横幅)、lockScreenEnabled(锁屏)，值枚举: 2=CLOSE(关闭)。示例: {\"soundEnabled\":2,\"vibrationEnabled\":2}",
-            "maxLength": 4096
-          },
-          "notificationTemplate": {
-            "type": "string",
-            "description": "通知模板JSON字符串（包含name和可选data字段，name不超过204字节超长截取，data为WantParams序列化字符串）",
-            "maxLength": 4096
+            "description": "通知提醒标志JSON字符串。支持字段: soundEnabled(声音)、vibrationEnabled(振动)、bannerEnabled(横幅)、lockScreenEnabled(锁屏)，值枚举: 2=CLOSE(关闭)。示例: {\"soundEnabled\":2,\"vibrationEnabled\":2}"
           }
         },
         "required": ["notificationContent"]
@@ -158,13 +119,11 @@
           },
           "bundleOption": {
             "type": "string",
-            "description": "目标应用信息JSON字符串，包含bundleName(应用包名)和uid(应用UID)两个属性",
-            "maxLength": 4096
+            "description": "目标应用信息JSON字符串，包含bundleName(应用包名)和uid(应用UID)两个属性"
           },
           "notificationId": {
             "type": "integer",
-            "description": "待取消的通知ID",
-            "minimum": 0
+            "description": "待取消的通知ID"
           }
         },
         "required": ["bundleOption", "notificationId"]
@@ -198,8 +157,7 @@
           },
           "bundleOption": {
             "type": "string",
-            "description": "目标应用信息JSON字符串，包含bundleName(应用包名)和uid(应用UID)两个属性",
-            "maxLength": 4096
+            "description": "目标应用信息JSON字符串，包含bundleName(应用包名)和uid(应用UID)两个属性"
           }
         },
         "required": ["bundleOption"]
@@ -233,8 +191,7 @@
           },
           "hashcodes": {
             "type": "string",
-            "description": "通知哈希码JSON数组字符串，指定要移除的通知列表",
-            "maxLength": 4096
+            "description": "通知哈希码JSON数组字符串，指定要移除的通知列表"
           }
         },
         "required": ["hashcodes"]
@@ -268,12 +225,12 @@
           },
           "bundleOption": {
             "type": "string",
-            "description": "目标应用信息JSON字符串，包含bundleName(应用包名)和uid(应用UID)两个属性",
-            "maxLength": 4096
+            "description": "目标应用信息JSON字符串，包含bundleName(应用包名)和uid(应用UID)两个属性"
           },
           "enabled": {
             "type": "boolean",
-            "description": "通知开关状态（true=启用, false=禁用）"
+            "description": "通知开关状态（true=启用, false=禁用）",
+            "default": false
           }
         },
         "required": ["bundleOption", "enabled"]
@@ -307,14 +264,11 @@
           },
           "bundleOption": {
             "type": "string",
-            "description": "目标应用信息JSON字符串，包含bundleName(应用包名)和uid(应用UID)两个属性",
-            "maxLength": 4096
+            "description": "目标应用信息JSON字符串，包含bundleName(应用包名)和uid(应用UID)两个属性"
           },
           "flags": {
             "type": "integer",
-            "description": "渠道标志位掩码，仅bit0-bit5有效（bit0=声音, bit1=锁屏, bit2=横幅, bit3=亮屏, bit4=振动, bit5=状态栏图标），其中亮屏(bit3)和状态栏图标(bit5)设置关闭不会生效，服务端会强制保持开启",
-            "minimum": 0,
-            "maximum": 63
+            "description": "渠道标志位掩码，仅bit0-bit5有效（bit0=声音, bit1=锁屏, bit2=横幅, bit3=亮屏, bit4=振动, bit5=状态栏图标），必须>=0且不能大于0b111111(63)，其中亮屏(bit3)和状态栏图标(bit5)设置关闭不会生效，服务端会强制保持开启"
           }
         },
         "required": ["bundleOption", "flags"]
@@ -369,10 +323,9 @@
                     "label": { "type": "string", "description": "通知标签" },
                     "appInstanceKey": { "type": "string", "description": "应用实例Key" },
                     "slotType": { "type": "integer", "description": "渠道类型值" },
-                    "additionalParams": { "type": "string", "description": "附加参数（键值对）" },
                     "notificationContent": {
                         "type": "object",
-                        "description": "通知内容，按type字段区分不同类型。所有类型公共字段: type(类型名)、title(标题)、text(文本)、additionalText(附加文本，可选)；\nbasic: 仅公共字段；\nlong_text: +longText(长文本)、expandedTitle(展开标题)、briefText(摘要)；\nmultiline: +expandedTitle(展开标题)、briefText(摘要)、lines(行文本数组)；\npicture: +expandedTitle(展开标题)、briefText(摘要)；\nconversation: +conversationTitle(会话标题)、isGroup(是否群聊)、messages(消息数组，含text/arrivedTime/senderName/senderKey)；\nmedia: +shownActions(展示按钮序号数组)；\nlive_view: +liveViewStatus(实况状态)、version(版本号)、extraInfo(扩展信息)；\nlocal_live_view: +liveViewType(实况类型)",
+                        "description": "通知内容，按type字段区分不同类型。所有类型公共字段: type(类型名)、title(标题)、text(文本)、additionalText(附加文本，可选)；\nbasic: 仅公共字段；\nlong_text: +longText(长文本)、expandedTitle(展开标题)、briefText(摘要)；\nmultiline: +expandedTitle(展开标题)、briefText(摘要)、lines(行文本数组)；\npicture: +expandedTitle(展开标题)、briefText(摘要)；\nconversation: +conversationTitle(会话标题)、isGroup(是否群聊)、messages(消息数组，含text/arrivedTime/senderName/senderKey)；\nmedia: +shownActions(展示按钮序号数组)；\nlive_view: +liveViewStatus(实况状态)、version(版本号)；\nlocal_live_view: +liveViewType(实况类型)",
                         "properties": {
                             "type": { "type": "string", "description": "内容类型: basic|long_text|multiline|picture|conversation|media|live_view|local_live_view" },
                             "title": { "type": "string", "description": "通知标题" },
@@ -388,13 +341,11 @@
                             "shownActions": { "type": "array", "description": "展示按钮序号数组(media类型)", "items": { "type": "integer" } },
                             "liveViewStatus": { "type": "integer", "description": "实况通知状态(live_view类型)" },
                             "version": { "type": "integer", "description": "实况通知版本号(live_view类型)" },
-                            "extraInfo": { "type": "string", "description": "扩展信息WantParams序列化字符串(live_view类型)" },
                             "liveViewType": { "type": "integer", "description": "本地实况类型(local_live_view类型)" }
                         }
                     },
                     "actionButtons": { "type": "array", "description": "操作按钮列表", "items": { "type": "object", "properties": { "title": { "type": "string", "description": "按钮标题" } } } },
                     "notificationFlags": { "type": "string", "description": "通知提醒标志，包含soundEnabled、vibrationEnabled、bannerEnabled、lockScreenEnabled等字段" },
-                    "extendInfo": { "type": "string", "description": "扩展信息（键值对）" },
                     "hashCode": { "type": "string", "description": "通知哈希码" }
                   }
                 },
