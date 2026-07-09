@@ -65,8 +65,8 @@ std::shared_ptr<NotificationAppPrivileges> __attribute__((weak)) NotificationCon
         return nullptr;
     }
     for (auto &affect : affects.items()) {
-        if (affect.key() == bundleName) {
-            return std::make_shared<NotificationAppPrivileges>(affect.value());
+        if (affect.key() == bundleName && affect.value().is_string()) {
+            return std::make_shared<NotificationAppPrivileges>(affect.value().get<std::string>());
         }
     }
     return nullptr;
@@ -113,7 +113,7 @@ bool __attribute__((weak)) NotificationConfigParse::GetCurrentSlotReminder(
         return false;
     }
 
-    if (root.find(CFG_KEY_NOTIFICATION_SERVICE) == root.end()) {
+    if (!root.contains(CFG_KEY_NOTIFICATION_SERVICE) || !root[CFG_KEY_NOTIFICATION_SERVICE].is_object()) {
         ANS_LOGE("GetCurrentSlotReminder failed as can not find notificationService.");
         return false;
     }
@@ -258,20 +258,24 @@ void __attribute__((weak)) NotificationConfigParse::GetFlowCtrlConfigFromCCM(Flo
         ANS_LOGE("GetFlowCtrlConfigFromCCM failed as invalid ccmFlowCtrlConfig json");
         return;
     }
-    if (affects.contains(CFG_KEY_MAX_CREATE_NUM_PERSECOND)) {
-        threshold.maxCreateNumPerSecond = affects[CFG_KEY_MAX_CREATE_NUM_PERSECOND];
+    if (affects.contains(CFG_KEY_MAX_CREATE_NUM_PERSECOND) &&
+        affects[CFG_KEY_MAX_CREATE_NUM_PERSECOND].is_number_integer()) {
+        threshold.maxCreateNumPerSecond = affects[CFG_KEY_MAX_CREATE_NUM_PERSECOND].get<uint32_t>();
     }
 
-    if (affects.contains(CFG_KEY_MAX_UPDATE_NUM_PERSECOND)) {
-        threshold.maxUpdateNumPerSecond = affects[CFG_KEY_MAX_UPDATE_NUM_PERSECOND];
+    if (affects.contains(CFG_KEY_MAX_UPDATE_NUM_PERSECOND) &&
+        affects[CFG_KEY_MAX_UPDATE_NUM_PERSECOND].is_number_integer()) {
+        threshold.maxUpdateNumPerSecond = affects[CFG_KEY_MAX_UPDATE_NUM_PERSECOND].get<uint32_t>();
     }
 
-    if (affects.contains(CFG_KEY_MAX_CREATE_NUM_PERSECOND_PERAPP)) {
-        threshold.maxCreateNumPerSecondPerApp = affects[CFG_KEY_MAX_CREATE_NUM_PERSECOND_PERAPP];
+    if (affects.contains(CFG_KEY_MAX_CREATE_NUM_PERSECOND_PERAPP) &&
+        affects[CFG_KEY_MAX_CREATE_NUM_PERSECOND_PERAPP].is_number_integer()) {
+        threshold.maxCreateNumPerSecondPerApp = affects[CFG_KEY_MAX_CREATE_NUM_PERSECOND_PERAPP].get<uint32_t>();
     }
 
-    if (affects.contains(CFG_KEY_MAX_UPDATE_NUM_PERSECOND_PERAPP)) {
-        threshold.maxUpdateNumPerSecondPerApp = affects[CFG_KEY_MAX_UPDATE_NUM_PERSECOND_PERAPP];
+    if (affects.contains(CFG_KEY_MAX_UPDATE_NUM_PERSECOND_PERAPP) &&
+        affects[CFG_KEY_MAX_UPDATE_NUM_PERSECOND_PERAPP].is_number_integer()) {
+        threshold.maxUpdateNumPerSecondPerApp = affects[CFG_KEY_MAX_UPDATE_NUM_PERSECOND_PERAPP].get<uint32_t>();
     }
 
     ANS_LOGI("GetFlowCtrlConfigFromCCM success");
@@ -289,7 +293,7 @@ bool __attribute__((weak)) NotificationConfigParse::GetSmartReminderEnableList(s
         return false;
     }
 
-    if (root.find(CFG_KEY_NOTIFICATION_SERVICE) == root.end()) {
+    if (!root.contains(CFG_KEY_NOTIFICATION_SERVICE) || !root[CFG_KEY_NOTIFICATION_SERVICE].is_object()) {
         ANS_LOGE("find notificationService fail");
         return false;
     }
@@ -300,7 +304,11 @@ bool __attribute__((weak)) NotificationConfigParse::GetSmartReminderEnableList(s
         return false;
     }
     std::lock_guard<ffrt::mutex> lock(mutex_);
-    deviceTypes = smartReminderEnableList.get<std::vector<std::string>>();
+    for (const auto &deviceType : smartReminderEnableList) {
+        if (deviceType.is_string()) {
+            deviceTypes.push_back(deviceType.get<std::string>());
+        }
+    }
     return true;
 }
 
@@ -317,7 +325,7 @@ bool __attribute__((weak)) NotificationConfigParse::GetMirrorNotificationEnabled
         return false;
     }
 
-    if (root.find(CFG_KEY_NOTIFICATION_SERVICE) == root.end()) {
+    if (!root.contains(CFG_KEY_NOTIFICATION_SERVICE) || !root[CFG_KEY_NOTIFICATION_SERVICE].is_object()) {
         ANS_LOGE("find notificationService fail");
         return false;
     }
@@ -330,7 +338,11 @@ bool __attribute__((weak)) NotificationConfigParse::GetMirrorNotificationEnabled
         return false;
     }
     std::lock_guard<ffrt::mutex> lock(mutex_);
-    deviceTypes = mirrorNotificationEnabledStatus.get<std::vector<std::string>>();
+    for (const auto &deviceType : mirrorNotificationEnabledStatus) {
+        if (deviceType.is_string()) {
+            deviceTypes.push_back(deviceType.get<std::string>());
+        }
+    }
     return true;
 }
 
@@ -347,7 +359,7 @@ bool __attribute__((weak)) NotificationConfigParse::GetAppAndDeviceRelationMap(
         return false;
     }
 
-    if (root.find(CFG_KEY_NOTIFICATION_SERVICE) == root.end()) {
+    if (!root.contains(CFG_KEY_NOTIFICATION_SERVICE) || !root[CFG_KEY_NOTIFICATION_SERVICE].is_object()) {
         ANS_LOGE("find notificationService fail");
         return false;
     }
@@ -359,7 +371,9 @@ bool __attribute__((weak)) NotificationConfigParse::GetAppAndDeviceRelationMap(
     }
     std::lock_guard<ffrt::mutex> lock(mutex_);
     for (auto& appAndDeviceRelation : appAndDeviceRelationMap.items()) {
-        relationMap[appAndDeviceRelation.key()] = appAndDeviceRelation.value();
+        if (appAndDeviceRelation.value().is_string()) {
+            relationMap[appAndDeviceRelation.key()] = appAndDeviceRelation.value().get<std::string>();
+        }
     }
     return true;
 }
@@ -375,7 +389,7 @@ std::unordered_set<std::string> __attribute__((weak)) NotificationConfigParse::G
         ANS_LOGE("GetConfigJson faild");
         return std::unordered_set<std::string>();
     }
-    if (root.find(CFG_KEY_NOTIFICATION_SERVICE) == root.end()) {
+    if (!root.contains(CFG_KEY_NOTIFICATION_SERVICE) || !root[CFG_KEY_NOTIFICATION_SERVICE].is_object()) {
         ANS_LOGE("appPrivileges null");
         return std::unordered_set<std::string>();
     }
@@ -480,8 +494,9 @@ uint32_t __attribute__((weak)) NotificationConfigParse::GetStartAbilityTimeout()
         ANS_LOGE("GetStartAbilityTimeout failed as invalid ccmFlowCtrlConfig json");
         return 0;
     }
-    if (affects.contains(CFG_KEY_START_ABILITY_TIMEOUT)) {
-        return affects[CFG_KEY_START_ABILITY_TIMEOUT];
+    if (affects.contains(CFG_KEY_START_ABILITY_TIMEOUT) &&
+        affects[CFG_KEY_START_ABILITY_TIMEOUT].is_number_integer()) {
+        return affects[CFG_KEY_START_ABILITY_TIMEOUT].get<uint32_t>();
     }
 
     return 0;
@@ -509,7 +524,7 @@ void __attribute__((weak)) NotificationConfigParse::GetReportTrustListConfig()
     if (!GetConfigJson(reportJsonPoint, root)) {
         return;
     }
-    if (root.find(CFG_KEY_NOTIFICATION_SERVICE) == root.end()) {
+    if (!root.contains(CFG_KEY_NOTIFICATION_SERVICE) || !root[CFG_KEY_NOTIFICATION_SERVICE].is_object()) {
         ANS_LOGE("Failed to get JsonPoint CCM config file");
         return;
     }
@@ -520,7 +535,9 @@ void __attribute__((weak)) NotificationConfigParse::GetReportTrustListConfig()
         return;
     }
     for (auto &reportTrust : reportTrustList) {
-        reporteTrustSet_.emplace(reportTrust);
+        if (reportTrust.is_string()) {
+            reporteTrustSet_.emplace(reportTrust.get<std::string>());
+        }
     }
 
     nlohmann::json keyBundles = root[CFG_KEY_NOTIFICATION_SERVICE][CFG_KEY_BUNDLE_NAME];
@@ -529,7 +546,9 @@ void __attribute__((weak)) NotificationConfigParse::GetReportTrustListConfig()
         return;
     }
     for (auto &bundle : keyBundles) {
-        keyTrustBundles_.emplace(bundle);
+        if (bundle.is_string()) {
+            keyTrustBundles_.emplace(bundle.get<std::string>());
+        }
     }
     return;
 }
@@ -554,7 +573,7 @@ bool __attribute__((weak)) NotificationConfigParse::GetCloneExpiredTime(int32_t&
     if (!GetConfigJson(reportJsonPoint, root)) {
         return false;
     }
-    if (root.find(CFG_KEY_NOTIFICATION_SERVICE) == root.end()) {
+    if (!root.contains(CFG_KEY_NOTIFICATION_SERVICE) || !root[CFG_KEY_NOTIFICATION_SERVICE].is_object()) {
         ANS_LOGE("Failed to get JsonPoint CCM config file");
         return false;
     }
@@ -579,7 +598,7 @@ bool __attribute__((weak)) NotificationConfigParse::GetDataCloneBundleName(std::
         ANS_LOGE("Failed to get JsonPoint CCM config file.");
         return false;
     }
-    if (root.find(CFG_KEY_NOTIFICATION_SERVICE) == root.end()) {
+    if (!root.contains(CFG_KEY_NOTIFICATION_SERVICE) || !root[CFG_KEY_NOTIFICATION_SERVICE].is_object()) {
         ANS_LOGE("Failed to find notificationService in CCM config.");
         return false;
     }
@@ -610,7 +629,7 @@ bool __attribute__((weak)) NotificationConfigParse::GetCollaborativeDeleteTypeBy
         return false;
     }
 
-    if (root.find(CFG_KEY_NOTIFICATION_SERVICE) == root.end()) {
+    if (!root.contains(CFG_KEY_NOTIFICATION_SERVICE) || !root[CFG_KEY_NOTIFICATION_SERVICE].is_object()) {
         ANS_LOGE("appPrivileges null");
         return false;
     }
@@ -706,8 +725,9 @@ bool __attribute__((weak)) NotificationConfigParse::IsNotificationExtensionLifec
         return false;
     }
     
-    if (extension.contains(CFG_KEY_NOTIFICATION_EXTENSION_LIFECYCLE_DESTORY_TIME)) {
-        outDestroyTime = extension[CFG_KEY_NOTIFICATION_EXTENSION_LIFECYCLE_DESTORY_TIME];
+    if (extension.contains(CFG_KEY_NOTIFICATION_EXTENSION_LIFECYCLE_DESTORY_TIME) &&
+        extension[CFG_KEY_NOTIFICATION_EXTENSION_LIFECYCLE_DESTORY_TIME].is_number_integer()) {
+        outDestroyTime = extension[CFG_KEY_NOTIFICATION_EXTENSION_LIFECYCLE_DESTORY_TIME].get<uint32_t>();
         ANS_LOGI("Notification extension lifecycle destroy time config found and valid");
         return true;
     }
@@ -744,8 +764,8 @@ bool __attribute__((weak)) NotificationConfigParse::IsNotificationExtensionSubsc
         outSupportHfp = false;
         return false;
     }
-    if (extension.contains(CFG_KEY_SUPPORT_HFP)) {
-        outSupportHfp = extension[CFG_KEY_SUPPORT_HFP];
+    if (extension.contains(CFG_KEY_SUPPORT_HFP) && extension[CFG_KEY_SUPPORT_HFP].is_boolean()) {
+        outSupportHfp = extension[CFG_KEY_SUPPORT_HFP].get<bool>();
         return true;
     }
 
@@ -794,7 +814,11 @@ bool __attribute__((weak)) NotificationConfigParse::GetNotificationExtensionEnab
         return false;
     }
 
-    bundles = list.get<std::vector<std::string>>();
+    for (const auto &bundle : list) {
+        if (bundle.is_string()) {
+            bundles.push_back(bundle.get<std::string>());
+        }
+    }
     return true;
 }
 } // namespace Notification

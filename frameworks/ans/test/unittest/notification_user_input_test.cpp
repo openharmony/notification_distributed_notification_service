@@ -428,5 +428,48 @@ HWTEST_F(NotificationUserInputTest, Dump_00002, Function | SmallTest | Level1)
     "permitMimeTypes = [this is permitMimeType1, this is permitMimeType2], editType = 1 }";
     EXPECT_EQ(ret, dump);
 }
+
+/**
+ * @tc.name: FromJson_00005
+ * @tc.desc: Test FromJson with options containing non-string elements (should skip them).
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationUserInputTest, FromJson_00005, Function | SmallTest | Level1)
+{
+    nlohmann::json jsonObject = nlohmann::json{
+        {"inputKey", "key"},
+        {"options", {1, "valid", true, "end"}}};
+    auto res = NotificationUserInput::FromJson(jsonObject);
+    EXPECT_NE(res, nullptr);
+}
+
+/**
+ * @tc.name: FromJson_00006
+ * @tc.desc: Test FromJson with permitMimeTypes containing non-string elements (should skip them).
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationUserInputTest, FromJson_00006, Function | SmallTest | Level1)
+{
+    nlohmann::json jsonObject = nlohmann::json{
+        {"inputKey", "key"},
+        {"permitMimeTypes", {1, "valid", true}}};
+    auto res = NotificationUserInput::FromJson(jsonObject);
+    EXPECT_NE(res, nullptr);
+}
+
+/**
+ * @tc.name: FromJson_00007
+ * @tc.desc: Test FromJson with null json object.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationUserInputTest, FromJson_00007, Function | SmallTest | Level1)
+{
+    nlohmann::json jsonObject;
+    auto res = NotificationUserInput::FromJson(jsonObject);
+    EXPECT_EQ(res, nullptr);
+}
 }
 }

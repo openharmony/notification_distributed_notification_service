@@ -121,8 +121,12 @@ void NotificationCheckInfo::ConvertJsonExtraInfoToValue(nlohmann::json &jsonobj)
 
 void NotificationCheckInfo::ConvertJsonStringToValue(const std::string &notificationData)
 {
-    nlohmann::json jsonobj = nlohmann::json::parse(notificationData);
-    if (jsonobj.is_null() || !jsonobj.is_object()) {
+    if (notificationData.empty() || !nlohmann::json::accept(notificationData)) {
+        ANS_LOGE("Invalid json string");
+        return;
+    }
+    nlohmann::json jsonobj = nlohmann::json::parse(notificationData, nullptr, false);
+    if (jsonobj.is_discarded() || jsonobj.is_null() || !jsonobj.is_object()) {
         ANS_LOGE("Invalid JSON object");
         return;
     }

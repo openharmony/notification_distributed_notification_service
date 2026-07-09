@@ -102,11 +102,21 @@ NotificationDistributedOptions *NotificationDistributedOptions::FromJson(const n
     }
 
     if (jsonObject.find("devicesSupportDisplay") != jsonEnd && jsonObject.at("devicesSupportDisplay").is_array()) {
-        pOpt->devicesSupportDisplay_ = jsonObject.at("devicesSupportDisplay").get<std::vector<std::string>>();
+        auto devicesSupportDisplayJson = jsonObject.at("devicesSupportDisplay");
+        for (const auto &device : devicesSupportDisplayJson) {
+            if (device.is_string()) {
+                pOpt->devicesSupportDisplay_.push_back(device.get<std::string>());
+            }
+        }
     }
 
     if (jsonObject.find("devicesSupportOperate") != jsonEnd && jsonObject.at("devicesSupportOperate").is_array()) {
-        pOpt->devicesSupportOperate_ = jsonObject.at("devicesSupportOperate").get<std::vector<std::string>>();
+        auto devicesSupportOperateJson = jsonObject.at("devicesSupportOperate");
+        for (const auto &device : devicesSupportOperateJson) {
+            if (device.is_string()) {
+                pOpt->devicesSupportOperate_.push_back(device.get<std::string>());
+            }
+        }
     }
 
     return pOpt;

@@ -154,35 +154,45 @@ bool RdbStoreDataCallBackNotificationStorage::ProcessResultSet(
 
 static bool UpdateContentByJsonObject(nlohmann::json &jsonObject, const std::string wantAgent)
 {
-    if (jsonObject.find("content") == jsonObject.cend()) {
-        ANS_LOGW("Invalid content json.");
-        return false;
-    }
- 
-    auto contentObj = jsonObject.at("content");
     if (jsonObject.is_null() || !jsonObject.is_object()) {
         ANS_LOGE("Invalid JSON object");
         return false;
     }
- 
+
+    if (jsonObject.find("content") == jsonObject.cend()) {
+        ANS_LOGW("Invalid content json.");
+        return false;
+    }
+
+    auto contentObj = jsonObject.at("content");
+    if (!contentObj.is_object() || !contentObj.contains("contentType")) {
+        ANS_LOGE("Invalid content object or missing contentType");
+        return false;
+    }
+
     auto contentType  = contentObj.at("contentType");
     if (!contentType.is_number_integer()) {
         ANS_LOGE("ContentType is not integer");
         return false;
     }
- 
+
     if (static_cast<NotificationContent::Type>(contentType.get<int32_t>()) !=
         NotificationContent::Type::LIVE_VIEW) {
         ANS_LOGE("ContentType is not live view");
         return false;
     }
- 
+
+    if (!contentObj.contains("content")) {
+        ANS_LOGE("Missing nested content field");
+        return false;
+    }
+
     auto liveviewObj = contentObj.at("content");
-    if (liveviewObj.is_null()) {
+    if (liveviewObj.is_null() || !liveviewObj.is_object()) {
         ANS_LOGE("Cannot convert content from JSON");
         return false;
     }
- 
+
     liveviewObj["extensionWantAgent"] = wantAgent;
     contentObj["content"] = liveviewObj;
     jsonObject["content"] = contentObj;
@@ -242,7 +252,11 @@ bool RdbStoreDataCallBackNotificationStorage::ProcessRow(
     }
     std::string input;
     AesGcmHelper::Decrypt(input, resultValue);
-    auto jsonObject = nlohmann::json::parse(input);
+    auto jsonObject = nlohmann::json::parse(input, nullptr, false);
+    if (jsonObject.is_discarded()) {
+        ANS_LOGE("Failed to parse decrypted json string");
+        return true;
+    }
     if (UpdateRequestByJsonObject(jsonObject)) {
         int64_t rowId = -1;
         NativeRdb::ValuesBucket valuesBucket;

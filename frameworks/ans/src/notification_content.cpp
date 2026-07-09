@@ -283,6 +283,10 @@ bool NotificationContent::ConvertJsonToContent(NotificationContent *target, cons
         return false;
     }
 
+    if (!jsonObject.contains("contentType")) {
+        ANS_LOGE("Missing contentType field");
+        return false;
+    }
     auto contentType  = jsonObject.at("contentType");
     if (!contentType.is_number_integer()) {
         ANS_LOGE("ContentType is not integer");
@@ -290,6 +294,10 @@ bool NotificationContent::ConvertJsonToContent(NotificationContent *target, cons
     }
     target->contentType_   = static_cast<NotificationContent::Type>(contentType.get<int32_t>());
 
+    if (!jsonObject.contains("content")) {
+        ANS_LOGE("Missing content field");
+        return false;
+    }
     auto contentObj = jsonObject.at("content");
     if (contentObj.is_null()) {
         ANS_LOGE("Cannot convert content from JSON");

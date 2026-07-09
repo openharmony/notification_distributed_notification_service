@@ -161,7 +161,12 @@ NotificationLocalLiveViewButton *NotificationLocalLiveViewButton::FromJson(const
     const auto &jsonEnd = jsonObject.cend();
 
     if (jsonObject.find("names") != jsonEnd && jsonObject.at("names").is_array()) {
-        button->buttonNames_ = jsonObject.at("names").get<std::vector<std::string>>();
+        auto namesJson = jsonObject.at("names");
+        for (const auto &name : namesJson) {
+            if (name.is_string()) {
+                button->buttonNames_.push_back(name.get<std::string>());
+            }
+        }
     }
 
     if (jsonObject.find("icons") != jsonEnd) {
