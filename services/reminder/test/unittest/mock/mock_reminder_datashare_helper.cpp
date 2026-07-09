@@ -20,11 +20,13 @@
 namespace OHOS::Notification {
 static bool g_mockRegisterObserverRet = false;
 static bool g_mockUnRegisterObserverRet = false;
-static bool g_mockQueryRet = false;
 static bool g_mockUpdateRet = false;
 static bool g_mockDeleteRet = false;
-static std::string g_mockQueryValue;
-static std::map<std::string, sptr<ReminderRequest>> g_mockQueryReminders;
+static std::vector<bool> g_mockQueryRets;
+static std::vector<std::string> g_mockQueryValues;
+static std::vector<std::map<std::string, sptr<ReminderRequest>>> g_mockQueryReminders;
+
+int32_t MockReminderDatashareHelper::callQueryCount_ = 0;
 
 void MockReminderDatashareHelper::MockRegisterObserver(const bool ret)
 {
@@ -36,17 +38,25 @@ void MockReminderDatashareHelper::MockUnRegisterObserver(const bool ret)
     g_mockUnRegisterObserverRet = ret;
 }
 
-void MockReminderDatashareHelper::MockQuery(const bool ret, const std::string& value,
-    const std::map<std::string, sptr<ReminderRequest>>& reminders)
+void MockReminderDatashareHelper::MockQuery(const std::vector<bool>& rets, const std::vector<std::string>& values,
+    const std::vector<std::map<std::string, sptr<ReminderRequest>>>& reminders)
 {
-    g_mockQueryRet = ret;
-    g_mockQueryValue = value;
+    g_mockQueryRets = rets;
+    g_mockQueryValues = values;
     g_mockQueryReminders = reminders;
 }
 
 void MockReminderDatashareHelper::MockUpdate(const bool ret)
 {
     g_mockUpdateRet = ret;
+}
+
+void MockReminderDatashareHelper::Reset()
+{
+    callQueryCount_ = 0;
+    g_mockQueryRets.clear();
+    g_mockQueryValues.clear();
+    g_mockQueryReminders.clear();
 }
 
 ReminderDataShareHelper& ReminderDataShareHelper::GetInstance()
@@ -67,14 +77,24 @@ bool ReminderDataShareHelper::UnRegisterObserver()
 
 bool ReminderDataShareHelper::Query(std::map<std::string, sptr<ReminderRequest>>& reminders)
 {
-    reminders = g_mockQueryReminders;
-    return g_mockQueryRet;
+    if (MockReminderDatashareHelper::callQueryCount_ > (int32_t)g_mockQueryReminders.size()) {
+        return false;
+    }
+    reminders = g_mockQueryReminders[MockReminderDatashareHelper::callQueryCount_];
+    bool ret = g_mockQueryRets[MockReminderDatashareHelper::callQueryCount_];
+    ++MockReminderDatashareHelper::callQueryCount_;
+    return ret;
 }
 
 bool ReminderDataShareHelper::Query(Uri& uri, const std::string& key, std::string& value)
 {
-    value = g_mockQueryValue;
-    return g_mockQueryRet;
+    if (MockReminderDatashareHelper::callQueryCount_ > (int32_t)g_mockQueryValues.size()) {
+        return false;
+    }
+    value = g_mockQueryValues[MockReminderDatashareHelper::callQueryCount_];
+    bool ret = g_mockQueryRets[MockReminderDatashareHelper::callQueryCount_];
+    ++MockReminderDatashareHelper::callQueryCount_;
+    return ret;
 }
 
 bool ReminderDataShareHelper::Update(const std::string& identifier, const int32_t state)
