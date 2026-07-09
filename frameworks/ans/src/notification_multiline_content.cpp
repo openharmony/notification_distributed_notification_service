@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,7 @@
 #include <algorithm>
 
 #include "ans_log_wrapper.h"
+#include "notification_want_params_helper.h"
 
 namespace OHOS {
 namespace Notification {
@@ -108,8 +109,8 @@ bool NotificationMultiLineContent::ToJson(nlohmann::json &jsonObject) const
     jsonObject["allLines"]      = nlohmann::json(allLines_);
     std::vector<std::string> lineWantAgentStrs;
     for (const auto &item : lineWantAgents_) {
-        std::string wangAgent = item ? AbilityRuntime::WantAgent::WantAgentHelper::ToString(item) : "";
-        lineWantAgentStrs.push_back(wangAgent);
+        std::string wantAgent = item ? NotificationWantParamsHelper::SerializeWantAgent(item) : "";
+        lineWantAgentStrs.push_back(wantAgent);
     }
     jsonObject["lineWantAgents"] = nlohmann::json(lineWantAgentStrs);
 
