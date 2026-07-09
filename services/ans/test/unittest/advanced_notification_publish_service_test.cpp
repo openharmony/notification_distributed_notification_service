@@ -94,7 +94,9 @@ void AnsPublishServiceTest::TearDownTestCase() {}
 void AnsPublishServiceTest::SetUp()
 {
     GTEST_LOG_(INFO) << "SetUp start";
-
+#ifdef ENABLE_ANS_PRIVILEGED_MESSAGE_EXT_WRAPPER
+    EXTENTION_WRAPPER->isPrivilegeMessage_ = nullptr;
+#endif
     NotificationPreferences::GetInstance()->ClearNotificationInRestoreFactorySettings();
     advancedNotificationService_ = new (std::nothrow) AdvancedNotificationService();
     sptr<AnsResultDataSynchronizerImpl> synchronizer = new (std::nothrow) AnsResultDataSynchronizerImpl();
@@ -114,15 +116,13 @@ void AnsPublishServiceTest::SetUp()
 void AnsPublishServiceTest::TearDown()
 {
     advancedNotificationService_->SelfClean();
-#ifdef NOTIFICATION_SMART_REMINDER_SUPPORTED
-    DelayedSingleton<SmartReminderCenter>::GetInstance()->currentReminderMethods_.clear();
-    DelayedSingleton<SmartReminderCenter>::GetInstance()->reminderMethods_.clear();
-#endif
     advancedNotificationService_->publishProcess_.clear();
     constexpr int sleepMs = 500;
     std::this_thread::sleep_for(std::chrono::milliseconds(sleepMs));
     NotificationSubscriberManager::DestroyInstance();
 #ifdef NOTIFICATION_SMART_REMINDER_SUPPORTED
+    DelayedSingleton<SmartReminderCenter>::GetInstance()->currentReminderMethods_.clear();
+    DelayedSingleton<SmartReminderCenter>::GetInstance()->reminderMethods_.clear();
     SmartReminderCenter::DestroyInstance();
 #endif
     delete advancedNotificationService_;

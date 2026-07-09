@@ -104,7 +104,7 @@ void StsSubscriberInstance::OnCanceled(
     ANS_LOGD("enter");
     auto cacheManager = PixelMapCacheManager::GetInstance();
     if (request != nullptr) {
-        cacheManager->RemoveCache(request->GetKey());
+        cacheManager->RemoveCache(request->GetNotificationRequest().GetKey());
     }
     ani_env* etsEnv;
     ani_status aniResult = ANI_ERROR;
@@ -480,7 +480,7 @@ void StsSubscriberInstance::OnBatchCanceled(
     auto cacheManager = PixelMapCacheManager::GetInstance();
     for (auto& notification : requestList) {
         if (notification != nullptr) {
-            cacheManager->RemoveCache(notification->GetKey());
+            cacheManager->RemoveCache(notification->GetNotificationRequest().GetKey());
         }
     }
     ani_env* etsEnv;
