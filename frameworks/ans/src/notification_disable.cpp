@@ -143,7 +143,12 @@ void NotificationDisable::FromJson(const std::string &jsonObj)
         disabled_ = jsonObject.at(DISABLED).get<bool>();
     }
     if (jsonObject.find(BUNDLELIST) != jsonEnd && jsonObject.at(BUNDLELIST).is_array()) {
-        bundleList_ = jsonObject.at(BUNDLELIST).get<std::vector<std::string>>();
+        auto bundleListJson = jsonObject.at(BUNDLELIST);
+        for (const auto &bundle : bundleListJson) {
+            if (bundle.is_string()) {
+                bundleList_.push_back(bundle.get<std::string>());
+            }
+        }
     }
     if (jsonObject.find(USERID) != jsonEnd && jsonObject.at(USERID).is_number_integer()) {
         userId_ = jsonObject.at(USERID).get<int32_t>();

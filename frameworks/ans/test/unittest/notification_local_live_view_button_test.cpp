@@ -447,5 +447,48 @@ HWTEST_F(NotificationLocalLiveViewButtonTest, Unmarshalling_00008, Function | Sm
     auto button = NotificationLocalLiveViewButton::Unmarshalling(parcel);
     EXPECT_EQ(button, nullptr);
 }
+
+/**
+ * @tc.name: FromJson_00006
+ * @tc.desc: Test FromJson with names containing non-string elements (should skip them).
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationLocalLiveViewButtonTest, FromJson_00006, Function | SmallTest | Level1)
+{
+    nlohmann::json jsonObject = nlohmann::json{
+        {"names", {1, "valid", true, "end"}}};
+    auto *res = NotificationLocalLiveViewButton::FromJson(jsonObject);
+    EXPECT_NE(res, nullptr);
+    delete res;
+}
+
+/**
+ * @tc.name: FromJson_00007
+ * @tc.desc: Test FromJson with null json.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationLocalLiveViewButtonTest, FromJson_00007, Function | SmallTest | Level1)
+{
+    nlohmann::json jsonObject;
+    auto *res = NotificationLocalLiveViewButton::FromJson(jsonObject);
+    EXPECT_EQ(res, nullptr);
+}
+
+/**
+ * @tc.name: FromJson_00008
+ * @tc.desc: Test FromJson with names as non-array (should be ignored).
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationLocalLiveViewButtonTest, FromJson_00008, Function | SmallTest | Level1)
+{
+    nlohmann::json jsonObject = nlohmann::json{
+        {"names", "not_array"}};
+    auto *res = NotificationLocalLiveViewButton::FromJson(jsonObject);
+    EXPECT_NE(res, nullptr);
+    delete res;
+}
 }
 }

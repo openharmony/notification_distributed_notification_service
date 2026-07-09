@@ -196,10 +196,13 @@ void NotificationLiveViewContent::ConvertPictureFromJson(const nlohmann::json &j
             if (!it.value().is_array()) {
                 continue;
             }
-            auto pictureArray = it.value().get<std::vector<std::string>>();
+            auto pictureArrayJson = it.value();
             pictureMap_[it.key()] = std::vector<std::shared_ptr<Media::PixelMap>>();
-            for (const auto &picture : pictureArray) {
-                pictureMap_[it.key()].emplace_back(AnsImageUtil::UnPackImage(picture));
+            for (const auto &picture : pictureArrayJson) {
+                if (!picture.is_string()) {
+                    continue;
+                }
+                pictureMap_[it.key()].emplace_back(AnsImageUtil::UnPackImage(picture.get<std::string>()));
             }
         }
     }

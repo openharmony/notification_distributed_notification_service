@@ -19,6 +19,8 @@
 #define protected public
 #include "notification_basic_content.h"
 #include "notification_content.h"
+#include "notification_json_convert.h"
+#include "notification_normal_content.h"
 #undef private
 #undef protected
 
@@ -523,6 +525,124 @@ HWTEST_F(NotificationContentTest, GetContentTypeByString_00100, Level1)
     NotificationContent::Type contentType;
     bool res = notificationContent.GetContentTypeByString("1111", contentType);
     ASSERT_FALSE(res);
+}
+
+/**
+ * @tc.name: ConvertJsonToContent_00300
+ * @tc.desc: Test ConvertJsonToContent with missing contentType field.
+ * @tc.type: FUNC
+ * @tc.require: issueI5S0ZS
+ */
+HWTEST_F(NotificationContentTest, ConvertJsonToContent_00300, Level1)
+{
+    NotificationContent notificationContent;
+    nlohmann::json jsonObject = nlohmann::json{{"content", "test"}};
+    sptr<NotificationContent> contentSptr(new NotificationContent());
+    bool res = notificationContent.ConvertJsonToContent(contentSptr, jsonObject);
+    ASSERT_FALSE(res);
+}
+
+/**
+ * @tc.name: ConvertJsonToContent_00400
+ * @tc.desc: Test ConvertJsonToContent with missing content field.
+ * @tc.type: FUNC
+ * @tc.require: issueI5S0ZS
+ */
+HWTEST_F(NotificationContentTest, ConvertJsonToContent_00400, Level1)
+{
+    NotificationContent notificationContent;
+    nlohmann::json jsonObject = nlohmann::json{{"contentType", 1}};
+    sptr<NotificationContent> contentSptr(new NotificationContent());
+    bool res = notificationContent.ConvertJsonToContent(contentSptr, jsonObject);
+    ASSERT_FALSE(res);
+}
+
+/**
+ * @tc.name: ConvertJsonToContent_00500
+ * @tc.desc: Test ConvertJsonToContent with empty json object.
+ * @tc.type: FUNC
+ * @tc.require: issueI5S0ZS
+ */
+HWTEST_F(NotificationContentTest, ConvertJsonToContent_00500, Level1)
+{
+    NotificationContent notificationContent;
+    nlohmann::json jsonObject = nlohmann::json{};
+    sptr<NotificationContent> contentSptr(new NotificationContent());
+    bool res = notificationContent.ConvertJsonToContent(contentSptr, jsonObject);
+    ASSERT_FALSE(res);
+}
+
+/**
+ * @tc.name: ConvertFromJsonString_00100
+ * @tc.desc: Test ConvertFromJsonString with invalid JSON string (should not crash).
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationContentTest, ConvertFromJsonString_00100, Level1)
+{
+    auto *result = NotificationJsonConverter::ConvertFromJsonString<NotificationNormalContent>("invalid json");
+    EXPECT_EQ(result, nullptr);
+    delete result;
+}
+
+/**
+ * @tc.name: ConvertFromJsonString_00200
+ * @tc.desc: Test ConvertFromJsonString with empty string.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationContentTest, ConvertFromJsonString_00200, Level1)
+{
+    auto *result = NotificationJsonConverter::ConvertFromJsonString<NotificationNormalContent>("");
+    EXPECT_EQ(result, nullptr);
+    delete result;
+}
+
+/**
+ * @tc.name: ConvertFromJsonString_00300
+ * @tc.desc: Test ConvertFromJsonString with non-object JSON (array).
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationContentTest, ConvertFromJsonString_00300, Level1)
+{
+    auto *result = NotificationJsonConverter::ConvertFromJsonString<NotificationNormalContent>("[1, 2, 3]");
+    EXPECT_EQ(result, nullptr);
+    delete result;
+}
+
+/**
+ * @tc.name: ReadFromJson_StructuredText_00100
+ * @tc.desc: Test ReadFromJson with structuredText containing non-string values (should skip them).
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationContentTest, ReadFromJson_StructuredText_00100, Level1)
+{
+    NotificationBasicContent content;
+    nlohmann::json jsonObject = nlohmann::json{
+        {"text", "test"},
+        {"title", "title"},
+        {"structuredText", {{"key1", "valid"}, {"key2", 123}, {"key3", true}, {"key4", "end"}}}};
+    content.ReadFromJson(jsonObject);
+    EXPECT_EQ(content.GetText(), "test");
+    EXPECT_EQ(content.GetTitle(), "title");
+}
+
+/**
+ * @tc.name: ReadFromJson_StructuredText_00200
+ * @tc.desc: Test ReadFromJson with structuredText as non-object (should be ignored).
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationContentTest, ReadFromJson_StructuredText_00200, Level1)
+{
+    NotificationBasicContent content;
+    nlohmann::json jsonObject = nlohmann::json{
+        {"text", "test"},
+        {"structuredText", "not_an_object"}};
+    content.ReadFromJson(jsonObject);
+    EXPECT_EQ(content.GetText(), "test");
 }
 }
 }

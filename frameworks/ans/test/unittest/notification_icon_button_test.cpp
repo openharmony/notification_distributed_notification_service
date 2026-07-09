@@ -341,5 +341,49 @@ HWTEST_F(NotificationIconButtonTest, FromJson_00004, Function | SmallTest | Leve
     EXPECT_EQ(button->GetName(), "name");
     EXPECT_EQ(button->GetHidePanel(), true);
 }
+
+/**
+ * @tc.name: FromJson_00005
+ * @tc.desc: Test FromJson with iconResource as object (not string, should not crash).
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationIconButtonTest, FromJson_00005, Function | SmallTest | Level1)
+{
+    nlohmann::json jsonObject = nlohmann::json{
+        {"text", "text"}, {"name", "name"},
+        {"iconResource", {{"bundleName", "test"}, {"moduleName", "mod"}, {"id", 1}}}};
+    auto button = NotificationIconButton::FromJson(jsonObject);
+    EXPECT_NE(button, nullptr);
+    delete button;
+}
+
+/**
+ * @tc.name: FromJson_00006
+ * @tc.desc: Test FromJson with iconImage as non-string (should return nullptr).
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationIconButtonTest, FromJson_00006, Function | SmallTest | Level1)
+{
+    nlohmann::json jsonObject = nlohmann::json{
+        {"text", "text"}, {"name", "name"}, {"iconImage", 123}};
+    auto button = NotificationIconButton::FromJson(jsonObject);
+    EXPECT_EQ(button, nullptr);
+}
+
+/**
+ * @tc.name: FromJson_00007
+ * @tc.desc: Test FromJson with iconImage as array (non-string, should return nullptr).
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationIconButtonTest, FromJson_00007, Function | SmallTest | Level1)
+{
+    nlohmann::json jsonObject = nlohmann::json{
+        {"text", "text"}, {"name", "name"}, {"iconImage", {1, 2, 3}}};
+    auto button = NotificationIconButton::FromJson(jsonObject);
+    EXPECT_EQ(button, nullptr);
+}
 }
 }

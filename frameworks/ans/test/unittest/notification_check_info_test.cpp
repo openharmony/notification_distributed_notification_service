@@ -150,5 +150,61 @@ HWTEST_F(NotificationCheckInfoTest, ConvertJsonStringToValue_00002, Function | S
 
     EXPECT_EQ("", checkInfo.GetLabel());
 }
+
+/**
+ * @tc.name: ConvertJsonStringToValue_00003
+ * @tc.desc: Test ConvertJsonStringToValue with invalid JSON string.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationCheckInfoTest, ConvertJsonStringToValue_00003, Function | SmallTest | Level1)
+{
+    NotificationCheckInfo checkInfo;
+    std::string obj = "invalid json string";
+    checkInfo.ConvertJsonStringToValue(obj);
+    EXPECT_EQ("", checkInfo.GetLabel());
+}
+
+/**
+ * @tc.name: ConvertJsonStringToValue_00004
+ * @tc.desc: Test ConvertJsonStringToValue with empty string.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationCheckInfoTest, ConvertJsonStringToValue_00004, Function | SmallTest | Level1)
+{
+    NotificationCheckInfo checkInfo;
+    std::string obj = "";
+    checkInfo.ConvertJsonStringToValue(obj);
+    EXPECT_EQ("", checkInfo.GetLabel());
+}
+
+/**
+ * @tc.name: ConvertJsonStringToValue_00005
+ * @tc.desc: Test ConvertJsonStringToValue with non-object JSON (array).
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationCheckInfoTest, ConvertJsonStringToValue_00005, Function | SmallTest | Level1)
+{
+    NotificationCheckInfo checkInfo;
+    std::string obj = "[1, 2, 3]";
+    checkInfo.ConvertJsonStringToValue(obj);
+    EXPECT_EQ("", checkInfo.GetLabel());
+}
+
+/**
+ * @tc.name: ConvertJsonStringToValue_00006
+ * @tc.desc: Test ConvertJsonStringToValue with non-object JSON (number).
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationCheckInfoTest, ConvertJsonStringToValue_00006, Function | SmallTest | Level1)
+{
+    NotificationCheckInfo checkInfo;
+    std::string obj = "42";
+    checkInfo.ConvertJsonStringToValue(obj);
+    EXPECT_EQ("", checkInfo.GetLabel());
+}
 }
 }

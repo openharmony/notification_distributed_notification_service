@@ -4285,7 +4285,12 @@ bool NotificationPreferencesDatabase::GetRestrictedModeTrustList(NotificationPre
             ANS_LOGE("Missing or invalid 'trustList' field");
             return false;
         }
-        std::vector<std::string> trustList = item["trustList"].get<std::vector<std::string>>();
+        std::vector<std::string> trustList;
+        for (const auto &trustItem : item["trustList"]) {
+            if (trustItem.is_string()) {
+                trustList.push_back(trustItem.get<std::string>());
+            }
+        }
         restrictedModeTrustList[userId] = trustList;
     }
     info.SetRestrictedModeTrustList(restrictedModeTrustList);

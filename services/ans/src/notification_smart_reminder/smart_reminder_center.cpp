@@ -64,7 +64,8 @@ void SmartReminderCenter::GetMultiDeviceReminder()
         return;
     }
 
-    if (root.find(NotificationConfigParse::CFG_KEY_NOTIFICATION_SERVICE) == root.end()) {
+    if (!root.contains(NotificationConfigParse::CFG_KEY_NOTIFICATION_SERVICE) ||
+        !root[NotificationConfigParse::CFG_KEY_NOTIFICATION_SERVICE].is_object()) {
         ANS_LOGE("GetMultiDeviceReminder failed as can not find notificationService.");
         return;
     }
