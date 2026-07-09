@@ -97,12 +97,15 @@ std::string BuildErrMsg(const std::string& action, int32_t externalCode, const s
     return action + "失败: [" + std::to_string(externalCode) + "] " + errMessage;
 }
 
-std::string BuildSuggestion(int32_t externalCode, const std::string& exampleCmd)
+std::string BuildSuggestion(int32_t externalCode, const std::string& exampleCmd,
+    const std::string& requiredPermission)
 {
     switch (externalCode) {
         case ERROR_PERMISSION_DENIED:
-            return "请确认调用者拥有所需权限。参考: ohos.permission.NOTIFICATION_CONTROLLER 或 "
-                   "ohos.permission.NOTIFICATION_AGENT_CONTROLLER";
+            if (requiredPermission.empty()) {
+                return "请确认调用者拥有所需权限。" + exampleCmd;
+            }
+            return "请确认调用者拥有所需权限: " + requiredPermission + "。" + exampleCmd;
         case ERROR_NOT_SYSTEM_APP:
             return "此接口仅限系统应用调用，请确认调用者身份";
         case ERROR_PARAM_INVALID:
@@ -159,13 +162,13 @@ void OutputError(const std::string& errCode, const std::string& errMsg,
 }
 
 void OutputApiError(ErrCode internalErrCode, const std::string& action,
-    const std::string& exampleCmd, std::string& output)
+    const std::string& exampleCmd, const std::string& requiredPermission, std::string& output)
 {
     int32_t externalCode = InnerErrorToExternal(internalErrCode);
     std::string errCodeStr = ExternalCodeToErrCodeString(externalCode);
     std::string errMessage = GetExternalErrMessage(externalCode, "Unknown error");
     std::string errMsg = BuildErrMsg(action, externalCode, errMessage);
-    std::string suggestion = BuildSuggestion(externalCode, exampleCmd);
+    std::string suggestion = BuildSuggestion(externalCode, exampleCmd, requiredPermission);
     OutputError(errCodeStr, errMsg, suggestion, output);
 }
 }  // namespace Notification

@@ -45,7 +45,6 @@
 #include "notification_local_live_view_content.h"
 #include "notification_action_button.h"
 #include "notification_flags.h"
-#include "notification_template.h"
 #include "notification_constant.h"
 #include "notification_helper.h"
 #include "want_params.h"
@@ -61,28 +60,16 @@ namespace {
 constexpr size_t MAX_LABEL_LEN = 204;
 constexpr size_t MAX_TITLE_LEN = 1024;
 constexpr size_t MAX_CONTENT_TEXT_LEN = 3072;
+constexpr uint32_t MAX_SLOT_FLAGS = 0b111111;
+constexpr const char* PERM_CONTROLLER = "ohos.permission.NOTIFICATION_CONTROLLER";
+constexpr const char* PERM_CONTROLLER_AND_AGENT =
+    "ohos.permission.NOTIFICATION_CONTROLLER 和 ohos.permission.NOTIFICATION_AGENT_CONTROLLER";
 
 std::string TruncateString(const std::string &str, size_t maxLen)
 {
     return str.size() > maxLen ? str.substr(0, maxLen) : str;
 }
 
-ErrCode ParseEnabledValue(const char *optarg, bool &enabled, std::string &out)
-{
-    if (optarg == nullptr) {
-        return ERR_OK;
-    }
-    if (strcmp(optarg, "true") == 0 || strcmp(optarg, "1") == 0) {
-        enabled = true;
-        return ERR_OK;
-    }
-    if (strcmp(optarg, "false") == 0 || strcmp(optarg, "0") == 0) {
-        return ERR_OK;
-    }
-    OutputError("ERR_ARG_INVALID", "enabled参数值无效: 必须为 true/false",
-        "请使用true或false。示例: --enabled true", out);
-    return ERR_INVALID_VALUE;
-}
 constexpr char SHORT_OPTIONS_PUBLISH[] = "h";
 const struct option LONG_OPTIONS_PUBLISH[] = {
     {"notificationId", required_argument, nullptr, 1},
@@ -96,14 +83,8 @@ const struct option LONG_OPTIONS_PUBLISH[] = {
     {"priorityNotificationType", required_argument, nullptr, 9},
     {"alertOneTime", no_argument, nullptr, 10},
     {"sound", required_argument, nullptr, 11},
-    {"tapDismissed", no_argument, nullptr, 12},
-    {"autoDeletedTime", required_argument, nullptr, 13},
-    {"additionalParams", required_argument, nullptr, 14},
-    {"inProgress", no_argument, nullptr, 15},
-    {"unRemovable", no_argument, nullptr, 16},
-    {"actionButtons", required_argument, nullptr, 17},
-    {"notificationFlags", required_argument, nullptr, 18},
-    {"notificationTemplate", required_argument, nullptr, 19},
+    {"autoDeletedTime", required_argument, nullptr, 12},
+    {"notificationFlags", required_argument, nullptr, 13},
     {"help", no_argument, nullptr, 'h'},
     {nullptr, 0, nullptr, 0},
 };
@@ -153,226 +134,194 @@ const struct option LONG_OPTIONS_CANCEL_BY_BUNDLE[] = {
 };
 
 constexpr char HELP_MSG[] =
-    "ohos-notificationManager - OpenHarmony notification management tool. Used for notification publishing, "
-    "cancellation, removal, and querying active notifications. Does not support notification subscription or "
-    "interactive UI operations.\n"
+    "ohos-notificationManager - OpenHarmony 通知管理工具。用于通知的发布、取消、移除及查询活跃通知，"
+    "不支持通知订阅及交互式UI操作。\n"
     "\n"
     "Usage:\n"
     "  ohos-notificationManager <command> [options]\n"
     "\n"
     "Parameters:\n"
-    "  --help                  Display this help message\n"
+    "  --help                  显示帮助信息\n"
     "\n"
     "SubCommands:\n"
-    "  help                    Show help message\n"
-    "  publish                 Publish a notification to the system\n"
-    "  cancelById              Cancel notification by bundle and notification ID\n"
-    "  cancelByBundle          Cancel all notifications for a specified bundle\n"
-    "  batchCancel             Batch cancel notifications by hashcodes\n"
-    "  enableNotification      Set notification enabled/disabled for bundle\n"
-    "  setSlotFlags            Set notification slot flags for bundle\n"
-    "  listAllNotification     List all active notifications\n"
+    "  help                    显示帮助信息\n"
+    "  publish                 发布通知到系统\n"
+    "  cancelById              按bundle和通知ID取消通知\n"
+    "  cancelByBundle          取消指定bundle的所有通知\n"
+    "  batchCancel             按哈希码批量取消通知\n"
+    "  enableNotification      设置bundle的通知启用/禁用状态\n"
+    "  setSlotFlags            设置bundle的通知渠道标志\n"
+    "  listAllNotification     列出所有活跃通知\n"
     "\n"
     "Examples:\n"
     "  ohos-notificationManager --help\n"
     "  ohos-notificationManager publish --help\n";
 
 constexpr char PUBLISH_HELP_MSG[] =
-    "ohos-notificationManager publish - Publish a notification. "
-    "Used for sending notifications to the system. Does not support subscription-type notifications.\n"
+    "ohos-notificationManager publish - 发布通知。用于向系统发送通知，不支持订阅类通知。\n"
     "\n"
     "Usage:\n"
     "  ohos-notificationManager publish --notificationContent <json> [options]\n"
     "\n"
     "Parameters:\n"
-    "  --notificationContent <json>     Notification content as JSON string (required, max 4096 bytes)\n"
-    "                               Supported types: basic, long_text, multiline\n"
-    "                               All types require: title(≤1024B), text(≤3072B)\n"
-    "                               All types optional: additionalText(≤3072B)\n"
-    "                               All limits are bytes, overlength truncated\n"
-    "                               basic: {\"type\":\"basic\",\"title\":\"T\",\"text\":\"X\",\n"
-    "                                        \"additionalText\":\"A\"}\n"
-    "                               long_text: {\"type\":\"long_text\",\"title\":\"T\",\"text\":\"X\",\n"
-    "                                           \"longText\":\"L\",\"expandedTitle\":\"E\",\n"
-    "                                           \"briefText\":\"B\",\"additionalText\":\"A\"}\n"
-    "                                 Required: longText(≤3072B), expandedTitle(≤1024B), briefText(≤1024B)\n"
-    "                               multiline: {\"type\":\"multiline\",\"title\":\"T\",\"text\":\"X\",\n"
-    "                                            \"expandedTitle\":\"E\",\"briefText\":\"B\",\n"
-    "                                            \"lines\":[\"line1\",\"line2\"],\n"
-    "                                            \"additionalText\":\"A\"}\n"
-    "                                 Required: expandedTitle(≤1024B), briefText(≤1024B),\n"
-    "                                           lines(≤3 lines, ≤1024B/line)\n"
-    "  --notificationId <id>            Notification ID (optional, default: 0, integer ≥ 0)\n"
-    "  --slotType <type>                Notification slot type (optional, 0-7 except 5, default: 3)\n"
-    "                               0=SOCIAL_COMMUNICATION, 1=SERVICE_REMINDER,\n"
-    "                               2=CONTENT_INFORMATION, 3=OTHER, 4=CUSTOM,\n"
-    "                               6=CUSTOMER_SERVICE, 7=EMERGENCY_INFORMATION\n"
-    "                               Note: slotType 5 (LIVE_VIEW) is not supported\n"
-    "  --updateOnly                     Update existing notification only, do not create new (optional, flag)\n"
-    "  --appMessageId <id>              Application message ID (optional, string, max 256 bytes)\n"
-    "  --priorityNotificationType <type> Priority notification type (optional, string)\n"
-    "                               Enum: alarm, call, email, err, event, msg, navigation,\n"
-    "                               progress, promo, recommendation, reminder, service,\n"
-    "                               social, status, sys, transport\n"
-    "  --alertOneTime                   Alert only once, subsequent updates will not alert (optional, flag)\n"
-    "  --sound <uri>                    Custom notification sound URI (optional, string, max 204 bytes)\n"
-    "  --badgeNumber <number>           Badge number to add to current badge count (optional, integer ≥ 0)\n"
-    "  --tapDismissed                   Auto-dismiss on tap (optional, flag)\n"
-    "  --autoDeletedTime <ms>           Auto-delete time in milliseconds (optional, integer ≥ 0)\n"
-    "  --label <label>                  Notification label (optional, string, max 204 bytes)\n"
-    "  --groupName <name>               Notification group name (optional, string, max 204 bytes, overlength truncated)\n"
-    "  --additionalParams <str>         Additional data as WantParams serialized string (optional, max 4096 bytes)\n"
-    "                               Example: \"{\\\"key1\\\":\\\"val1\\\",\\\"key2\\\":\\\"val2\\\"}\"\n"
-    "  --inProgress                     Mark as in-progress notification (optional, flag)\n"
-    "  --unRemovable                    Mark as unremovable notification (optional, flag)\n"
-    "  --actionButtons <json>           Action buttons as JSON array (optional, max 4096 bytes, title only)\n"
-    "                               Example: \"[{\\\"title\\\":\\\"Action1\\\"},{\\\"title\\\":\\\"Action2\\\"}]\"\n"
-    "  --notificationFlags <json>       Notification reminder flags as JSON (optional, max 4096 bytes)\n"
-    "                               Supported: soundEnabled, vibrationEnabled, bannerEnabled, lockScreenEnabled\n"
-    "                               Value must be 2 (CLOSE). Example: \"{\\\"soundEnabled\\\":2,\\\"vibrationEnabled\\\":2}\"\n"
-    "  --notificationTemplate <json>    Notification template as JSON (optional, max 4096 bytes)\n"
-    "                               Contains name(≤204B, overlength truncated) and optional data(WantParams)\n"
-    "                               Example: \"{\\\"name\\\":\\\"downloadTemplate\\\",\\\"data\\\":\\\"{\\\"progress\\\":\\\"50\\\"}\\\"}\"\n"
-    "  --help                           Display this help message\n"
+    "  --notificationContent <json>     通知内容JSON字符串（必填）\n"
+    "                               所有类型公共必填: title(≤1024B), text(≤3072B)\n"
+    "                               公共可选: additionalText(≤3072B)；所有属性超长截取\n"
+    "                               type仅支持basic、long_text、multiline:\n"
+    "                               basic示例: {\"type\":\"basic\",\"title\":\"通知标题\",\"text\":\"通知内容\",\"additionalText\":\"附加文本\"}\n"
+    "                               long_text: longText(≤3072B)、expandedTitle(≤1024B)、briefText(≤1024B)，超长截取\n"
+    "                                 示例: {\"type\":\"long_text\",\"title\":\"通知标题\",\"text\":\"短内容\",\"longText\":\"长文本内容\","
+    "\"expandedTitle\":\"展开标题\",\"briefText\":\"摘要\",\"additionalText\":\"附加文本\"}\n"
+    "                               multiline: expandedTitle(≤1024B)、briefText(≤1024B)、lines(≤3个元素,每个≤1024B)，超长截取\n"
+    "                                 示例: {\"type\":\"multiline\",\"title\":\"通知标题\",\"text\":\"通知内容\","
+    "\"expandedTitle\":\"展开标题\",\"briefText\":\"摘要\",\"lines\":[\"第一行\",\"第二行\",\"第三行\"],\"additionalText\":\"附加文本\"}\n"
+    "  --notificationId <id>            通知ID（可选，默认: 0）\n"
+    "  --slotType <type>                通知渠道类型（可选，默认: 3）\n"
+    "                               0=社交通信, 1=服务提醒, 2=内容信息, 3=其他, 4=自定义, 6=客服消息\n"
+    "                               不支持5=实况通知、7=紧急信息\n"
+    "  --updateOnly                     仅更新已存在的通知，不创建新通知（可选，标志）\n"
+    "  --appMessageId <id>              应用消息ID，用于标识特定消息（可选）\n"
+    "  --priorityNotificationType <type> 优先级通知类型（可选）\n"
+    "                               枚举值: OTHER(非优先级通知)、PRIMARY_CONTACT(重要联系人)、AT_ME(有人@我)、"
+    "URGENT_MESSAGE(紧急消息)、SCHEDULE_REMINDER(日程提醒)\n"
+    "  --alertOneTime                   仅提醒一次，后续更新不再提醒（可选，标志）\n"
+    "  --sound <uri>                    自定义通知声音URI（可选）\n"
+    "  --badgeNumber <number>           通知角标增加数量（可选，必须>=0）\n"
+    "  --autoDeletedTime <ms>           自动删除时间（毫秒，可选）\n"
+    "  --label <label>                  通知标签（可选，不超过204字节）\n"
+    "  --groupName <name>               通知分组名称（可选，不超过204字节，超长截取）\n"
+    "  --notificationFlags <json>       通知提醒标志JSON字符串（可选）\n"
+    "                               支持字段: soundEnabled(声音)、vibrationEnabled(振动)、bannerEnabled(横幅)、lockScreenEnabled(锁屏)\n"
+    "                               值枚举: 2=CLOSE(关闭)。示例: {\"soundEnabled\":2,\"vibrationEnabled\":2}\n"
+    "  --help                           显示帮助信息\n"
     "\n"
     "Examples:\n"
-    "  # Publish a basic notification\n"
+    "  # 发布基础通知\n"
     "  ohos-notificationManager publish --notificationContent \"{\\\"type\\\":\\\"basic\\\",\\\"title\\\":\\\"Test\\\",\\\"text\\\":\\\"Hello\\\"}\"\n"
-    "  # Publish with slot type and options\n"
+    "  # 指定渠道类型发布\n"
     "  ohos-notificationManager publish --notificationContent \"{\\\"type\\\":\\\"basic\\\",\\\"title\\\":\\\"Alert\\\",\\\"text\\\":\\\"Content\\\"}\" --slotType 1\n";
 
 constexpr char CANCEL_BY_ID_HELP_MSG[] =
-    "ohos-notificationManager cancelById - Cancel notification by bundle and notification ID. "
-    "Used for managing notifications of specific applications. Does not support canceling notifications "
-    "without bundle information.\n"
+    "ohos-notificationManager cancelById - 按bundle和通知ID取消通知。用于管理指定应用的通知，"
+    "不支持无bundle信息的取消。\n"
     "\n"
     "Usage:\n"
     "  ohos-notificationManager cancelById --bundleOption <json> --notificationId <id>\n"
     "\n"
     "Parameters:\n"
-    "  --bundleOption <json>  Target bundle option as JSON string (required)\n"
-    "                         Contains bundleName(string) and uid(integer)\n"
-    "                         Example: \"{\\\"bundleName\\\":\\\"com.example\\\",\\\"uid\\\":10100}\"\n"
-    "  --notificationId <id>  Notification ID to cancel (required, integer)\n"
-    "  --help                 Display this help message\n"
+    "  --bundleOption <json>  目标应用信息JSON字符串（必填），包含bundleName(应用包名)和uid(应用UID)两个属性\n"
+    "                         示例: \"{\\\"bundleName\\\":\\\"com.example\\\",\\\"uid\\\":10100}\"\n"
+    "  --notificationId <id>  待取消的通知ID（必填，整数）\n"
+    "  --help                 显示帮助信息\n"
     "\n"
     "Examples:\n"
-    "  # Cancel a notification by bundle\n"
+    "  # 按bundle取消通知\n"
     "  ohos-notificationManager cancelById --bundleOption \"{\\\"bundleName\\\":\\\"com.example\\\",\\\"uid\\\":10100}\" --notificationId 1\n";
 
 constexpr char BATCH_CANCEL_HELP_MSG[] =
-    "ohos-notificationManager batchCancel - Batch cancel notifications by hashcodes. "
-    "Used for canceling specific notifications identified by their hashcodes.\n"
+    "ohos-notificationManager batchCancel - 按哈希码批量取消通知。用于取消由哈希码标识的指定通知。\n"
     "\n"
     "Usage:\n"
     "  ohos-notificationManager batchCancel --hashcodes <json>\n"
     "\n"
     "Parameters:\n"
-    "  --hashcodes <json>       Notification hashcodes as JSON array string (required)\n"
-    "                           Example: [\"hash1\",\"hash2\",\"hash3\"]\n"
-    "  --help                   Display this help message\n"
+    "  --hashcodes <json>       通知哈希码JSON数组字符串（必填），指定要移除的通知列表\n"
+    "                           示例: [\"hash1\",\"hash2\",\"hash3\"]\n"
+    "  --help                   显示帮助信息\n"
     "\n"
     "Examples:\n"
-    "  # Batch cancel specific notifications by hashcodes\n"
+    "  # 按哈希码批量取消通知\n"
     "  ohos-notificationManager batchCancel --hashcodes \"[\\\"hash1\\\",\\\"hash2\\\"]\"\n";
 
 constexpr char CANCEL_BY_BUNDLE_HELP_MSG[] =
-    "ohos-notificationManager cancelByBundle - Cancel all notifications for a specified bundle. "
-    "Used for batch canceling notifications of a specific application.\n"
+    "ohos-notificationManager cancelByBundle - 取消指定bundle的所有通知。用于批量取消指定应用的通知。\n"
     "\n"
     "Usage:\n"
     "  ohos-notificationManager cancelByBundle --bundleOption <json>\n"
     "\n"
     "Parameters:\n"
-    "  --bundleOption <json>  Target bundle option as JSON string (required)\n"
-    "                         Contains bundleName(string) and uid(integer)\n"
-    "                         Example: \"{\\\"bundleName\\\":\\\"com.example\\\",\\\"uid\\\":10100}\"\n"
-    "  --help                 Display this help message\n"
+    "  --bundleOption <json>  目标应用信息JSON字符串（必填），包含bundleName(应用包名)和uid(应用UID)两个属性\n"
+    "                         示例: \"{\\\"bundleName\\\":\\\"com.example\\\",\\\"uid\\\":10100}\"\n"
+    "  --help                 显示帮助信息\n"
     "\n"
     "Examples:\n"
-    "  # Cancel all notifications for a bundle\n"
+    "  # 取消指定bundle的所有通知\n"
     "  ohos-notificationManager cancelByBundle --bundleOption \"{\\\"bundleName\\\":\\\"com.example\\\",\\\"uid\\\":10100}\"";
 
 constexpr char ENABLE_NOTIFICATION_HELP_MSG[] =
-    "ohos-notificationManager enableNotification - Set notification enabled/disabled for a specified bundle. "
-    "Used for controlling notification permissions of applications. Does not support setting "
-    "notification status without bundle information.\n"
+    "ohos-notificationManager enableNotification - 设置bundle的通知启用/禁用状态。"
+    "用于控制应用的通知权限，不支持无bundle信息的设置。\n"
     "\n"
     "Usage:\n"
     "  ohos-notificationManager enableNotification --bundleOption <json> --enabled <true|false>\n"
     "\n"
     "Parameters:\n"
-    "  --bundleOption <json>  Target bundle option as JSON string (required)\n"
-    "                         Contains bundleName(string) and uid(integer)\n"
-    "                         Example: \"{\\\"bundleName\\\":\\\"com.example\\\",\\\"uid\\\":10100}\"\n"
-    "  --enabled <true|false> Notification enabled status (required, true=enabled, false=disabled)\n"
-    "  --help                 Display this help message\n"
+    "  --bundleOption <json>  目标应用信息JSON字符串（必填），包含bundleName(应用包名)和uid(应用UID)两个属性\n"
+    "                         示例: \"{\\\"bundleName\\\":\\\"com.example\\\",\\\"uid\\\":10100}\"\n"
+    "  --enabled <true|false> 通知开关状态（必填，true=启用, false=禁用）\n"
+    "  --help                 显示帮助信息\n"
     "\n"
     "Examples:\n"
-    "  # Enable notifications for a bundle\n"
+    "  # 启用bundle的通知\n"
     "  ohos-notificationManager enableNotification --bundleOption \"{\\\"bundleName\\\":\\\"com.example\\\",\\\"uid\\\":10100}\" --enabled true\n"
-    "  # Disable notifications for a bundle\n"
+    "  # 禁用bundle的通知\n"
     "  ohos-notificationManager enableNotification --bundleOption \"{\\\"bundleName\\\":\\\"com.example\\\",\\\"uid\\\":10100}\" --enabled false\n";
 
 constexpr char SET_SLOT_FLAGS_HELP_MSG[] =
-    "ohos-notificationManager setSlotFlags - Set notification slot flags for a specified bundle. "
-    "Used for configuring notification reminder modes of applications. Does not support setting "
-    "slot flags without bundle information.\n"
+    "ohos-notificationManager setSlotFlags - 设置bundle的通知渠道标志。"
+    "用于配置应用的通知提醒方式，不支持无bundle信息的设置。\n"
     "\n"
     "Usage:\n"
     "  ohos-notificationManager setSlotFlags --bundleOption <json> --flags <flags>\n"
     "\n"
     "Parameters:\n"
-    "  --bundleOption <json>  Target bundle option as JSON string (required)\n"
-    "                         Contains bundleName(string) and uid(integer)\n"
-    "                         Example: \"{\\\"bundleName\\\":\\\"com.example\\\",\\\"uid\\\":10100}\"\n"
-    "  --flags <flags>        Slot flags bitmask (required, uint32, decimal or hex with 0x prefix)\n"
-    "                          Only bit0-bit5 are valid:\n"
-    "                          bit0=SOUND, bit1=LOCKSCREEN, bit2=BANNER,\n"
-    "                          bit3=LIGHTSCREEN, bit4=VIBRATION, bit5=STATUSBAR_ICON\n"
-    "                          Note: LIGHTSCREEN(bit3) and STATUSBAR_ICON(bit5) cannot be turned off\n"
-    "  --help                 Display this help message\n"
+    "  --bundleOption <json>  目标应用信息JSON字符串（必填），包含bundleName(应用包名)和uid(应用UID)两个属性\n"
+    "                         示例: \"{\\\"bundleName\\\":\\\"com.example\\\",\\\"uid\\\":10100}\"\n"
+    "  --flags <flags>        渠道标志位掩码（必填，uint32，十进制或0x前缀十六进制）\n"
+    "                          仅bit0-bit5有效:\n"
+    "                          bit0=声音, bit1=锁屏, bit2=横幅, bit3=亮屏, bit4=振动, bit5=状态栏图标\n"
+    "                          必须>=0且不能大于0b111111(63)\n"
+    "                          注意: 亮屏(bit3)和状态栏图标(bit5)设置关闭不会生效，服务端会强制保持开启\n"
+    "  --help                 显示帮助信息\n"
     "\n"
     "Examples:\n"
-    "  # Set all reminder flags\n"
+    "  # 设置所有提醒标志\n"
     "  ohos-notificationManager setSlotFlags --bundleOption \"{\\\"bundleName\\\":\\\"com.example\\\",\\\"uid\\\":10100}\" --flags 63\n"
-    "  # Set flags with hex format\n"
+    "  # 使用十六进制格式设置标志\n"
     "  ohos-notificationManager setSlotFlags --bundleOption \"{\\\"bundleName\\\":\\\"com.example\\\",\\\"uid\\\":10100}\" --flags 0x3F\n";
 
 constexpr char LIST_ALL_NOTIFICATION_HELP_MSG[] =
-    "ohos-notificationManager listAllNotification - List all active notifications. "
-    "Used for querying current notification status. Does not support listing notifications for other users.\n"
+    "ohos-notificationManager listAllNotification - 列出所有活跃通知。"
+    "用于查询当前通知状态，不支持查询其他用户的通知。\n"
     "\n"
-    "Output fields per notification:\n"
-    "  notificationId          Notification ID\n"
-    "  createTime              Creation timestamp (milliseconds)\n"
-    "  ownerUid                Creator UID\n"
-    "  ownerUserId             Creator user ID\n"
-    "  ownerBundleName         Creator bundle name\n"
-    "  label                   Notification label\n"
-    "  appInstanceKey          Application instance key\n"
-    "  slotType                Slot type (0-7)\n"
-    "  additionalParams        Additional key-value parameters\n"
-    "  notificationContent     Notification content object (varies by type):\n"
-    "                           Common: type, title, text, additionalText(optional)\n"
-    "                           basic: only common fields\n"
-    "                           long_text: +longText, expandedTitle, briefText\n"
-    "                           multiline: +expandedTitle, briefText, lines(array)\n"
-    "                           picture: +expandedTitle, briefText\n"
-    "                           conversation: +conversationTitle, isGroup, messages(array)\n"
-    "                           media: +shownActions(array)\n"
-    "                           live_view: +liveViewStatus, version, extraInfo\n"
-    "                           local_live_view: +liveViewType\n"
-    "  actionButtons           Action button list (title)\n"
-    "  notificationFlags       Reminder flags (sound/vibration/banner/lockScreen)\n"
-    "  extendInfo              Extended key-value info\n"
-    "  hashCode                Notification hash code\n"
+    "每条通知输出字段:\n"
+    "  notificationId          通知ID\n"
+    "  createTime              通知创建时间（毫秒时间戳）\n"
+    "  ownerUid                通知创建者UID\n"
+    "  ownerUserId             通知创建者UserId\n"
+    "  ownerBundleName         通知创建者包名\n"
+    "  label                   通知标签\n"
+    "  appInstanceKey          应用实例Key\n"
+    "  slotType                渠道类型值\n"
+    "  notificationContent     通知内容对象（按type字段区分不同类型）:\n"
+    "                           公共字段: type(类型名)、title(标题)、text(文本)、additionalText(附加文本，可选)\n"
+    "                           basic: 仅公共字段\n"
+    "                           long_text: +longText(长文本)、expandedTitle(展开标题)、briefText(摘要)\n"
+    "                           multiline: +expandedTitle(展开标题)、briefText(摘要)、lines(行文本数组)\n"
+    "                           picture: +expandedTitle(展开标题)、briefText(摘要)\n"
+    "                           conversation: +conversationTitle(会话标题)、isGroup(是否群聊)、messages(消息数组)\n"
+    "                           media: +shownActions(展示按钮序号数组)\n"
+    "                           live_view: +liveViewStatus(实况状态)、version(版本号)\n"
+    "                           local_live_view: +liveViewType(实况类型)\n"
+    "  actionButtons           操作按钮列表（title）\n"
+    "  notificationFlags       通知提醒标志（soundEnabled/vibrationEnabled/bannerEnabled/lockScreenEnabled）\n"
+    "  hashCode                通知哈希码\n"
     "\n"
     "Parameters:\n"
-    "  --help                  Display this help message\n"
+    "  --help                  显示帮助信息\n"
     "\n"
     "Examples:\n"
-    "  # List all active notifications\n"
+    "  # 列出所有活跃通知\n"
     "  ohos-notificationManager listAllNotification\n";
 }
 
@@ -444,12 +393,19 @@ ErrCode NotificationShellCommand::ParseBundleOption(const std::string &jsonStr,
     int32_t uid = -1;
     if (!jsonStr.empty()) {
         if (!json::accept(jsonStr)) {
-            OutputError("ERR_INVALID_ARG", "bundleOption参数解析失败: JSON格式无效",
+            OutputError("ERR_ARG_INVALID", "bundleOption参数解析失败: JSON格式无效",
                 "请提供有效的JSON字符串。示例: --bundleOption \"{\\\"bundleName\\\":\\\"com.example\\\",\\\"uid\\\":10100}\"",
                 resultReceiver_);
             return ERR_INVALID_VALUE;
         }
         auto bundleOptionJson = json::parse(jsonStr);
+        if (!bundleOptionJson.is_object()) {
+            OutputError("ERR_ARG_INVALID", "bundleOption必须是JSON对象",
+                "请提供JSON对象格式。示例: --bundleOption "
+                "\"{\\\"bundleName\\\":\\\"com.example\\\",\\\"uid\\\":10100}\"",
+                resultReceiver_);
+            return ERR_INVALID_VALUE;
+        }
         if (bundleOptionJson.contains("bundleName") && bundleOptionJson["bundleName"].is_string()) {
             bundleName = bundleOptionJson["bundleName"].get<std::string>();
         }
@@ -494,14 +450,8 @@ ErrCode NotificationShellCommand::ParsePublishOptions(PublishOptions &opts)
             case 9: opts.priorityNotificationType = optarg; break;
             case 10: opts.isAlertOneTime = true; break;
             case 11: opts.sound = optarg; break;
-            case 12: opts.isTapDismissed = true; break;
-            case 13: opts.autoDeletedTime = static_cast<int64_t>(atoll(optarg)); break;
-            case 14: opts.additionalParamsJson = optarg; break;
-            case 15: opts.isOngoing = true; break;
-            case 16: opts.isUnremovable = true; break;
-            case 17: opts.actionButtonsJson = optarg; break;
-            case 18: opts.flagsStr = optarg; break;
-            case 19: opts.templateJson = optarg; break;
+            case 12: opts.autoDeletedTime = static_cast<int64_t>(atoll(optarg)); break;
+            case 13: opts.flagsStr = optarg; break;
             default:
                 OutputError("ERR_UNKNOWN_OPTION", "未知选项: publish命令不支持该选项",
                     "请使用 --help 查看可用选项。示例: ohos-notificationManager publish --help", resultReceiver_);
@@ -514,13 +464,6 @@ ErrCode NotificationShellCommand::ParsePublishOptions(PublishOptions &opts)
 
 ErrCode NotificationShellCommand::ValidatePublishRequiredOptions(const PublishOptions &opts)
 {
-    if (opts.notificationId < 0) {
-        OutputError("ERR_ARG_MISSING", "通知ID（--notificationId）缺失: 必须提供有效的通知ID",
-            "请提供通知ID参数。示例: ohos-notificationManager publish --notificationId 1 "
-            "--notificationContent \"{\\\"type\\\":\\\"basic\\\",\\\"title\\\":\\\"Test\\\",\\\"text\\\":\\\"Hello\\\"}\"",
-            resultReceiver_);
-        return ERR_INVALID_VALUE;
-    }
     if (opts.contentJson.empty()) {
         OutputError("ERR_ARG_MISSING", "通知内容（--notificationContent）缺失: 必须提供通知内容JSON",
             "请提供通知内容参数。示例: ohos-notificationManager publish --notificationId 1 "
@@ -528,11 +471,16 @@ ErrCode NotificationShellCommand::ValidatePublishRequiredOptions(const PublishOp
             resultReceiver_);
         return ERR_INVALID_VALUE;
     }
-    if (opts.slotType < 0 || opts.slotType > 7 || opts.slotType == 5) {
+    if (opts.slotType < 0 || opts.slotType > 7 || opts.slotType == 5 || opts.slotType == 7) {
         OutputError("ERR_ARG_INVALID",
-            "渠道类型 " + std::to_string(opts.slotType) + " 无效: 渠道类型必须在 0-7 范围内且不支持 5(LIVE_VIEW)",
-            "请使用有效的渠道类型值。示例: --slotType 3（OTHER类型）或 --slotType 4（CUSTOMER_SERVICE类型)",
+            "渠道类型无效: 渠道类型必须在 0-7 范围内且不支持 5(LIVE_VIEW)、7(EMERGENCY_INFORMATION)",
+            "请使用有效的渠道类型值。示例: --slotType 3（OTHER类型）或 --slotType 6（CUSTOMER_SERVICE类型)",
             resultReceiver_);
+        return ERR_INVALID_VALUE;
+    }
+    if (opts.badgeNumber > 0x7FFFFFFFu) {
+        OutputError("ERR_ARG_INVALID", "badgeNumber参数值无效: 必须为非负整数",
+            "请使用有效的非负整数。示例: --badgeNumber 1", resultReceiver_);
         return ERR_INVALID_VALUE;
     }
     return ERR_OK;
@@ -554,13 +502,10 @@ void NotificationShellCommand::ApplySimplePublishFields(const PublishOptions &op
         request.SetAlertOneTime(true);
     }
     if (!opts.sound.empty()) {
-        request.SetSound(TruncateString(opts.sound, MAX_LABEL_LEN));
+        request.SetSound(opts.sound);
     }
     if (opts.badgeNumber > 0) {
         request.SetBadgeNumber(opts.badgeNumber);
-    }
-    if (opts.isTapDismissed) {
-        request.SetTapDismissed(true);
     }
     if (opts.autoDeletedTime >= 0) {
         request.SetAutoDeletedTime(opts.autoDeletedTime);
@@ -571,18 +516,12 @@ void NotificationShellCommand::ApplySimplePublishFields(const PublishOptions &op
     if (!opts.groupName.empty()) {
         request.SetGroupName(TruncateString(opts.groupName, MAX_LABEL_LEN));
     }
-    if (opts.isOngoing) {
-        request.SetInProgress(true);
-    }
-    if (opts.isUnremovable) {
-        request.SetUnremovable(true);
-    }
 }
 
 ErrCode NotificationShellCommand::RunAsPublishCommand()
 {
     if (ans_ == nullptr) {
-        OutputApiError(ERR_ANS_SERVICE_NOT_CONNECTED, "发布通知", "", resultReceiver_);
+        OutputApiError(ERR_ANS_SERVICE_NOT_CONNECTED, "发布通知", "", "", resultReceiver_);
         return ERR_ANS_SERVICE_NOT_CONNECTED;
     }
 
@@ -601,12 +540,6 @@ ErrCode NotificationShellCommand::RunAsPublishCommand()
     }
 
     NotificationRequest request(opts.notificationId);
-    request.SetSlotType(static_cast<NotificationConstant::SlotType>(opts.slotType));
-
-    ret = BuildNotificationContent(opts.contentJson, request);
-    if (ret != ERR_OK) {
-        return ret;
-    }
 
     ret = ApplyPublishOptions(opts, request);
     if (ret != ERR_OK) {
@@ -622,7 +555,7 @@ ErrCode NotificationShellCommand::RunAsPublishCommand()
     OutputApiError(ret, "发布通知",
         "示例: ohos-notificationManager publish --notificationId 1 "
         "--notificationContent \"{\\\"type\\\":\\\"basic\\\",\\\"title\\\":\\\"Test\\\",\\\"text\\\":\\\"Hello\\\"}\"",
-        resultReceiver_);
+        "", resultReceiver_);
     return ret;
 }
 
@@ -637,23 +570,49 @@ ErrCode NotificationShellCommand::BuildNotificationContent(const std::string &co
         return ERR_INVALID_VALUE;
     }
     json contentObj = json::parse(contentJson);
-    std::string contentType = contentObj.value("type", "basic");
-    std::string cTitle = TruncateString(contentObj.value("title", ""), MAX_TITLE_LEN);
-    std::string cText = TruncateString(contentObj.value("text", ""), MAX_CONTENT_TEXT_LEN);
-    std::string cAdditionalText;
-    if (contentObj.contains("additionalText") && contentObj["additionalText"].is_string()) {
-        cAdditionalText = TruncateString(contentObj["additionalText"].get<std::string>(), MAX_CONTENT_TEXT_LEN);
+    if (!contentObj.is_object()) {
+        OutputError("ERR_ARG_INVALID", "通知内容必须是JSON对象",
+            "请提供JSON对象格式。示例: --notificationContent "
+            "\"{\\\"type\\\":\\\"basic\\\",\\\"title\\\":\\\"T\\\",\\\"text\\\":\\\"X\\\"}\"",
+            resultReceiver_);
+        return ERR_INVALID_VALUE;
+    }
+
+    std::string contentType;
+    if (contentObj.contains("type") && contentObj["type"].is_string()) {
+        contentType = contentObj["type"].get<std::string>();
+    }
+    if (contentType.empty()) {
+        OutputError("ERR_ARG_MISSING", "通知内容中 type 不能为空",
+            "请在 --notificationContent JSON中包含 type 字段（basic/long_text/multiline）", resultReceiver_);
+        return ERR_INVALID_VALUE;
+    }
+
+    std::string cTitle;
+    if (contentObj.contains("title") && contentObj["title"].is_string()) {
+        cTitle = TruncateString(contentObj["title"].get<std::string>(), MAX_TITLE_LEN);
     }
     if (cTitle.empty()) {
         OutputError("ERR_ARG_INVALID", "通知内容中 title 不能为空",
             "请在 --notificationContent JSON中包含 title 字段", resultReceiver_);
         return ERR_INVALID_VALUE;
     }
+
+    std::string cText;
+    if (contentObj.contains("text") && contentObj["text"].is_string()) {
+        cText = TruncateString(contentObj["text"].get<std::string>(), MAX_CONTENT_TEXT_LEN);
+    }
     if (cText.empty()) {
         OutputError("ERR_ARG_INVALID", "通知内容中 text 不能为空",
             "请在 --notificationContent JSON中包含 text 字段", resultReceiver_);
         return ERR_INVALID_VALUE;
     }
+
+    std::string cAdditionalText;
+    if (contentObj.contains("additionalText") && contentObj["additionalText"].is_string()) {
+        cAdditionalText = TruncateString(contentObj["additionalText"].get<std::string>(), MAX_CONTENT_TEXT_LEN);
+    }
+    
     if (contentType == "basic") {
         BuildBasicContent(cTitle, cText, cAdditionalText, request);
         return ERR_OK;
@@ -774,76 +733,17 @@ ErrCode NotificationShellCommand::BuildMultilineContent(const json &contentObj,
 ErrCode NotificationShellCommand::ApplyPublishOptions(const PublishOptions &opts,
     NotificationRequest &request)
 {
+    request.SetSlotType(static_cast<NotificationConstant::SlotType>(opts.slotType));
     ApplySimplePublishFields(opts, request);
 
-    ErrCode ret = ParseAndApplyAdditionalParams(opts.additionalParamsJson, request);
+    ErrCode ret = BuildNotificationContent(opts.contentJson, request);
     if (ret != ERR_OK) {
         return ret;
     }
-    ret = ParseAndApplyActionButtons(opts.actionButtonsJson, request);
-    if (ret != ERR_OK) {
-        return ret;
-    }
+
     ret = ParseAndApplyNotificationFlags(opts.flagsStr, request);
     if (ret != ERR_OK) {
         return ret;
-    }
-    ret = ParseAndApplyNotificationTemplate(opts.templateJson, request);
-    if (ret != ERR_OK) {
-        return ret;
-    }
-    return ERR_OK;
-}
-
-ErrCode NotificationShellCommand::ParseAndApplyAdditionalParams(const std::string &jsonStr,
-    NotificationRequest &request)
-{
-    if (jsonStr.empty()) {
-        return ERR_OK;
-    }
-    if (!json::accept(jsonStr)) {
-        OutputError("ERR_ARG_INVALID", "additionalParams JSON格式无效: 必须为有效的JSON对象字符串",
-            "请提供有效的JSON格式。示例: --additionalParams \"{\\\"key1\\\":\\\"val1\\\"}\"",
-            resultReceiver_);
-        return ERR_INVALID_VALUE;
-    }
-    AAFwk::WantParams params = AAFwk::WantParamWrapper::ParseWantParams(jsonStr);
-    auto wantParams = std::make_shared<AAFwk::WantParams>(params);
-    request.SetAdditionalData(wantParams);
-    return ERR_OK;
-}
-
-ErrCode NotificationShellCommand::ParseAndApplyActionButtons(const std::string &jsonStr,
-    NotificationRequest &request)
-{
-    if (jsonStr.empty()) {
-        return ERR_OK;
-    }
-    if (!json::accept(jsonStr)) {
-        OutputError("ERR_ARG_INVALID", "操作按钮JSON解析失败: JSON格式无效",
-            "请提供有效的JSON数组格式。示例: --actionButtons \"[{\\\"title\\\":\\\"Action\\\"}]\"",
-            resultReceiver_);
-        return ERR_INVALID_VALUE;
-    }
-    json btnArray = json::parse(jsonStr);
-    if (!btnArray.is_array()) {
-        OutputError("ERR_ARG_INVALID", "操作按钮必须是JSON数组",
-            "请提供JSON数组格式。示例: --actionButtons \"[{\\\"title\\\":\\\"Action\\\"}]\"",
-            resultReceiver_);
-        return ERR_INVALID_VALUE;
-    }
-    for (const auto &btn : btnArray) {
-        if (btn.is_object() && btn.contains("title") && btn["title"].is_string()) {
-            std::string btnTitle = btn["title"].get<std::string>();
-            if (btnTitle.size() > MAX_LABEL_LEN) {
-                btnTitle = btnTitle.substr(0, MAX_LABEL_LEN);
-            }
-            auto actionBtn = NotificationActionButton::Create(nullptr, btnTitle, nullptr, nullptr);
-            if (actionBtn != nullptr) {
-                request.AddActionButton(actionBtn);
-                request.SetIsCoverActionButtons(true);
-            }
-        }
     }
     return ERR_OK;
 }
@@ -889,59 +789,16 @@ ErrCode NotificationShellCommand::ParseAndApplyNotificationFlags(const std::stri
     return ERR_OK;
 }
 
-ErrCode NotificationShellCommand::ParseAndApplyNotificationTemplate(const std::string &jsonStr,
-    NotificationRequest &request)
-{
-    if (jsonStr.empty()) {
-        return ERR_OK;
-    }
-    if (!json::accept(jsonStr)) {
-        OutputError("ERR_ARG_INVALID", "模板JSON解析失败: JSON格式无效",
-            "请提供有效的JSON格式。示例: --notificationTemplate "
-            "\"{\\\"name\\\":\\\"downloadTemplate\\\",\\\"data\\\":{\\\"progress\\\":50}}\"",
-            resultReceiver_);
-        return ERR_INVALID_VALUE;
-    }
-    json tmplObj = json::parse(jsonStr);
-    if (!tmplObj.is_object() || !tmplObj.contains("name") || !tmplObj["name"].is_string()) {
-        OutputError("ERR_ARG_INVALID", "模板JSON必须包含 name 字段",
-            "请提供包含 name 字段的JSON。示例: --template \"{\\\"name\\\":\\\"downloadTemplate\\\"}\"",
-            resultReceiver_);
-        return ERR_INVALID_VALUE;
-    }
-    auto tmpl = std::make_shared<NotificationTemplate>();
-    std::string tmplName = tmplObj["name"].get<std::string>();
-    if (tmplName.size() > MAX_LABEL_LEN) {
-        tmplName = tmplName.substr(0, MAX_LABEL_LEN);
-    }
-    tmpl->SetTemplateName(tmplName);
-    if (tmplObj.contains("data") && tmplObj["data"].is_string()) {
-        std::string data = tmplObj["data"].get<std::string>();
-        if (!data.empty()) {
-            if (!json::accept(data)) {
-                OutputError("ERR_ARG_INVALID", "模板data JSON格式无效: 必须为有效的JSON对象字符串",
-                    "请提供有效的JSON格式。示例: --notificationTemplate "
-                    "\"{\\\"name\\\":\\\"downloadTemplate\\\",\\\"data\\\":\\\"{\\\"progress\\\":\\\"50\\\"}\\\"}\"",
-                    resultReceiver_);
-                return ERR_INVALID_VALUE;
-            }
-            AAFwk::WantParams params = AAFwk::WantParamWrapper::ParseWantParams(data);
-            tmpl->SetTemplateData(std::make_shared<AAFwk::WantParams>(params));
-        }
-    }
-    request.SetTemplate(tmpl);
-    return ERR_OK;
-}
-
 ErrCode NotificationShellCommand::RunAsCancelByIdCommand()
 {
     if (ans_ == nullptr) {
-        OutputApiError(ERR_ANS_SERVICE_NOT_CONNECTED, "取消通知", "", resultReceiver_);
+        OutputApiError(ERR_ANS_SERVICE_NOT_CONNECTED, "取消通知", "", PERM_CONTROLLER_AND_AGENT, resultReceiver_);
         return ERR_ANS_SERVICE_NOT_CONNECTED;
     }
 
     std::string bundleOptionStr;
-    int32_t notificationId = -1;
+    int32_t notificationId = 0;
+    bool hasNotificationId = false;
     optind = 0;
     int option = getopt_long(argc_, argv_, SHORT_OPTIONS_CANCEL_BY_ID, LONG_OPTIONS_CANCEL_BY_ID, nullptr);
     while (option != -1) {
@@ -952,9 +809,18 @@ ErrCode NotificationShellCommand::RunAsCancelByIdCommand()
             case 'o':
                 bundleOptionStr = optarg;
                 break;
-            case 'i':
-                notificationId = atoi(optarg);
+            case 'i': {
+                hasNotificationId = true;
+                char *endPtr = nullptr;
+                long idVal = strtol(optarg, &endPtr, 10);
+                if (endPtr == optarg || *endPtr != '\0') {
+                    OutputError("ERR_ARG_INVALID", "notificationId参数值无效: 必须为有效整数",
+                        "请使用有效的整数。示例: --notificationId 1", resultReceiver_);
+                    return ERR_INVALID_VALUE;
+                }
+                notificationId = static_cast<int32_t>(idVal);
                 break;
+            }
             default:
                 OutputError("ERR_UNKNOWN_OPTION", "未知选项: cancelById命令不支持该选项",
                     "请使用 --help 查看可用选项。示例: ohos-notificationManager cancelById --help",
@@ -970,6 +836,14 @@ ErrCode NotificationShellCommand::RunAsCancelByIdCommand()
         return ret;
     }
 
+    if (!hasNotificationId) {
+        OutputError("ERR_ARG_MISSING", "通知ID（--notificationId）缺失: 必须提供有效的通知ID",
+            "请提供通知ID参数。示例: ohos-notificationManager cancelById "
+            "--bundleOption \"{\\\"bundleName\\\":\\\"com.example\\\",\\\"uid\\\":10100}\" --notificationId 1",
+            resultReceiver_);
+        return ERR_INVALID_VALUE;
+    }
+
     ret = NotificationHelper::CancelAsBundle(bundleOption, notificationId);
     if (ret == ERR_OK) {
         json data;
@@ -979,7 +853,7 @@ ErrCode NotificationShellCommand::RunAsCancelByIdCommand()
     OutputApiError(ret, "取消通知",
         "示例: ohos-notificationManager cancelById "
         "--bundleOption \"{\\\"bundleName\\\":\\\"com.example\\\",\\\"uid\\\":10100}\" --notificationId 1",
-        resultReceiver_);
+        PERM_CONTROLLER_AND_AGENT, resultReceiver_);
     return ret;
 }
 
@@ -993,7 +867,7 @@ ErrCode NotificationShellCommand::ParseHashcodes(const std::string &jsonStr,
         return ERR_INVALID_VALUE;
     }
     if (!json::accept(jsonStr)) {
-        OutputError("ERR_INVALID_ARG", "hashcodes参数解析失败: JSON格式无效",
+        OutputError("ERR_ARG_INVALID", "hashcodes参数解析失败: JSON格式无效",
             "请提供有效的JSON数组字符串。示例: --hashcodes \"[\\\"hash1\\\",\\\"hash2\\\"]\"",
             resultReceiver_);
         return ERR_INVALID_VALUE;
@@ -1021,7 +895,7 @@ ErrCode NotificationShellCommand::ParseHashcodes(const std::string &jsonStr,
 ErrCode NotificationShellCommand::RunAsBatchCancelCommand()
 {
     if (ans_ == nullptr) {
-        OutputApiError(ERR_ANS_SERVICE_NOT_CONNECTED, "批量取消通知", "", resultReceiver_);
+        OutputApiError(ERR_ANS_SERVICE_NOT_CONNECTED, "批量取消通知", "", PERM_CONTROLLER, resultReceiver_);
         return ERR_ANS_SERVICE_NOT_CONNECTED;
     }
 
@@ -1059,14 +933,14 @@ ErrCode NotificationShellCommand::RunAsBatchCancelCommand()
     }
     OutputApiError(ret, "批量取消通知",
         "示例: ohos-notificationManager batchCancel --hashcodes \"[\\\"hash1\\\"]\"",
-        resultReceiver_);
+        PERM_CONTROLLER, resultReceiver_);
     return ret;
 }
 
 ErrCode NotificationShellCommand::RunAsCancelByBundleCommand()
 {
     if (ans_ == nullptr) {
-        OutputApiError(ERR_ANS_SERVICE_NOT_CONNECTED, "取消通知", "", resultReceiver_);
+        OutputApiError(ERR_ANS_SERVICE_NOT_CONNECTED, "取消通知", "", PERM_CONTROLLER, resultReceiver_);
         return ERR_ANS_SERVICE_NOT_CONNECTED;
     }
 
@@ -1106,14 +980,14 @@ ErrCode NotificationShellCommand::RunAsCancelByBundleCommand()
     OutputApiError(ret, "取消通知",
         "示例: ohos-notificationManager cancelByBundle "
         "--bundleOption \"{\\\"bundleName\\\":\\\"com.example\\\",\\\"uid\\\":10100}\"",
-        resultReceiver_);
+        PERM_CONTROLLER, resultReceiver_);
     return ret;
 }
 
 ErrCode NotificationShellCommand::RunAsEnableNotificationCommand()
 {
     if (ans_ == nullptr) {
-        OutputApiError(ERR_ANS_SERVICE_NOT_CONNECTED, "设置通知开关", "", resultReceiver_);
+        OutputApiError(ERR_ANS_SERVICE_NOT_CONNECTED, "设置通知开关", "", PERM_CONTROLLER, resultReceiver_);
         return ERR_ANS_SERVICE_NOT_CONNECTED;
     }
     std::string bundleOptionStr;
@@ -1127,7 +1001,7 @@ ErrCode NotificationShellCommand::RunAsEnableNotificationCommand()
                 resultReceiver_.append(ENABLE_NOTIFICATION_HELP_MSG);
                 return ERR_OK;
             case 'o':
-                bundleOptionStr = optarg; 
+                bundleOptionStr = optarg;
                 break;
             case 'e':
                 enabled = true;
@@ -1156,14 +1030,14 @@ ErrCode NotificationShellCommand::RunAsEnableNotificationCommand()
     OutputApiError(ret, "设置通知开关",
         "示例: ohos-notificationManager enableNotification "
         "--bundleOption \"{\\\"bundleName\\\":\\\"com.example\\\",\\\"uid\\\":10100}\" --enabled true",
-        resultReceiver_);
+        PERM_CONTROLLER, resultReceiver_);
     return ret;
 }
 
 ErrCode NotificationShellCommand::RunAsSetSlotFlagsCommand()
 {
     if (ans_ == nullptr) {
-        OutputApiError(ERR_ANS_SERVICE_NOT_CONNECTED, "设置渠道标志", "", resultReceiver_);
+        OutputApiError(ERR_ANS_SERVICE_NOT_CONNECTED, "设置渠道标志", "", PERM_CONTROLLER, resultReceiver_);
         return ERR_ANS_SERVICE_NOT_CONNECTED;
     }
     std::string bundleOptionStr;
@@ -1199,8 +1073,13 @@ ErrCode NotificationShellCommand::RunAsSetSlotFlagsCommand()
     if (!hasFlags) {
         OutputError("ERR_ARG_MISSING", "渠道标志（--flags）缺失: 必须提供渠道标志位掩码",
             "请提供渠道标志参数。示例: ohos-notificationManager setSlotFlags "
-            "--bundleOption \"{\\\"bundleName\\\":\\\"com.example\\\",\\\"uid\\\":10100}\" --flags 255",
+            "--bundleOption \"{\\\"bundleName\\\":\\\"com.example\\\",\\\"uid\\\":10100}\" --flags 1",
             resultReceiver_);
+        return ERR_INVALID_VALUE;
+    }
+    if (slotFlags < 0 || slotFlags > MAX_SLOT_FLAGS) {
+        OutputError("ERR_ARG_INVALID", "渠道标志值无效: 不能小于0或者大于63(0b111111)",
+            "请使用有效的渠道标志值（0-63）。示例: --flags 63", resultReceiver_);
         return ERR_INVALID_VALUE;
     }
     ret = NotificationHelper::SetNotificationSlotFlagsAsBundle(bundleOption, slotFlags);
@@ -1212,14 +1091,14 @@ ErrCode NotificationShellCommand::RunAsSetSlotFlagsCommand()
     OutputApiError(ret, "设置渠道标志",
         "示例: ohos-notificationManager setSlotFlags "
         "--bundleOption \"{\\\"bundleName\\\":\\\"com.example\\\",\\\"uid\\\":10100}\" --flags 63",
-        resultReceiver_);
+        PERM_CONTROLLER, resultReceiver_);
     return ret;
 }
 
 ErrCode NotificationShellCommand::RunAsListAllNotificationCommand()
 {
     if (ans_ == nullptr) {
-        OutputApiError(ERR_ANS_SERVICE_NOT_CONNECTED, "查询通知", "", resultReceiver_);
+        OutputApiError(ERR_ANS_SERVICE_NOT_CONNECTED, "查询通知", "", PERM_CONTROLLER, resultReceiver_);
         return ERR_ANS_SERVICE_NOT_CONNECTED;
     }
 
@@ -1241,7 +1120,7 @@ ErrCode NotificationShellCommand::RunAsListAllNotificationCommand()
     ErrCode ret = NotificationHelper::GetAllActiveNotifications(notifications);
     if (ret != ERR_OK) {
         OutputApiError(ret, "查询活跃通知",
-            "示例: ohos-notificationManager listAllNotification", resultReceiver_);
+            "示例: ohos-notificationManager listAllNotification", PERM_CONTROLLER, resultReceiver_);
         return ret;
     }
 
@@ -1275,11 +1154,6 @@ void NotificationShellCommand::SerializeNotification(const sptr<Notification> &n
     item["label"] = request->GetLabel();
     item["appInstanceKey"] = request->GetAppInstanceKey();
     item["slotType"] = static_cast<int32_t>(request->GetSlotType());
-    auto additionalParams = request->GetAdditionalData();
-    if (additionalParams != nullptr) {
-        AAFwk::WantParamWrapper wWrapper(*additionalParams);
-        item["additionalParams"] = wWrapper.ToString();
-    }
     auto content = request->GetContent();
     if (content != nullptr) {
         json contentObj;
@@ -1304,11 +1178,6 @@ void NotificationShellCommand::SerializeNotification(const sptr<Notification> &n
         flagsObj["bannerEnabled"] = static_cast<int32_t>(flags->IsBannerEnabled());
         flagsObj["lockScreenEnabled"] = static_cast<int32_t>(flags->IsLockScreenEnabled());
         item["notificationFlags"] = flagsObj;
-    }
-    auto extendInfo = request->GetExtendInfo();
-    if (extendInfo != nullptr) {
-        AAFwk::WantParamWrapper wWrapper(*extendInfo);
-        item["extendInfo"] = wWrapper.ToString();
     }
     item["hashCode"] = request->GetBaseKey("");
 }
@@ -1431,11 +1300,6 @@ void NotificationShellCommand::SerializeLiveViewContent(
     if (liveContent != nullptr) {
         contentObj["liveViewStatus"] = static_cast<int32_t>(liveContent->GetLiveViewStatus());
         contentObj["version"] = liveContent->GetVersion();
-        auto extraInfo = liveContent->GetExtraInfo();
-        if (extraInfo != nullptr) {
-            AAFwk::WantParamWrapper wWrapper(*extraInfo);
-            contentObj["extraInfo"] = wWrapper.ToString();
-        }
     }
 }
 

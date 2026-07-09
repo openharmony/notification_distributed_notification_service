@@ -18,18 +18,15 @@
 | ohos-notificationManager publish --notificationContent "{\"type\":\"long_text\",\"title\":\"Long\",\"text\":\"Short\",\"longText\":\"Very long text\",\"expandedTitle\":\"Expanded\",\"briefText\":\"Brief\"}" | 发布长文本通知 | 无 | 无 |
 | ohos-notificationManager publish --notificationContent "{\"type\":\"multiline\",\"title\":\"Multi\",\"text\":\"Content\",\"expandedTitle\":\"Expanded\",\"briefText\":\"Brief\",\"lines\":[\"line1\",\"line2\"]}" | 发布多行通知 | 无 | 无 |
 | ohos-notificationManager publish --notificationContent "{\"type\":\"basic\",\"title\":\"Test\",\"text\":\"Hello\"}" --badgeNumber 3 | 发布带角标增加数量的通知（在当前角标基础上增加3） | 无 | 无 |
-| ohos-notificationManager publish --notificationContent "{\"type\":\"basic\",\"title\":\"Test\",\"text\":\"Hello\"}" --inProgress | 发布进行中通知 | 无 | 无 |
-| ohos-notificationManager publish --notificationContent "{\"type\":\"basic\",\"title\":\"Test\",\"text\":\"Hello\"}" --unRemovable | 发布不可移除通知 | 无 | 无 |
 | ohos-notificationManager publish --notificationContent "{\"type\":\"basic\",\"title\":\"Test\",\"text\":\"Hello\"}" --updateOnly | 仅更新已存在的通知，不创建新通知 | 无 | 无 |
 | ohos-notificationManager publish --notificationContent "{\"type\":\"basic\",\"title\":\"Test\",\"text\":\"Hello\"}" --label "myLabel" --groupName "myGroup" | 发布带标签和分组的通知 | 无 | 无 |
 | ohos-notificationManager publish --notificationContent "{\"type\":\"basic\",\"title\":\"Test\",\"text\":\"Hello\"}" --notificationFlags "{\"soundEnabled\":2,\"vibrationEnabled\":2}" | 发布带提醒标志的通知（关闭声音和振动） | 无 | 无 |
-| ohos-notificationManager publish --notificationContent "{\"type\":\"basic\",\"title\":\"Test\",\"text\":\"Hello\"}" --actionButtons "[{\"title\":\"OK\"},{\"title\":\"Cancel\"}]" | 发布带操作按钮的通知 | 无 | 无 |
-| ohos-notificationManager publish --notificationContent "{\"type\":\"basic\",\"title\":\"Test\",\"text\":\"Hello\"}" --alertOneTime --tapDismissed --autoDeletedTime 5000 | 发布仅提醒一次、点击消失、5秒自动删除的通知 | 无 | 无 |
-| ohos-notificationManager publish --notificationContent "{\"type\":\"basic\",\"title\":\"Test\",\"text\":\"Hello\"}" --additionalParams "{\"key1\":\"val1\"}" | 发布带附加参数的通知 | 无 | 无 |
-| ohos-notificationManager publish --notificationContent "{\"type\":\"basic\",\"title\":\"Test\",\"text\":\"Hello\"}" --notificationTemplate "{\"name\":\"downloadTemplate\"}" | 发布带模板的通知 | 无 | 无 |
+| ohos-notificationManager publish --notificationContent "{\"type\":\"basic\",\"title\":\"Test\",\"text\":\"Hello\"}" --alertOneTime --autoDeletedTime 5000 | 发布仅提醒一次、5秒自动删除的通知 | 无 | 无 |
 | ohos-notificationManager publish --notificationContent "{\"type\":\"basic\",\"title\":\"Test\",\"text\":\"Hello\"}" --sound "file:///ringtone.mp3" | 发布带自定义声音的通知 | 无 | 无 |
-| ohos-notificationManager publish --notificationContent "{\"type\":\"basic\",\"title\":\"Test\",\"text\":\"Hello\"}" --appMessageId "msg001" --priorityNotificationType alarm | 发布带消息ID和优先级类型的通知 | 无 | 无 |
-| ohos-notificationManager publish --notificationContent "{\"type\":\"basic\",\"title\":\"Test\",\"text\":\"Hello\"}" --priorityNotificationType call | 发布带来电通话优先级类型的通知 | 无 | 无 |
+| ohos-notificationManager publish --notificationContent "{\"type\":\"basic\",\"title\":\"Test\",\"text\":\"Hello\"}" --appMessageId "msg001" --priorityNotificationType OTHER | 发布带消息ID和非优先级类型的通知 | 无 | 无 |
+| ohos-notificationManager publish --notificationContent "{\"type\":\"basic\",\"title\":\"Test\",\"text\":\"Hello\"}" --priorityNotificationType URGENT_MESSAGE | 发布带紧急消息优先级类型的通知 | 无 | 无 |
+| ohos-notificationManager publish --notificationContent "{\"type\":\"basic\",\"title\":\"Test\",\"text\":\"Hello\"}" --priorityNotificationType PRIMARY_CONTACT | 发布带重要联系人优先级类型的通知 | 无 | 无 |
+| ohos-notificationManager publish --notificationContent "{\"type\":\"basic\",\"title\":\"Test\",\"text\":\"Hello\"}" --priorityNotificationType SCHEDULE_REMINDER | 发布带日程提醒优先级类型的通知 | 无 | 无 |
 | ohos-notificationManager cancelById --help | 显示 cancelById 子命令帮助 | 无 | 无 |
 | ohos-notificationManager cancelById --bundleOption "{\"bundleName\":\"com.example\",\"uid\":10100}" --notificationId 1 | 按应用和ID取消通知 | ohos.permission.NOTIFICATION_CONTROLLER, ohos.permission.NOTIFICATION_AGENT_CONTROLLER | 无 |
 | ohos-notificationManager cancelByBundle --help | 显示 cancelByBundle 子命令帮助 | 无 | 无 |

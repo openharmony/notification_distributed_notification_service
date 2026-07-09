@@ -27,7 +27,7 @@ void OutputSuccess(const nlohmann::json& data, std::string& output);
 void OutputError(const std::string& errCode, const std::string& errMsg,
     const std::string& suggestion, std::string& output);
 void OutputApiError(ErrCode internalErrCode, const std::string& action,
-    const std::string& exampleCmd, std::string& output);
+    const std::string& exampleCmd, const std::string& requiredPermission, std::string& output);
 }  // namespace Notification
 }  // namespace OHOS
 #endif

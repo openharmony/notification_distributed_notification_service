@@ -94,25 +94,19 @@ ohos-notificationManager listAllNotification
 
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| --notificationId | integer | 否 | 通知ID（≥0，默认0） |
-| --notificationContent | string(JSON) | 是 | 通知内容JSON字符串（最长4096字节） |
-| --slotType | integer | 否 | 渠道类型（0-7，不支持5，默认3） |
+| --notificationContent | string(JSON) | 是 | 通知内容JSON字符串。所有类型公共必填: title(≤1024B), text(≤3072B)；公共可选: additionalText(≤3072B)；所有属性超长截取。type仅支持basic、long_text、multiline |
+| --notificationId | integer | 否 | 通知ID（默认0） |
+| --slotType | integer | 否 | 通知渠道类型（0=社交通信, 1=服务提醒, 2=内容信息, 3=其他, 4=自定义, 6=客服消息，不支持5=实况通知、7=紧急信息，默认3） |
 | --updateOnly | boolean | 否 | 仅更新已存在的通知，不创建新通知（默认false） |
-| --appMessageId | string | 否 | 应用消息ID（最长256字节） |
+| --appMessageId | string | 否 | 应用消息ID，用于标识特定消息 |
 | --priorityNotificationType | string | 否 | 优先级通知类型（枚举值见下方说明） |
 | --alertOneTime | boolean | 否 | 仅提醒一次，后续更新不再提醒（默认false） |
-| --sound | string | 否 | 自定义通知声音URI（最长204字节） |
-| --badgeNumber | integer | 否 | 角标增加数量（在当前角标基础上增加的数字，≥0） |
-| --tapDismissed | boolean | 否 | 点击后自动消失（默认false） |
-| --autoDeletedTime | integer | 否 | 自动删除时间（毫秒，≥0） |
-| --label | string | 否 | 通知标签（最长204字节） |
-| --groupName | string | 否 | 通知分组名称（最长204字节，超长截取） |
-| --additionalParams | string(JSON) | 否 | 附加数据WantParams序列化字符串（最长4096字节） |
-| --inProgress | boolean | 否 | 标记为进行中通知（默认false） |
-| --unRemovable | boolean | 否 | 标记为不可移除通知（默认false） |
-| --actionButtons | string(JSON) | 否 | 操作按钮JSON数组（仅支持title字段，最长4096字节） |
-| --notificationFlags | string(JSON) | 否 | 通知提醒标志（支持soundEnabled/vibrationEnabled/bannerEnabled/lockScreenEnabled，值=2为关闭） |
-| --notificationTemplate | string(JSON) | 否 | 通知模板（包含name和可选data字段，最长4096字节） |
+| --sound | string | 否 | 自定义通知声音URI |
+| --badgeNumber | integer | 否 | 通知角标增加数量（设置为在当前角标基础上增加的数字，必须>=0） |
+| --autoDeletedTime | number | 否 | 自动删除时间（毫秒） |
+| --label | string | 否 | 通知标签（不超过204字节） |
+| --groupName | string | 否 | 通知分组名称（不超过204字节，超长截取） |
+| --notificationFlags | string(JSON) | 否 | 通知提醒标志JSON字符串。支持字段: soundEnabled(声音)、vibrationEnabled(振动)、bannerEnabled(横幅)、lockScreenEnabled(锁屏)，值枚举: 2=CLOSE(关闭)。示例: {"soundEnabled":2,"vibrationEnabled":2} |
 
 ## notificationContent 格式说明
 
@@ -141,7 +135,7 @@ ohos-notificationManager listAllNotification
 
 | 值 | 类型 | 说明 |
 |----|------|------|
-| 0 | SOCIAL_COMMUNICATION | 社交沟通 |
+| 0 | SOCIAL_COMMUNICATION | 社交通信 |
 | 1 | SERVICE_REMINDER | 服务提醒 |
 | 2 | CONTENT_INFORMATION | 内容信息 |
 | 3 | OTHER | 其他（默认） |
@@ -154,26 +148,15 @@ ohos-notificationManager listAllNotification
 
 | 枚举值 | 说明 |
 |--------|------|
-| alarm | 闹钟定时器 |
-| call | 来电通话 |
-| email | 邮件 |
-| err | 后台错误/认证 |
-| event | 日历事件 |
-| msg | 短信即时消息 |
-| navigation | 地图导航 |
-| progress | 后台长时间进程 |
-| promo | 广告推广 |
-| recommendation | 及时推荐 |
-| reminder | 用户提醒 |
-| service | 后台服务 |
-| social | 社交更新 |
-| status | 设备状态 |
-| sys | 系统状态更新 |
-| transport | 媒体播放控制 |
+| OTHER | 非优先级通知 |
+| PRIMARY_CONTACT | 重要联系人 |
+| AT_ME | 有人@我 |
+| URGENT_MESSAGE | 紧急消息 |
+| SCHEDULE_REMINDER | 日程提醒 |
 
 ## 渠道标志位说明
 
-仅bit0-bit5有效（范围0-63）。其中亮屏(bit3)和状态栏图标(bit5)设置关闭不会生效，服务端会强制保持开启。
+仅bit0-bit5有效（范围0-63，必须>=0）。其中亮屏(bit3)和状态栏图标(bit5)设置关闭不会生效，服务端会强制保持开启。
 
 | 位 | 值 | 标志 | 说明 |
 |----|----|------|------|
@@ -196,11 +179,9 @@ ohos-notificationManager listAllNotification
 | label | string | 通知标签 |
 | appInstanceKey | string | 应用实例Key |
 | slotType | integer | 渠道类型值 |
-| additionalParams | string | 附加参数（WantParams序列化字符串） |
 | notificationContent | object | 通知内容（按type字段区分不同类型，详见下方） |
 | actionButtons | array | 操作按钮列表（每个按钮含title字段） |
 | notificationFlags | string | 提醒标志（包含soundEnabled、vibrationEnabled、bannerEnabled、lockScreenEnabled等字段） |
-| extendInfo | string | 扩展信息（WantParams序列化字符串） |
 | hashCode | string | 通知哈希码 |
 
 ### listAllNotification notificationContent 内容类型
@@ -209,13 +190,12 @@ ohos-notificationManager listAllNotification
 
 | type | 字段 | 说明 |
 |------|------|------|
-| 公共 | type, title, text | 所有类型都有 |
-| 公共(可选) | additionalText | 所有类型可选 |
+| 公共 | type, title, text, additionalText(可选) | 所有类型都有 |
 | basic | 仅公共字段 | 基本通知 |
 | long_text | +longText, expandedTitle, briefText | 长文本 |
 | multiline | +expandedTitle, briefText, lines(数组) | 多行通知 |
 | picture | +expandedTitle, briefText | 图片通知 |
 | conversation | +conversationTitle, isGroup, messages(含text/arrivedTime/senderName/senderKey) | 会话通知 |
 | media | +shownActions(按钮序号数组) | 媒体通知 |
-| live_view | +liveViewStatus, version, extraInfo | 实况通知 |
+| live_view | +liveViewStatus, version | 实况通知 |
 | local_live_view | +liveViewType | 本地实况通知 |
