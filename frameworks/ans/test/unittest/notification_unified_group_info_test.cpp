@@ -55,7 +55,8 @@ HWTEST_F(NotificationUnifiedGroupInfoTest, SetUnifiedGroupInfo_00001, Function |
     info.SetExtraInfo(extraInfo);
     EXPECT_NE(info.GetExtraInfo(), nullptr);
     std::string res = "NotificationUnifiedGroupInfo{ key = testKey, title = testtitle, "
-        "content = content, sceneName = test, extraInfo = {} }";
+        "content = content, sceneName = test, "
+        "extraInfo = {\"ohos.want.paramsStringEnvelope\":{}} }";
     EXPECT_EQ(info.Dump(), res);
 }
 

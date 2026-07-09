@@ -17,6 +17,7 @@
 
 #include "ans_image_util.h"
 #include "ans_log_wrapper.h"
+#include "notification_want_params_helper.h"
 #include "want_agent_helper.h"
 #include "want_params_wrapper.h"
 
@@ -221,12 +222,11 @@ bool NotificationActionButton::ToJson(nlohmann::json &jsonObject) const
 {
     jsonObject["icon"]      = AnsImageUtil::PackImage(icon_);
     jsonObject["title"]     = title_;
-    jsonObject["wantAgent"] = wantAgent_ ? AbilityRuntime::WantAgent::WantAgentHelper::ToString(wantAgent_) : "";
+    jsonObject["wantAgent"] = wantAgent_ ? NotificationWantParamsHelper::SerializeWantAgent(wantAgent_) : "";
 
     std::string extrasStr;
     if (extras_) {
-        AAFwk::WantParamWrapper wWrapper(*extras_);
-        extrasStr = wWrapper.ToString();
+        extrasStr = NotificationWantParamsHelper::SerializeWantParams(*extras_);
     }
     jsonObject["extras"] = extrasStr;
 
@@ -258,13 +258,13 @@ NotificationActionButton *NotificationActionButton::FromJson(const nlohmann::jso
 
     if (jsonObject.find("wantAgent") != jsonEnd && jsonObject.at("wantAgent").is_string()) {
         auto wantAgentValue = jsonObject.at("wantAgent").get<std::string>();
-        pButton->wantAgent_ = AbilityRuntime::WantAgent::WantAgentHelper::FromString(wantAgentValue);
+        pButton->wantAgent_ = NotificationWantParamsHelper::ParseWantAgent(wantAgentValue);
     }
 
     if (jsonObject.find("extras") != jsonEnd && jsonObject.at("extras").is_string()) {
         auto extrasString = jsonObject.at("extras").get<std::string>();
         if (!extrasString.empty()) {
-            AAFwk::WantParams params = AAFwk::WantParamWrapper::ParseWantParams(extrasString);
+            AAFwk::WantParams params = NotificationWantParamsHelper::ParseWantParams(extrasString);
             pButton->extras_ = std::make_shared<AAFwk::WantParams>(params);
         }
     }
@@ -297,13 +297,13 @@ NotificationActionButton *NotificationActionButton::ConvertNotificationActionBut
 
     if (jsonObject.find("wantAgent") != jsonEnd && jsonObject.at("wantAgent").is_string()) {
         auto wantAgentValue = jsonObject.at("wantAgent").get<std::string>();
-        pButton->wantAgent_ = AbilityRuntime::WantAgent::WantAgentHelper::FromString(wantAgentValue, targetUid);
+        pButton->wantAgent_ = NotificationWantParamsHelper::ParseWantAgent(wantAgentValue, targetUid);
     }
 
     if (jsonObject.find("extras") != jsonEnd && jsonObject.at("extras").is_string()) {
         auto extrasString = jsonObject.at("extras").get<std::string>();
         if (!extrasString.empty()) {
-            AAFwk::WantParams params = AAFwk::WantParamWrapper::ParseWantParams(extrasString);
+            AAFwk::WantParams params = NotificationWantParamsHelper::ParseWantParams(extrasString);
             pButton->extras_ = std::make_shared<AAFwk::WantParams>(params);
         }
     }

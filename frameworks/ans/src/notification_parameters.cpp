@@ -15,7 +15,6 @@
 
 #include "notification_parameters.h"
 #include "ans_log_wrapper.h"
-#include "want_params_wrapper.h"
 
 namespace OHOS {
 namespace Notification {
@@ -52,14 +51,8 @@ const std::shared_ptr<AAFwk::WantParams> NotificationParameters::GetWantParamete
 
 std::string NotificationParameters::Dump()
 {
-    std::string wantParametersStr{"null"};
-    if (wantParameters_ != nullptr) {
-        AAFwk::WantParamWrapper wWrapper(*wantParameters_);
-        wantParametersStr = wWrapper.ToString();
-    }
-
     return "NotificationParameters{ wantAction = " + wantAction_ + ", wantUri = " + wantUri_
-        + ", wantParameters = " + wantParametersStr + " }";
+        + ", wantParameters = " + (wantParameters_ == nullptr ? "null" : "not null") + " }";
 }
 
 bool NotificationParameters::Marshalling(Parcel &parcel) const

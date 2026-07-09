@@ -82,6 +82,7 @@ ohos_unittest("ans_test") {
     "${frameworks_module_ans_path}/test/unittest/notification_unified_group_info_test.cpp",
     "${frameworks_module_ans_path}/test/unittest/notification_user_input_test.cpp",
     "${frameworks_module_ans_path}/test/unittest/notification_voice_content_test.cpp",
+    "${frameworks_module_ans_path}/test/unittest/notification_want_params_helper_test.cpp",
     "${frameworks_module_ans_path}/test/unittest/picture_option_test.cpp",
     "${frameworks_module_ans_path}/test/unittest/push_promise_callback_test.cpp",
     "${frameworks_module_ans_path}/test/unittest/voice_content_option_test.cpp",

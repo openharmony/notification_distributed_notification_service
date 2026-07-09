@@ -18,6 +18,7 @@
 #include "ans_inner_errors.h"
 #include "ans_log_wrapper.h"
 #include "errors.h"
+#include "notification_want_params_helper.h"
 #include "want_agent_helper.h"
 #include "want_params_wrapper.h"
 #include <memory>
@@ -79,8 +80,7 @@ std::string NotificationUnifiedGroupInfo::Dump()
 {
     std::string extraStr{"null"};
     if (extraInfo_ != nullptr) {
-        AAFwk::WantParamWrapper wWrapper(*extraInfo_);
-        extraStr = wWrapper.ToString();
+        extraStr = NotificationWantParamsHelper::SerializeWantParams(*extraInfo_);
     }
 
     return "NotificationUnifiedGroupInfo{ key = " + key_ + ", title = " + title_ + ", content = " + content_ +
