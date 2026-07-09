@@ -25,6 +25,7 @@
 #include "reminder_calendar_share_table.h"
 
 #include "ipc_skeleton.h"
+#include "nlohmann/json.hpp"
 #include "notification_helper.h"
 #include "data_share_permission.h"
 #include "ability_manager_client.h"
@@ -537,7 +538,35 @@ void ReminderDataManager::ReportUserDataSizeEvent()
 #endif
 }
 
-bool ReminderDataManager::IsInDoNotDisturbMode(const int32_t userId)
+bool ReminderDataManager::ParseWhiteListAndMatch(const std::string& listInfo, const int32_t uid,
+    const std::string& bundleName)
+{
+    if (!nlohmann::json::accept(listInfo)) {
+        ANSR_LOGW("White list not a json string.");
+        return false;
+    }
+    nlohmann::json root = nlohmann::json::parse(listInfo, nullptr, false);
+    if (root.is_discarded()) {
+        ANSR_LOGW("Parse White list json data failed.");
+        return false;
+    }
+    if (!root.is_array()) {
+        ANSR_LOGW("White list json is not an array.");
+        return false;
+    }
+    for (const auto& item : root) {
+        if (!item.is_object() || !item.contains("bundle") || !item["bundle"].is_string() ||
+            !item.contains("uid") || !item["uid"].is_number()) {
+            continue;
+        }
+        if (item["bundle"].get<std::string>() == bundleName && item["uid"].get<int32_t>() == uid) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool ReminderDataManager::IsInDoNotDisturbMode(const int32_t userId, const int32_t uid, const std::string& bundleName)
 {
 #ifdef PLAYER_FRAMEWORK_ENABLE
     constexpr const char* USER_SETINGS_DATA_SECURE_URI =
@@ -552,12 +581,23 @@ bool ReminderDataManager::IsInDoNotDisturbMode(const int32_t userId)
         ANSR_LOGE("Query focus mode enable failed.");
         return true;
     }
-    if (enable.compare("1") == 0) {
-        ANSR_LOGI("Currently not is do not disurb mode.");
-        return true;
+    if (enable.compare("1") != 0) {
+        return false;
+    }
+    // Whitelist for Permitted Disturbances
+    constexpr const char* NOTIFICATION_WHITE_LIST_URI = "?Proxy=true&key=intelligent_scene_notification_white_list";
+    uriStr = USER_SETINGS_DATA_SECURE_URI + std::to_string(userId) + NOTIFICATION_WHITE_LIST_URI;
+    constexpr const char* NOTIFICATION_WHITE_LIST = "intelligent_scene_notification_white_list";
+    Uri listUri(uriStr);
+    std::string listInfo;
+    ReminderDataShareHelper::GetInstance().Query(listUri, NOTIFICATION_WHITE_LIST, listInfo);
+    if (ParseWhiteListAndMatch(listInfo, uid, bundleName)) {
+        ANSR_LOGI("Currently is do not disurb mode, but %{public}s in white list.", bundleName.c_str());
+        return false;
     }
 #endif
-    return false;
+    ANSR_LOGI("Currently is do not disurb mode.");
+    return true;
 }
 
 bool ReminderDataManager::CheckSoundConfig(const bool isInDoNotDisturbMode, const int32_t isSilentEnabled,

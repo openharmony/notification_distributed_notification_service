@@ -539,7 +539,8 @@ private:
     void PlaySoundAndVibrationLocked(const sptr<ReminderRequest>& reminder);
     void StopSoundAndVibrationLocked(const sptr<ReminderRequest>& reminder);
     void SetAlertingReminder(const sptr<ReminderRequest>& reminder);
-    bool IsInDoNotDisturbMode(const int32_t userId);
+    bool ParseWhiteListAndMatch(const std::string& listInfo, const int32_t uid, const std::string& bundleName);
+    bool IsInDoNotDisturbMode(const int32_t userId, const int32_t uid, const std::string& bundleName);
     // sound
     std::string GetFullPath(const std::string& path);
     void SetPlayerParam(const sptr<ReminderRequest> reminder);
