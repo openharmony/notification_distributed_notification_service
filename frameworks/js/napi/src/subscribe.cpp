@@ -372,7 +372,7 @@ void SubscriberInstance::OnCanceled(const std::shared_ptr<OHOS::Notification::No
         return;
     }
     auto cacheManager = PixelMapCacheManager::GetInstance();
-    cacheManager->RemoveCache(request->GetKey());
+    cacheManager->RemoveCache(request->GetNotificationRequest().GetKey());
     ANS_LOGI("Cancel Key=%{public}s,sortingMap size=%{public}zu,reason=%{public}d",
         request->GetKey().c_str(), sortingMap->GetKey().size(), deleteReason);
     ANS_LOGD("SubscriberInstance::OnCanceled instanceKey: %{public}s", request->GetInstanceKey().c_str());
@@ -450,9 +450,9 @@ void SubscriberInstance::OnBatchCanceled(const std::vector<std::shared_ptr<OHOS:
     auto cacheManager = PixelMapCacheManager::GetInstance();
     std::string notificationKeys = "";
     for (auto notification : requestList) {
-        notificationKeys.append(notification->GetKey()).append("-");
+        notificationKeys.append(notification->GetNotificationRequest().GetKey()).append("-");
         if (notification != nullptr) {
-            cacheManager->RemoveCache(notification->GetKey());
+            cacheManager->RemoveCache(notification->GetNotificationRequest().GetKey());
         }
     }
     ANS_LOGI("BatchCancel reason=%{public}d,sortingMap size=%{public}zu,keys=%{public}s",
