@@ -96,7 +96,7 @@ ohos-notificationManager listAllNotification
 |------|------|------|------|
 | --notificationContent | string(JSON) | 是 | 通知内容JSON字符串。所有类型公共必填: title(≤1024B), text(≤3072B)；公共可选: additionalText(≤3072B)；所有属性超长截取。type仅支持basic、long_text、multiline |
 | --notificationId | integer | 否 | 通知ID（默认0） |
-| --slotType | integer | 否 | 通知渠道类型（0=社交通信, 1=服务提醒, 2=内容信息, 3=其他, 4=自定义, 6=客服消息，不支持5=实况通知、7=紧急信息，默认3） |
+| --slotType | integer | 否 | 通知渠道类型（0=社交通信, 1=服务提醒, 2=内容信息, 3=其他, 6=客服消息，不支持4=自定义、5=实况通知、7=紧急信息，默认3） |
 | --updateOnly | boolean | 否 | 仅更新已存在的通知，不创建新通知（默认false） |
 | --appMessageId | string | 否 | 应用消息ID，用于标识特定消息 |
 | --priorityNotificationType | string | 否 | 优先级通知类型（枚举值见下方说明） |
@@ -139,10 +139,10 @@ ohos-notificationManager listAllNotification
 | 1 | SERVICE_REMINDER | 服务提醒 |
 | 2 | CONTENT_INFORMATION | 内容信息 |
 | 3 | OTHER | 其他（默认） |
-| 4 | CUSTOM | 自定义 |
+| 4 | CUSTOM | 自定义（**不支持**） |
 | 5 | LIVE_VIEW | 实况通知（**不支持**） |
 | 6 | CUSTOMER_SERVICE | 客服 |
-| 7 | EMERGENCY_INFORMATION | 紧急信息 |
+| 7 | EMERGENCY_INFORMATION | 紧急信息（**不支持**） |
 
 ## 优先级通知类型说明
 
