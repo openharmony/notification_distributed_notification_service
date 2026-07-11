@@ -177,8 +177,8 @@ constexpr char PUBLISH_HELP_MSG[] =
     "\"expandedTitle\":\"展开标题\",\"briefText\":\"摘要\",\"lines\":[\"第一行\",\"第二行\",\"第三行\"],\"additionalText\":\"附加文本\"}\n"
     "  --notificationId <id>            通知ID（可选，默认: 0）\n"
     "  --slotType <type>                通知渠道类型（可选，默认: 3）\n"
-    "                               0=社交通信, 1=服务提醒, 2=内容信息, 3=其他, 4=自定义, 6=客服消息\n"
-    "                               不支持5=实况通知、7=紧急信息\n"
+    "                               0=社交通信, 1=服务提醒, 2=内容信息, 3=其他, 6=客服消息\n"
+    "                               不支持4=自定义、5=实况通知、7=紧急信息\n"
     "  --updateOnly                     仅更新已存在的通知，不创建新通知（可选，标志）\n"
     "  --appMessageId <id>              应用消息ID，用于标识特定消息（可选）\n"
     "  --priorityNotificationType <type> 优先级通知类型（可选）\n"
@@ -471,9 +471,9 @@ ErrCode NotificationShellCommand::ValidatePublishRequiredOptions(const PublishOp
             resultReceiver_);
         return ERR_INVALID_VALUE;
     }
-    if (opts.slotType < 0 || opts.slotType > 7 || opts.slotType == 5 || opts.slotType == 7) {
+    if (opts.slotType < 0 || opts.slotType > 7 || opts.slotType == 4 || opts.slotType == 5 || opts.slotType == 7) {
         OutputError("ERR_ARG_INVALID",
-            "渠道类型无效: 渠道类型必须在 0-7 范围内且不支持 5(LIVE_VIEW)、7(EMERGENCY_INFORMATION)",
+            "渠道类型无效: 渠道类型必须在 0-7 范围内且不支持 4(CUSTOM)、5(LIVE_VIEW)、7(EMERGENCY_INFORMATION)",
             "请使用有效的渠道类型值。示例: --slotType 3（OTHER类型）或 --slotType 6（CUSTOMER_SERVICE类型)",
             resultReceiver_);
         return ERR_INVALID_VALUE;
