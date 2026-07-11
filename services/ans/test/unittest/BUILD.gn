@@ -2716,6 +2716,10 @@ ohos_unittest("notification_publish_service_test") {
     "time_service:time_client",
   ]
 
+  if (distributed_notification_service_feature_privileged_message) {
+    defines += [ "ENABLE_ANS_PRIVILEGED_MESSAGE_EXT_WRAPPER" ]
+  }
+
   if (notification_smart_reminder_supported) {
     defines += [ "NOTIFICATION_SMART_REMINDER_SUPPORTED" ]
   }
@@ -3002,6 +3006,11 @@ ohos_unittest("notification_preferences_second_test") {
     "relational_store:native_rdb",
     "time_service:time_client",
   ]
+
+  if (player_framework) {
+    external_deps += [ "player_framework:media_client" ]
+    defines += [ "PLAYER_FRAMEWORK_ENABLE" ]
+  }
 
   subsystem_name = "${subsystem_name}"
   part_name = "${component_name}"
