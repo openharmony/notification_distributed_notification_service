@@ -90,8 +90,8 @@ void PixelMapCacheManager::RemoveCache(const std::string& requestKey)
             globalCache_.erase(cacheKey);
         }
     }
-    ANS_LOGI("Removed request cache: requestKey=%{public}s, cleared %{public}zu cacheKeys",
-        requestKey.c_str(), cacheKeys.size());
+    ANS_LOGI("RemoveCache %{public}s, CacheKeys size: %{public}zu, globalCache size: %{public}zu",
+        requestKey.c_str(), requestToCacheKeys_.size(), globalCache_.size());
 }
 }  // namespace Notification
 }  // namespace OHOS

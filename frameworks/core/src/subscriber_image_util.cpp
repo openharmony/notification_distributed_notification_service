@@ -67,7 +67,9 @@ void SubscriberImageUtil::ProcessPictureOption(
             if (pixelMap != nullptr) {
                 pictureMap[picPathKey].push_back(std::move(pixelMap));
                 ANS_LOGI("Parse picPath(%{public}s) success", picPath.c_str());
+                continue;
             }
+            pictureMap[picPathKey].push_back(nullptr);
         }
     }
     liveViewContent->SetPicture(pictureMap);
