@@ -501,8 +501,7 @@ AnsStatus AdvancedNotificationService::PrepareNotificationInfo(
     }
     bool isSubsystem = AccessTokenHelper::VerifyNativeToken(IPCSkeleton::GetCallingTokenID());
     if ((request->GetSlotType() == NotificationConstant::SlotType::CUSTOM) &&
-        !AccessTokenHelper::IsSystemApp() && !isSubsystem &&
-        !AccessTokenHelper::VerifyShellToken(IPCSkeleton::GetCallingTokenID())) {
+        !AccessTokenHelper::IsSystemApp() && !isSubsystem) {
         return AnsStatus(ERR_ANS_INNER_NON_SYSTEM_APP, "ERR_ANS_INNER_NON_SYSTEM_APP");
     }
     AnsStatus ansStatus = PrepareNotificationRequest(request);
