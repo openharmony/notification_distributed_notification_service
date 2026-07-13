@@ -61,6 +61,7 @@ ohos_shared_library("notification_subscriber_extension") {
     "image_framework:image",
     "ipc:ipc_core",
     "ipc:ipc_napi",
+    "libuv:uv",
     "napi:ace_napi",
     "node:node_header_notice"
   ]
@@ -107,6 +108,7 @@ ohos_shared_library("notification_subscriber_extension_module") {
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "napi:ace_napi",
+    "node:node_header_notice"
   ]
 
   relative_install_dir = "extensionability"
