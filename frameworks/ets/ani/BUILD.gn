@@ -403,6 +403,7 @@ ohos_shared_library("notification_subscriber_extension_ani") {
     "hilog:libhilog",
     "ipc:ipc_core",
     "ipc:ipc_napi",
+    "libuv:uv",
     "napi:ace_napi",
     "node:node_header_notice",
     "os_account:os_account_innerkits",
