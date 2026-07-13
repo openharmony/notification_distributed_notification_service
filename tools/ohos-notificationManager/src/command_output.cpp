@@ -146,7 +146,7 @@ void OutputSuccess(const nlohmann::json& data, std::string& output)
     response["type"] = "result";
     response["status"] = "success";
     response["data"] = data;
-    output = response.dump();
+    output = response.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace);
 }
 
 void OutputError(const std::string& errCode, const std::string& errMsg,
@@ -158,7 +158,7 @@ void OutputError(const std::string& errCode, const std::string& errMsg,
     response["errCode"] = errCode;
     response["errMsg"] = errMsg;
     response["suggestion"] = suggestion;
-    output = response.dump();
+    output = response.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace);
 }
 
 void OutputApiError(ErrCode internalErrCode, const std::string& action,

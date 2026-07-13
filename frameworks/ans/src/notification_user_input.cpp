@@ -278,7 +278,12 @@ NotificationUserInput *NotificationUserInput::FromJson(const nlohmann::json &jso
     }
 
     if (jsonObject.find("options") != jsonEnd && jsonObject.at("options").is_array()) {
-        pUserInput->options_ = jsonObject.at("options").get<std::vector<std::string>>();
+        auto optionsJson = jsonObject.at("options");
+        for (const auto &option : optionsJson) {
+            if (option.is_string()) {
+                pUserInput->options_.push_back(option.get<std::string>());
+            }
+        }
     }
 
     if (jsonObject.find("permitFreeFormInput") != jsonEnd && jsonObject.at("permitFreeFormInput").is_boolean()) {
@@ -286,7 +291,12 @@ NotificationUserInput *NotificationUserInput::FromJson(const nlohmann::json &jso
     }
 
     if (jsonObject.find("permitMimeTypes") != jsonEnd && jsonObject.at("permitMimeTypes").is_array()) {
-        pUserInput->permitMimeTypes_ = jsonObject.at("permitMimeTypes").get<std::set<std::string>>();
+        auto permitMimeTypesJson = jsonObject.at("permitMimeTypes");
+        for (const auto &mimeType : permitMimeTypesJson) {
+            if (mimeType.is_string()) {
+                pUserInput->permitMimeTypes_.insert(mimeType.get<std::string>());
+            }
+        }
     }
 
     if (jsonObject.find("additionalData") != jsonEnd && jsonObject.at("additionalData").is_string()) {

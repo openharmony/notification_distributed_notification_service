@@ -57,7 +57,7 @@ static bool UpdateContentByJsonObject(nlohmann::json &jsonObject, const std::str
     }
 
     auto liveviewObj = contentObj.at("content");
-    if (liveviewObj.is_null()) {
+    if (liveviewObj.is_null() || !liveviewObj.is_object()) {
         ANS_LOGE("Cannot convert liveview content from JSON");
         return false;
     }

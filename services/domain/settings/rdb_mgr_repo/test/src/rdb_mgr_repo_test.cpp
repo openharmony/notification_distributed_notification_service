@@ -181,6 +181,42 @@ HWTEST_F(RdbMgrRepoTest, OnRdbUpgradeLiveviewMigrate_200, Function | SmallTest |
         }}
     };
     EXPECT_FALSE(OnRdbUpgradeLiveviewMigrate(objectWithNullContent.dump(), newValue));
+
+    nlohmann::json objectWithNonObjectContent = {
+        {"actionButtons", nlohmann::json::array({
+            nlohmann::json{{"wantAgent", "want_agent_value"}},
+            nlohmann::json{{"buttonId", 1}}
+        })},
+        {"content", nlohmann::json{
+            {"contentType", liveViewType},
+            {"content", "not_an_object"}
+        }}
+    };
+    EXPECT_FALSE(OnRdbUpgradeLiveviewMigrate(objectWithNonObjectContent.dump(), newValue));
+
+    nlohmann::json objectWithArrayContent = {
+        {"actionButtons", nlohmann::json::array({
+            nlohmann::json{{"wantAgent", "want_agent_value"}},
+            nlohmann::json{{"buttonId", 1}}
+        })},
+        {"content", nlohmann::json{
+            {"contentType", liveViewType},
+            {"content", nlohmann::json::array({1, 2, 3})}
+        }}
+    };
+    EXPECT_FALSE(OnRdbUpgradeLiveviewMigrate(objectWithArrayContent.dump(), newValue));
+
+    nlohmann::json objectWithNumberContent = {
+        {"actionButtons", nlohmann::json::array({
+            nlohmann::json{{"wantAgent", "want_agent_value"}},
+            nlohmann::json{{"buttonId", 1}}
+        })},
+        {"content", nlohmann::json{
+            {"contentType", liveViewType},
+            {"content", 42}
+        }}
+    };
+    EXPECT_FALSE(OnRdbUpgradeLiveviewMigrate(objectWithNumberContent.dump(), newValue));
 }
 
 /**

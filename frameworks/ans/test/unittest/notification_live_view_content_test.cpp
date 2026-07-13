@@ -365,5 +365,49 @@ HWTEST_F(NotificationLiveViewContentTest, GetExtensionWantAgent_00001, Function 
     auto want = liveViewContent.GetExtensionWantAgent();
     ASSERT_NE(want, nullptr);
 }
+
+/**
+ * @tc.name: ConvertPictureFromJson_00001
+ * @tc.desc: Test ConvertPictureFromJson with pictureArray containing non-string elements (should skip them).
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationLiveViewContentTest, ConvertPictureFromJson_00001, Function | SmallTest | Level1)
+{
+    NotificationLiveViewContent liveViewContent;
+    nlohmann::json jsonObject = nlohmann::json{
+        {"pictureMap", {{"key", {1, "valid", true, "end"}}}}};
+    liveViewContent.ConvertPictureFromJson(jsonObject);
+    EXPECT_EQ(liveViewContent.GetPicture().size(), 0);
+}
+
+/**
+ * @tc.name: ConvertPictureFromJson_00002
+ * @tc.desc: Test ConvertPictureFromJson with empty pictureMap.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationLiveViewContentTest, ConvertPictureFromJson_00002, Function | SmallTest | Level1)
+{
+    NotificationLiveViewContent liveViewContent;
+    nlohmann::json jsonObject = nlohmann::json{};
+    liveViewContent.ConvertPictureFromJson(jsonObject);
+    EXPECT_EQ(liveViewContent.GetPicture().size(), 0);
+}
+
+/**
+ * @tc.name: ConvertPictureFromJson_00003
+ * @tc.desc: Test ConvertPictureFromJson with pictureMap value as non-array (should be skipped).
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationLiveViewContentTest, ConvertPictureFromJson_00003, Function | SmallTest | Level1)
+{
+    NotificationLiveViewContent liveViewContent;
+    nlohmann::json jsonObject = nlohmann::json{
+        {"pictureMap", {{"key", "not_array"}}}};
+    liveViewContent.ConvertPictureFromJson(jsonObject);
+    EXPECT_EQ(liveViewContent.GetPicture().size(), 0);
+}
 }
 }

@@ -81,7 +81,12 @@ NotificationMediaContent *NotificationMediaContent::FromJson(const nlohmann::jso
 
     const auto& jsonEnd = jsonObject.cend();
     if (jsonObject.find("sequenceNumbers") != jsonEnd && jsonObject.at("sequenceNumbers").is_array()) {
-        pContent->sequenceNumbers_ = jsonObject.at("sequenceNumbers").get<std::vector<uint32_t>>();
+        auto sequenceNumbersJson = jsonObject.at("sequenceNumbers");
+        for (const auto &num : sequenceNumbersJson) {
+            if (num.is_number_integer()) {
+                pContent->sequenceNumbers_.push_back(num.get<uint32_t>());
+            }
+        }
     }
 
     return pContent;

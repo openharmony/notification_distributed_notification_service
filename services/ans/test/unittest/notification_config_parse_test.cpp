@@ -358,5 +358,148 @@ HWTEST_F(NotificationConfigParseTest, GetNotificationExtensionEnabledBundlesList
     bool result = NotificationConfigParse::GetInstance()->GetNotificationExtensionEnabledBundlesWriteList(bundles);
     EXPECT_TRUE(result);
 }
+
+/**
+ * @tc.name: GetReportTrustListConfig_00001
+ * @tc.desc: Test GetReportTrustListConfig with non-string elements (should not crash).
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationConfigParseTest, GetReportTrustListConfig_00001, Function | SmallTest | Level1)
+{
+    auto inst = NotificationConfigParse::GetInstance();
+    auto saved = inst->notificationConfigJsons_;
+    inst->notificationConfigJsons_.clear();
+    nlohmann::json badJson = nlohmann::json{
+        {"notificationService", {
+            {"dfxNormalEvent", {1, "valid", true, "end"}},
+            {"dfxKeyBundle", {42, "bundle1", false}}
+        }}
+    };
+    inst->notificationConfigJsons_.push_back(badJson);
+    inst->GetReportTrustListConfig();
+    EXPECT_TRUE(inst->reporteTrustSet_.count("valid") > 0);
+    EXPECT_TRUE(inst->reporteTrustSet_.count("end") > 0);
+    EXPECT_TRUE(inst->keyTrustBundles_.count("bundle1") > 0);
+    inst->notificationConfigJsons_ = saved;
+}
+
+/**
+ * @tc.name: GetStartAbilityTimeout_00001
+ * @tc.desc: Test GetStartAbilityTimeout with non-integer value (should return 0).
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationConfigParseTest, GetStartAbilityTimeout_00001, Function | SmallTest | Level1)
+{
+    auto inst = NotificationConfigParse::GetInstance();
+    auto saved = inst->notificationConfigJsons_;
+    inst->notificationConfigJsons_.clear();
+    nlohmann::json badJson = nlohmann::json{
+        {"notificationService", {{"startAbilityTimeout", "not_a_number"}}}
+    };
+    inst->notificationConfigJsons_.push_back(badJson);
+    uint32_t result = inst->GetStartAbilityTimeout();
+    EXPECT_EQ(result, 0u);
+    inst->notificationConfigJsons_ = saved;
+}
+
+/**
+ * @tc.name: IsNotificationExtensionLifecycleDestroyTimeConfigured_00001
+ * @tc.desc: Test with non-integer destroy time (should return false).
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationConfigParseTest, IsNotificationExtensionLifecycleDestroyTimeConfigured_00001,
+    Function | SmallTest | Level1)
+{
+    auto inst = NotificationConfigParse::GetInstance();
+    auto saved = inst->notificationConfigJsons_;
+    inst->notificationConfigJsons_.clear();
+    nlohmann::json badJson = nlohmann::json{
+        {"notificationService", {{"notificationExtension",
+            {{"lifecycleDestoryTime", "not_a_number"}}}}}
+    };
+    inst->notificationConfigJsons_.push_back(badJson);
+    uint32_t outDestroyTime = 999;
+    bool result = inst->IsNotificationExtensionLifecycleDestroyTimeConfigured(outDestroyTime);
+    EXPECT_FALSE(result);
+    inst->notificationConfigJsons_ = saved;
+}
+
+/**
+ * @tc.name: IsNotificationExtensionSubscribeSupportHfp_00001
+ * @tc.desc: Test with non-boolean HFP support (should return false).
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationConfigParseTest, IsNotificationExtensionSubscribeSupportHfp_00001,
+    Function | SmallTest | Level1)
+{
+    auto inst = NotificationConfigParse::GetInstance();
+    auto saved = inst->notificationConfigJsons_;
+    inst->notificationConfigJsons_.clear();
+    nlohmann::json badJson = nlohmann::json{
+        {"notificationService", {{"notificationExtension",
+            {{"supportHfp", "not_a_bool"}}}}}
+    };
+    inst->notificationConfigJsons_.push_back(badJson);
+    bool outSupportHfp = true;
+    bool result = inst->IsNotificationExtensionSubscribeSupportHfp(outSupportHfp);
+    EXPECT_FALSE(result);
+    inst->notificationConfigJsons_ = saved;
+}
+
+/**
+ * @tc.name: GetNotificationExtensionEnabledBundlesWriteList_00002
+ * @tc.desc: Test with non-string elements in write list (should skip them).
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationConfigParseTest, GetNotificationExtensionEnabledBundlesWriteList_00002,
+    Function | SmallTest | Level1)
+{
+    auto inst = NotificationConfigParse::GetInstance();
+    auto saved = inst->notificationConfigJsons_;
+    inst->notificationConfigJsons_.clear();
+    nlohmann::json badJson = nlohmann::json{
+        {"notificationService", {{"notificationExtension",
+            {{"enabledBundlesWriteList", {1, "valid", true, "end"}}}}}}
+    };
+    inst->notificationConfigJsons_.push_back(badJson);
+    std::vector<std::string> bundles;
+    bool result = inst->GetNotificationExtensionEnabledBundlesWriteList(bundles);
+    EXPECT_TRUE(result);
+    EXPECT_EQ(bundles.size(), 2u);
+    inst->notificationConfigJsons_ = saved;
+}
+
+/**
+ * @tc.name: GetNotificationServiceNotObject_00001
+ * @tc.desc: Test config functions when notificationService value is not an object.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationConfigParseTest, GetNotificationServiceNotObject_00001, Function | SmallTest | Level1)
+{
+    auto inst = NotificationConfigParse::GetInstance();
+    auto saved = inst->notificationConfigJsons_;
+    inst->notificationConfigJsons_.clear();
+    nlohmann::json badJson = nlohmann::json{
+        {"notificationService", "not_an_object"}
+    };
+    inst->notificationConfigJsons_.push_back(badJson);
+    std::vector<std::string> deviceTypes;
+    bool result = inst->GetSmartReminderEnableList(deviceTypes);
+    EXPECT_FALSE(result);
+    result = inst->GetMirrorNotificationEnabledStatus(deviceTypes);
+    EXPECT_FALSE(result);
+    std::map<std::string, std::string> relationMap;
+    result = inst->GetAppAndDeviceRelationMap(relationMap);
+    EXPECT_FALSE(result);
+    uint32_t timeout = inst->GetStartAbilityTimeout();
+    EXPECT_EQ(timeout, 0u);
+    inst->notificationConfigJsons_ = saved;
+}
 }   //namespace Notification
 }   //namespace OHOS

@@ -182,5 +182,35 @@ HWTEST_F(NotificationMediaContentTest, FromJson_00001, Function | SmallTest | Le
     EXPECT_NE(res, nullptr);
     EXPECT_EQ(res->GetShownActions().size(), 2);
 }
+
+/**
+ * @tc.name: FromJson_00002
+ * @tc.desc: Test FromJson with sequenceNumbers containing non-integer elements (should skip them).
+ * @tc.type: FUNC
+ * @tc.require: issueI5WBBH
+ */
+HWTEST_F(NotificationMediaContentTest, FromJson_00002, Function | SmallTest | Level1)
+{
+    nlohmann::json jsonObject = nlohmann::json{
+        {"sequenceNumbers", {"str", 1, true, 2, "end"}}};
+    auto mediaContent = std::make_shared<NotificationMediaContent>();
+    auto res = mediaContent->FromJson(jsonObject);
+    EXPECT_NE(res, nullptr);
+}
+
+/**
+ * @tc.name: FromJson_00003
+ * @tc.desc: Test FromJson with sequenceNumbers as non-array (should be ignored).
+ * @tc.type: FUNC
+ * @tc.require: issueI5WBBH
+ */
+HWTEST_F(NotificationMediaContentTest, FromJson_00003, Function | SmallTest | Level1)
+{
+    nlohmann::json jsonObject = nlohmann::json{
+        {"sequenceNumbers", "not_array"}};
+    auto mediaContent = std::make_shared<NotificationMediaContent>();
+    auto res = mediaContent->FromJson(jsonObject);
+    EXPECT_NE(res, nullptr);
+}
 }
 }

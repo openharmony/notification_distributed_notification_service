@@ -141,11 +141,21 @@ NotificationMultiLineContent *NotificationMultiLineContent::FromJson(const nlohm
     }
 
     if (jsonObject.find("allLines") != jsonEnd && jsonObject.at("allLines").is_array()) {
-        pContent->allLines_ = jsonObject.at("allLines").get<std::vector<std::string>>();
+        auto allLinesJson = jsonObject.at("allLines");
+        for (const auto &line : allLinesJson) {
+            if (line.is_string()) {
+                pContent->allLines_.push_back(line.get<std::string>());
+            }
+        }
     }
 
     if (jsonObject.find("lineWantAgents") != jsonEnd && jsonObject.at("lineWantAgents").is_array()) {
-        pContent->lineWantAgentStrs_  = jsonObject.at("lineWantAgents").get<std::vector<std::string>>();
+        auto lineWantAgentsJson = jsonObject.at("lineWantAgents");
+        for (const auto &agent : lineWantAgentsJson) {
+            if (agent.is_string()) {
+                pContent->lineWantAgentStrs_.push_back(agent.get<std::string>());
+            }
+        }
     }
 
     return pContent;

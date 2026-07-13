@@ -125,7 +125,9 @@ void NotificationBasicContent::ReadFromJson(const nlohmann::json &jsonObject)
         auto structuredTextJson = jsonObject.at("structuredText");
         if (!structuredTextJson.empty()) {
             for (const auto& iter : structuredTextJson.items()) {
-                structuredText_.emplace_back(iter.key(), iter.value().get<std::string>());
+                if (iter.value().is_string()) {
+                    structuredText_.emplace_back(iter.key(), iter.value().get<std::string>());
+                }
             }
         }
     }

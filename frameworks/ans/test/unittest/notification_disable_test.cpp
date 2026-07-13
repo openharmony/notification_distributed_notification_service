@@ -153,5 +153,44 @@ HWTEST_F(NotificationDisableTest, GetUserId_0100, Function | SmallTest | Level1)
     notificationDisable.SetUserId(1);
     EXPECT_EQ(notificationDisable.GetUserId(), 1);
 }
+
+/**
+ * @tc.name: FromJson_0200
+ * @tc.desc: Test FromJson with bundleList containing non-string elements (should skip them).
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationDisableTest, FromJson_0200, Function | SmallTest | Level1)
+{
+    NotificationDisable notificationDisable;
+    std::string jsonObjString = R"({"disabled": true, "bundleList": [1, "com.test", true, "com.test2"]})";
+    notificationDisable.FromJson(jsonObjString);
+    EXPECT_TRUE(notificationDisable.GetDisabled());
+}
+
+/**
+ * @tc.name: FromJson_0300
+ * @tc.desc: Test FromJson with invalid json string.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationDisableTest, FromJson_0300, Function | SmallTest | Level1)
+{
+    NotificationDisable notificationDisable;
+    std::string jsonObjString = "invalid json";
+    notificationDisable.FromJson(jsonObjString);
+    EXPECT_FALSE(notificationDisable.GetDisabled());
+}
+
+/**
+ * @tc.name: FromJson_0400
+ * @tc.desc: Test FromJson with non-object json (array).
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationDisableTest, FromJson_0400, Function | SmallTest | Level1)
+{
+    NotificationDisable notificationDisable;
+    std::string jsonObjString = "[1, 2, 3]";
+    notificationDisable.FromJson(jsonObjString);
+    EXPECT_FALSE(notificationDisable.GetDisabled());
+}
 }
 }
