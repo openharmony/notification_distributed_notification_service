@@ -269,5 +269,58 @@ HWTEST_F(NotificationMultiLineContentTest, FromJson_00006, Function | SmallTest 
     auto res = rrc->FromJson(jsonObject);
     EXPECT_NE(res, nullptr);
 }
+
+/**
+ * @tc.name: FromJson_00007
+ * @tc.desc: Test FromJson with allLines containing non-string elements (should skip them).
+ * @tc.type: FUNC
+ * @tc.require: issueI5WBBHI
+ */
+HWTEST_F(NotificationMultiLineContentTest, FromJson_00007, Function | SmallTest | Level1)
+{
+    nlohmann::json jsonObject = nlohmann::json{
+        {"expandedTitle", "test"},
+        {"briefText", "test"},
+        {"allLines", {1, "valid", true, 3.14, "end"}}};
+    auto rrc = std::make_shared<NotificationMultiLineContent>();
+    auto res = rrc->FromJson(jsonObject);
+    EXPECT_NE(res, nullptr);
+    EXPECT_EQ(res->GetAllLines().size(), 2);
+}
+
+/**
+ * @tc.name: FromJson_00008
+ * @tc.desc: Test FromJson with lineWantAgents containing non-string elements (should skip them).
+ * @tc.type: FUNC
+ * @tc.require: issueI5WBBHI
+ */
+HWTEST_F(NotificationMultiLineContentTest, FromJson_00008, Function | SmallTest | Level1)
+{
+    nlohmann::json jsonObject = nlohmann::json{
+        {"expandedTitle", "test"},
+        {"briefText", "test"},
+        {"lineWantAgents", {1, "valid", true}}};
+    auto rrc = std::make_shared<NotificationMultiLineContent>();
+    auto res = rrc->FromJson(jsonObject);
+    EXPECT_NE(res, nullptr);
+}
+
+/**
+ * @tc.name: FromJson_00009
+ * @tc.desc: Test FromJson with allLines as non-array (should be ignored).
+ * @tc.type: FUNC
+ * @tc.require: issueI5WBBHI
+ */
+HWTEST_F(NotificationMultiLineContentTest, FromJson_00009, Function | SmallTest | Level1)
+{
+    nlohmann::json jsonObject = nlohmann::json{
+        {"expandedTitle", "test"},
+        {"briefText", "test"},
+        {"allLines", "not_array"}};
+    auto rrc = std::make_shared<NotificationMultiLineContent>();
+    auto res = rrc->FromJson(jsonObject);
+    EXPECT_NE(res, nullptr);
+    EXPECT_EQ(res->GetAllLines().size(), 0);
+}
 }
 }

@@ -260,7 +260,12 @@ NotificationLocalLiveViewContent *NotificationLocalLiveViewContent::FromJson(con
     }
 
     if (jsonObject.find("flags") != jsonEnd && jsonObject.at("flags").is_array()) {
-        pContent->flags_ = jsonObject.at("flags").get<std::vector<int32_t>>();
+        auto flagsJson = jsonObject.at("flags");
+        for (const auto &flag : flagsJson) {
+            if (flag.is_number_integer()) {
+                pContent->flags_.push_back(flag.get<int32_t>());
+            }
+        }
     }
 
     if (jsonObject.find("liveviewType") != jsonEnd && jsonObject.at("liveviewType").is_number_integer()) {

@@ -2078,8 +2078,12 @@ bool NotificationPreferences::GetBundleSoundPermission(bool &allPackage, std::se
     }
 
     for (const auto &item : jsonPermission) {
-        bundleNames.insert(item);
-        if (item == "ALL_PKG") {
+        if (!item.is_string()) {
+            continue;
+        }
+        std::string bundleName = item.get<std::string>();
+        bundleNames.insert(bundleName);
+        if (bundleName == "ALL_PKG") {
             allPackage = true;
         }
     }
@@ -2662,7 +2666,11 @@ bool NotificationPreferences::GetkioskAppTrustList(std::vector<std::string> &kio
         ANS_LOGE("Parse kiosk app trust list failed due to data is discarded or not array");
         return false;
     }
-    kioskAppTrustList = jsonObject.get<std::vector<std::string>>();
+    for (const auto &item : jsonObject) {
+        if (item.is_string()) {
+            kioskAppTrustList.push_back(item.get<std::string>());
+        }
+    }
     preferencesInfo_.SetkioskAppTrustList(kioskAppTrustList);
     isKioskTrustListUpdate_ = false;
     return true;
@@ -2753,7 +2761,12 @@ bool NotificationPreferences::SetRestrictedModeTrustList(const std::string &valu
             ANS_LOGE("Missing or invalid 'trustList' field");
             return false;
         }
-        std::vector<std::string> trustList = item["trustList"].get<std::vector<std::string>>();
+        std::vector<std::string> trustList;
+        for (const auto &trustItem : item["trustList"]) {
+            if (trustItem.is_string()) {
+                trustList.push_back(trustItem.get<std::string>());
+            }
+        }
         restrictedModeTrustList[userId] = trustList;
     }
     preferencesInfo_.SetRestrictedModeTrustList(restrictedModeTrustList);
@@ -2798,7 +2811,11 @@ ErrCode NotificationPreferences::GetDistributedDevicelist(std::vector<std::strin
         ANS_LOGE("Parse device type list failed due to data is discarded or not array");
         return ERR_ANS_INNER_PREFERENCES_NOTIFICATION_DB_OPERATION_FAILED;
     }
-    deviceTypes = jsonObject.get<std::vector<std::string>>();
+    for (const auto &item : jsonObject) {
+        if (item.is_string()) {
+            deviceTypes.push_back(item.get<std::string>());
+        }
+    }
     return ERR_OK;
 }
 

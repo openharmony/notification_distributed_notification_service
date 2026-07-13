@@ -141,17 +141,24 @@ NotificationIconButton *NotificationIconButton::FromJson(const nlohmann::json &j
         if (ResourceFromJson(resources, resourceObj)) {
             button->SetIconResource(resourceObj);
         }
-        auto pIcon = AnsImageUtil::UnPackImage(resources);
-        if (pIcon == nullptr) {
-            ANS_LOGE("null pIcon");
-            delete button;
-            button = nullptr;
-        } else {
-            button->SetIconImage(pIcon);
+        if (resources.is_string()) {
+            auto pIcon = AnsImageUtil::UnPackImage(resources.get<std::string>());
+            if (pIcon == nullptr) {
+                ANS_LOGE("null pIcon");
+                delete button;
+                button = nullptr;
+            } else {
+                button->SetIconImage(pIcon);
+            }
         }
     } else if (jsonObject.find("iconImage") != jsonEnd) {
         auto resources = jsonObject.at("iconImage");
-        auto pIcon = AnsImageUtil::UnPackImage(resources);
+        if (!resources.is_string()) {
+            ANS_LOGE("iconImage is not a string");
+            delete button;
+            return nullptr;
+        }
+        auto pIcon = AnsImageUtil::UnPackImage(resources.get<std::string>());
         if (pIcon == nullptr) {
             ANS_LOGE("null pIcon");
             delete button;

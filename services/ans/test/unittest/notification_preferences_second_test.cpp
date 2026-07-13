@@ -555,5 +555,22 @@ HWTEST_F(NotificationPreferencesTest, RemoveRingtoneInfoByBundle_0300, TestSize.
     auto getRet = notificationPreferences.GetRingtoneInfoByBundle(bundleOption, ringtoneInfoResult);
     ASSERT_EQ(getRet, ERR_ANS_INNER_NO_CUSTOM_RINGTONE_INFO);
 }
+
+/**
+ * @tc.name: GetDistributedDevicelist_0900
+ * @tc.desc: Test GetDistributedDevicelist with mixed-type elements (should skip non-string).
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesTest, GetDistributedDevicelist_0900, Function | SmallTest | Level1)
+{
+    NotificationPreferences notificationPreferences;
+    int32_t userId = 100;
+    std::string deviceTypesjsonString = R"([1, "valid", true, "end"])";
+    notificationPreferences.preferncesDB_->PutDistributedDevicelist(deviceTypesjsonString, userId);
+    std::vector<std::string> deviceTypes;
+    auto ret = notificationPreferences.GetDistributedDevicelist(deviceTypes);
+    ASSERT_EQ(ret, ERR_OK);
+    ASSERT_EQ(deviceTypes.size(), 2);
+}
 } // namespace Notification
 } // namespace OHOS

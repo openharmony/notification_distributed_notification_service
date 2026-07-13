@@ -460,5 +460,37 @@ HWTEST_F(NotificationLocalLiveViewContentTest, ReadFromParcel_00001, Function | 
     EXPECT_NE(temp, nullptr);
     EXPECT_EQ(temp->GetCardButton().size(), 1);
 }
+
+/**
+ * @tc.name: FromJson_00011
+ * @tc.desc: Test FromJson with flags containing non-integer elements (should skip them).
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationLocalLiveViewContentTest, FromJson_00011, Function | SmallTest | Level1)
+{
+    auto liveViewContent = std::make_shared<NotificationLocalLiveViewContent>();
+    nlohmann::json jsonObject = nlohmann::json{
+        {"flags", {"str", 1, true, 2}}};
+    auto *res = liveViewContent->FromJson(jsonObject);
+    EXPECT_NE(res, nullptr);
+    delete res;
+}
+
+/**
+ * @tc.name: FromJson_00012
+ * @tc.desc: Test FromJson with flags as non-array (should be ignored).
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(NotificationLocalLiveViewContentTest, FromJson_00012, Function | SmallTest | Level1)
+{
+    auto liveViewContent = std::make_shared<NotificationLocalLiveViewContent>();
+    nlohmann::json jsonObject = nlohmann::json{
+        {"flags", "not_array"}};
+    auto *res = liveViewContent->FromJson(jsonObject);
+    EXPECT_NE(res, nullptr);
+    delete res;
+}
 }
 }

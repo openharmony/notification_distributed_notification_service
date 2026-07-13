@@ -569,10 +569,10 @@ ErrCode NotificationShellCommand::BuildNotificationContent(const std::string &co
             resultReceiver_);
         return ERR_INVALID_VALUE;
     }
-    json contentObj = json::parse(contentJson);
-    if (!contentObj.is_object()) {
-        OutputError("ERR_ARG_INVALID", "通知内容必须是JSON对象",
-            "请提供JSON对象格式。示例: --notificationContent "
+    json contentObj = json::parse(contentJson, nullptr, false);
+    if (contentObj.is_discarded() || !contentObj.is_object()) {
+        OutputError("ERR_ARG_INVALID", "通知内容JSON解析失败: JSON不是有效对象",
+            "请提供有效的JSON对象。示例: --notificationContent "
             "\"{\\\"type\\\":\\\"basic\\\",\\\"title\\\":\\\"T\\\",\\\"text\\\":\\\"X\\\"}\"",
             resultReceiver_);
         return ERR_INVALID_VALUE;
