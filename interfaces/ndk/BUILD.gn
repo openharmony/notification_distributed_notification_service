@@ -14,8 +14,6 @@
 import("//base/notification/distributed_notification_service/notification.gni")
 import("//build/ohos.gni")
 
-cflags = []
-
 config("notification_ndk_config") {
   visibility = [ ":*" ]
 
@@ -24,6 +22,7 @@ config("notification_ndk_config") {
     "${notification_ndk_path}/include",
   ]
 
+  cflags = []
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
@@ -49,6 +48,9 @@ ohos_shared_library("ohnotification") {
   configs = [ ":notification_ndk_config" ]
 
   public_configs = [ ":notification_ndk_public_config" ]
+
+  cflags = notification_size_opt_cflags
+  ldflags = notification_size_opt_ldflags
 
   sources = [ "src/notification.cpp" ]
 

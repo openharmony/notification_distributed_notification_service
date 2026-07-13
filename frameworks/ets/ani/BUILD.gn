@@ -15,6 +15,98 @@ import("//base/notification/distributed_notification_service/notification.gni")
 import("//build/config/components/ets_frontend/ets2abc_config.gni")
 import("//build/ohos.gni")
 
+# ROM-004: ANI shared_library extraction
+# Extracts shared sts_*.cpp (11,322 lines, redundant 15,732 lines) from 4 ANI targets
+# into a single shared library to eliminate duplicate compilation. [PR#4766 借鉴]
+# NOTE: 公共库不加 -fvisibility=hidden，让依赖模块可链接公共库符号
+ohos_shared_library("notification_ani_common") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
+  include_dirs = [
+    "./include",
+    "./include/manager",
+    "./include/subscribe",
+    "${core_path}/common/include",
+    "${inner_api_path}",
+  ]
+
+  configs = []
+
+  sources = [
+    "./src/sts_common.cpp",
+    "./src/sts_throw_erro.cpp",
+    "./src/sts_bundle_option.cpp",
+    "./src/sts_callback_promise.cpp",
+    "./src/sts_notification_flag.cpp",
+    "./src/sts_sorting.cpp",
+    "./src/sts_sorting_map.cpp",
+    "./src/sts_template.cpp",
+    "./src/sts_user_input.cpp",
+    "./src/sts_subscribe_info.cpp",
+    "./src/sts_disturb_mode.cpp",
+    "./src/sts_ringtone_info.cpp",
+    "./src/sts_notification_manager.cpp",
+    "./src/sts_notification_content.cpp",
+    "./src/sts_request.cpp",
+    "./src/sts_subscribe.cpp",
+    "./src/sts_subscriber.cpp",
+    "./src/sts_trigger.cpp",
+    "./src/sts_convert_other.cpp",
+    "./src/sts_slot.cpp",
+    "./src/sts_action_button.cpp",
+    "${core_path}/src/image_pixelmap_helper.cpp",
+    "${core_path}/src/pixelmap_cache_manager.cpp",
+    "${core_path}/src/subscriber_image_util.cpp",
+  ]
+
+  cflags = []
+  cflags += notification_size_opt_cflags
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+
+  ldflags = notification_size_opt_ldflags
+
+  version_script = "libnotification_ani_common.map"
+
+  deps = [ "${frameworks_module_ans_path}:ans_innerkits" ]
+
+  external_deps = [
+    "ability_base:want",
+    "ability_base:zuri",
+    "ability_runtime:ani_common",
+    "ability_runtime:ani_wantagent_common",
+    "ability_runtime:app_context",
+    "ability_runtime:runtime",
+    "ability_runtime:wantagent_innerkits",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "image_framework:image",
+    "image_framework:image_native",
+    "image_framework:image_source",
+    "image_framework:image_taihe",
+    "image_framework:pixelmap",
+    "ipc:ipc_core",
+    "napi:ace_napi",
+    "node:node_header_notice",
+    "os_account:os_account_innerkits",
+    "resource_management:global_resmgr",
+    "resource_management:librawfile",
+    "runtime_core:ani",
+    "runtime_core:ani_helpers",
+  ]
+
+  innerapi_tags = [ "platformsdk" ]
+  subsystem_name = "${subsystem_name}"
+  part_name = "${component_name}"
+}
+
 ohos_shared_library("notification_manager_ani") {
   shlib_type = "ani"
   branch_protector_ret = "pac_ret"
@@ -34,9 +126,6 @@ ohos_shared_library("notification_manager_ani") {
   ]
 
   sources = [
-    "${core_path}/src/image_pixelmap_helper.cpp",
-    "${core_path}/src/pixelmap_cache_manager.cpp",
-    "${core_path}/src/subscriber_image_util.cpp",
     "./src/manager/ani_ans_dialog_callback.cpp",
     "./src/manager/ani_cance.cpp",
     "./src/manager/ani_display_badge.cpp",
@@ -65,38 +154,23 @@ ohos_shared_library("notification_manager_ani") {
     "./src/manager/ani_statistics.cpp",
     "./src/manager/ani_support_template.cpp",
     "./src/manager/ani_sync_config.cpp",
-    "./src/sts_action_button.cpp",
     "./src/sts_badge_query_callback.cpp",
-    "./src/sts_bundle_option.cpp",
-    "./src/sts_callback_promise.cpp",
-    "./src/sts_common.cpp",
-    "./src/sts_convert_other.cpp",
-    "./src/sts_disturb_mode.cpp",
-    "./src/sts_notification_content.cpp",
-    "./src/sts_notification_flag.cpp",
-    "./src/sts_notification_manager.cpp",
     "./src/sts_notification_statistics.cpp",
     "./src/sts_reminder_info.cpp",
-    "./src/sts_request.cpp",
-    "./src/sts_ringtone_info.cpp",
-    "./src/sts_slot.cpp",
-    "./src/sts_sorting.cpp",
-    "./src/sts_sorting_map.cpp",
-    "./src/sts_subscribe.cpp",
-    "./src/sts_subscribe_info.cpp",
-    "./src/sts_subscriber.cpp",
-    "./src/sts_template.cpp",
-    "./src/sts_throw_erro.cpp",
-    "./src/sts_trigger.cpp",
-    "./src/sts_user_input.cpp",
   ]
 
   cflags = []
+  cflags += notification_size_opt_cflags
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
 
+  ldflags = notification_size_opt_ldflags
+
+  version_script = "libnotification_manager_ani.map"
+
   deps = [
+    ":notification_ani_common",
     "${frameworks_module_ans_path}:ans_innerkits",
     "${frameworks_path}/cj/ffi:cj_notification_manager_ffi",
   ]
@@ -208,39 +282,22 @@ ohos_shared_library("notification_subscribe_ani") {
   configs = [ "${frameworks_module_ans_path}:ans_innerkits_public_config" ]
 
   sources = [
-    "${core_path}/src/image_pixelmap_helper.cpp",
-    "${core_path}/src/pixelmap_cache_manager.cpp",
-    "${core_path}/src/subscriber_image_util.cpp",
-    "./src/sts_action_button.cpp",
-    "./src/sts_bundle_option.cpp",
-    "./src/sts_common.cpp",
-    "./src/sts_convert_other.cpp",
-    "./src/sts_disturb_mode.cpp",
-    "./src/sts_notification_content.cpp",
-    "./src/sts_notification_flag.cpp",
-    "./src/sts_notification_manager.cpp",
-    "./src/sts_request.cpp",
-    "./src/sts_ringtone_info.cpp",
-    "./src/sts_slot.cpp",
-    "./src/sts_sorting.cpp",
-    "./src/sts_sorting_map.cpp",
-    "./src/sts_subscribe.cpp",
-    "./src/sts_subscribe_info.cpp",
-    "./src/sts_subscriber.cpp",
-    "./src/sts_template.cpp",
-    "./src/sts_throw_erro.cpp",
-    "./src/sts_trigger.cpp",
-    "./src/sts_user_input.cpp",
     "./src/subscribe/ani_remove.cpp",
     "./src/subscribe/ani_subscribe.cpp",
   ]
 
   cflags = []
+  cflags += notification_size_opt_cflags
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
 
+  ldflags = notification_size_opt_ldflags
+
+  version_script = "libnotification_subscribe_ani.map"
+
   deps = [
+    ":notification_ani_common",
     "${frameworks_module_ans_path}:ans_innerkits",
     "${frameworks_path}/cj/ffi:cj_notification_manager_ffi",
   ]
@@ -300,19 +357,22 @@ ohos_shared_library("notificationextensionsubscription_ani") {
     "./src/extension_subscription/ani_notification_extension_subscription_info.cpp",
     "./src/extension_subscription/ani_notification_subscriber_extension.cpp",
     "./src/extension_subscription/ani_open_subscribe_settings.cpp",
-    "./src/sts_bundle_option.cpp",
-    "./src/sts_callback_promise.cpp",
-    "./src/sts_common.cpp",
-    "./src/sts_notification_manager.cpp",
-    "./src/sts_throw_erro.cpp",
   ]
 
   cflags = []
+  cflags += notification_size_opt_cflags
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
 
-  deps = [ "${frameworks_module_ans_path}:ans_innerkits" ]
+  ldflags = notification_size_opt_ldflags
+
+  version_script = "libnotificationextensionsubscription_ani.map"
+
+  deps = [
+    ":notification_ani_common",
+    "${frameworks_module_ans_path}:ans_innerkits",
+  ]
 
   external_deps = [
     "ability_base:want",
@@ -375,16 +435,20 @@ ohos_shared_library("notification_subscriber_extension_ani") {
     "./src/extension/sts_notification_info.cpp",
     "./src/extension/sts_notification_subscriber_extension.cpp",
     "./src/extension/sts_notification_subscriber_extension_context.cpp",
-    "./src/sts_common.cpp",
-    "./src/sts_notification_manager.cpp",
   ]
 
   cflags = []
+  cflags += notification_size_opt_cflags
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
 
+  ldflags = notification_size_opt_ldflags
+
+  version_script = "libnotification_subscriber_extension_ani.map"
+
   deps = [
+    ":notification_ani_common",
     "${frameworks_module_ans_path}:ans_innerkits",
     "${frameworks_module_extension_path}:notification_subscriber_extension_common",
     "${frameworks_module_extension_path}:notification_subscriber_ipc",
