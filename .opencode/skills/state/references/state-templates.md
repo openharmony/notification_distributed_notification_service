@@ -65,6 +65,13 @@
     "build": {
       "status": "pending"
     },
+    "verify": {
+      "status": "pending",
+      "output": "{kb_dir}/verify-log.md",
+      "test_results": null,
+      "skipped": false,
+      "skip_reason": null
+    },
     "doc": {
       "status": "pending",
       "outputs": [
@@ -80,7 +87,8 @@
     "coverage_target": "90%"
   },
   "review_log": "{kb_dir}/review-log.md",
-  "build_log": "{kb_dir}/build-log.md"
+  "build_log": "{kb_dir}/build-log.md",
+  "verify_log": "{kb_dir}/verify-log.md"
 }
 ```
 
