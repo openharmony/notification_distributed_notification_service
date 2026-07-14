@@ -59,18 +59,18 @@ void SubscriberImageUtil::ProcessPictureOption(
     for (const auto &picPathKey : picList) {
         std::vector<std::string> picPaths = GetPicPathsFromParam(extraInfo, picPathKey);
         if (picPaths.empty()) {
-            ANS_LOGI("picPaths empty");
+            ANS_LOGI("picPaths empty, picPathKey: %{public}s", picPathKey.c_str());
             continue;
         }
         for (const auto &picPath : picPaths) {
             auto pixelMap = GetPixelMapByRes(request, picPath);
             if (pixelMap != nullptr) {
                 pictureMap[picPathKey].push_back(std::move(pixelMap));
-                ANS_LOGI("Parse picPath(%{public}s) success", picPath.c_str());
                 continue;
             }
             pictureMap[picPathKey].push_back(nullptr);
         }
+        ANS_LOGI("Parse picPathKey(%{public}s) size(%{public}zu)", picPathKey.c_str(), pictureMap[picPathKey].size());
     }
     liveViewContent->SetPicture(pictureMap);
 }
@@ -93,15 +93,13 @@ std::shared_ptr<Media::PixelMap> SubscriberImageUtil::GetPixelMapByRes(
     auto cacheManager = PixelMapCacheManager::GetInstance();
     auto cachedPixelMap = cacheManager->GetCachedPixelMap(requestKey, cacheKey);
     if (cachedPixelMap != nullptr) {
-        ANS_LOGI("Cache hit, returning shared for resPath=%{public}s", resPath.c_str());
         return cachedPixelMap;
     }
     ImagePixelmapHelper imagePixelmapHelper(request, resPath);
-    ANS_LOGI("GetPixelMapByRes resPath: %{public}s, versionCode: %{public}u", resPath.c_str(), versionCode);
     std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
     auto ret = imagePixelmapHelper.GetPixelMap(pixelMap);
     if (ret != ERR_OK || pixelMap == nullptr) {
-        ANS_LOGE("GetPixelMap failed ret: %{public}d, ", ret);
+        ANS_LOGE("GetPixelMap failed ret: %{public}d, cacheKey: %{public}s", ret, cacheKey.c_str());
         return nullptr;
     }
     if (versionCode > 0) {
