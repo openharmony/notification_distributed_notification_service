@@ -14,6 +14,7 @@
  */
 #include "notification_check_info.h"
 #include "ans_log_wrapper.h"
+#include "notification_want_params_helper.h"
 #include "want_params_wrapper.h"
 #include "nlohmann/json.hpp"
 
@@ -114,7 +115,7 @@ void NotificationCheckInfo::ConvertJsonExtraInfoToValue(nlohmann::json &jsonobj)
     }
     auto extraInfoStr = jsonobj.at("extraInfo").get<std::string>();
     if (!extraInfoStr.empty()) {
-        AAFwk::WantParams params = AAFwk::WantParamWrapper::ParseWantParams(extraInfoStr);
+        AAFwk::WantParams params = NotificationWantParamsHelper::ParseWantParams(extraInfoStr);
         extraInfo_ = std::make_shared<AAFwk::WantParams>(params);
     }
 }

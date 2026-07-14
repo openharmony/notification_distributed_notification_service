@@ -37,6 +37,7 @@
 #include "int_wrapper.h"
 #include "string_wrapper.h"
 #include "want_params_wrapper.h"
+#include "notification_want_params_helper.h"
 #include "distributed_subscribe_service.h"
 #include "bundle_resource_helper.h"
 #include "remove_all_distributed_box.h"
@@ -1037,7 +1038,7 @@ void DistributedPublishService::MakeExtendInfo(const NotificationRequestBox& box
     std::shared_ptr<AAFwk::WantParams> extendInfo = std::make_shared<AAFwk::WantParams>();
     if (box.GetBoxExtendInfo(contentInfo)) {
         if (!contentInfo.empty()) {
-            AAFwk::WantParams extendInfoParams = AAFwk::WantParamWrapper::ParseWantParams(contentInfo);
+            AAFwk::WantParams extendInfoParams = NotificationWantParamsHelper::ParseWantParams(contentInfo);
             extendInfo = std::make_shared<AAFwk::WantParams>(extendInfoParams);
         }
     }

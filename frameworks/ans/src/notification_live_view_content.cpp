@@ -18,6 +18,7 @@
 #include "ans_image_util.h"
 #include "ans_ipc_common_utils.h"
 #include "ans_log_wrapper.h"
+#include "notification_want_params_helper.h"
 #include "want_params_wrapper.h"
 #include "want_agent_helper.h"
 #include "ans_const_define.h"
@@ -120,8 +121,7 @@ std::string NotificationLiveViewContent::Dump()
 {
     std::string extraStr{"null"};
     if (extraInfo_ != nullptr) {
-        AAFwk::WantParamWrapper wWrapper(*extraInfo_);
-        extraStr = wWrapper.ToString();
+        extraStr = NotificationWantParamsHelper::SerializeWantParams(*extraInfo_);
     }
 
     std::string pictureStr {", pictureMap = {"};
@@ -173,13 +173,12 @@ bool NotificationLiveViewContent::ToJson(nlohmann::json &jsonObject) const
     jsonObject["version"] = version_;
 
     if (extraInfo_) {
-        AAFwk::WantParamWrapper wWrapper(*extraInfo_);
-        jsonObject["extraInfo"] = wWrapper.ToString();
+        jsonObject["extraInfo"] = NotificationWantParamsHelper::SerializeWantParams(*extraInfo_);
     }
 
     jsonObject["isLocalUpdateOnly"] = isOnlyLocalUpdate_;
     if (extensionWantAgent_ != nullptr) {
-        jsonObject["extensionWantAgent"] = AbilityRuntime::WantAgent::WantAgentHelper::ToString(extensionWantAgent_);
+        jsonObject["extensionWantAgent"] = NotificationWantParamsHelper::SerializeWantAgent(extensionWantAgent_);
         jsonObject["uid"] = uid_;
     }
     jsonObject["removeState"] = static_cast<uint32_t>(removeOnProcessExitState_);
@@ -232,7 +231,7 @@ NotificationLiveViewContent *NotificationLiveViewContent::FromJson(const nlohman
     if (jsonObject.find("extraInfo") != jsonEnd && jsonObject.at("extraInfo").is_string()) {
         std::string extraInfoStr = jsonObject.at("extraInfo").get<std::string>();
         if (!extraInfoStr.empty()) {
-            AAFwk::WantParams params = AAFwk::WantParamWrapper::ParseWantParamsWithBrackets(extraInfoStr);
+            AAFwk::WantParams params = NotificationWantParamsHelper::ParseWantParamsWithBrackets(extraInfoStr);
             pContent->extraInfo_ = std::make_shared<AAFwk::WantParams>(params);
         }
     }
@@ -245,7 +244,7 @@ NotificationLiveViewContent *NotificationLiveViewContent::FromJson(const nlohman
     }
     if (jsonObject.find("extensionWantAgent") != jsonEnd && jsonObject.at("extensionWantAgent").is_string()) {
         auto extensionWantAgentString  = jsonObject.at("extensionWantAgent").get<std::string>();
-        pContent->extensionWantAgent_ = AbilityRuntime::WantAgent::WantAgentHelper::FromString(
+        pContent->extensionWantAgent_ = NotificationWantParamsHelper::ParseWantAgent(
             extensionWantAgentString, pContent->uid_);
     } else {
         ANS_LOGW("no want");

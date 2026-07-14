@@ -17,6 +17,7 @@
 
 #include "ans_const_define.h"
 #include "ans_log_wrapper.h"
+#include "notification_want_params_helper.h"
 #include "want_params_wrapper.h"
 
 namespace OHOS {
@@ -247,8 +248,7 @@ bool NotificationUserInput::ToJson(nlohmann::json &jsonObject) const
     jsonObject["editType"]            = static_cast<int32_t>(editType_);
     std::string additionalDataStr;
     if (additionalData_) {
-        AAFwk::WantParamWrapper wWrapper(*additionalData_);
-        additionalDataStr = wWrapper.ToString();
+        additionalDataStr = NotificationWantParamsHelper::SerializeWantParams(*additionalData_);
     }
     jsonObject["additionalData"] = additionalDataStr;
 
@@ -302,7 +302,7 @@ NotificationUserInput *NotificationUserInput::FromJson(const nlohmann::json &jso
     if (jsonObject.find("additionalData") != jsonEnd && jsonObject.at("additionalData").is_string()) {
         auto additionalDataString = jsonObject.at("additionalData").get<std::string>();
         if (!additionalDataString.empty()) {
-            AAFwk::WantParams params = AAFwk::WantParamWrapper::ParseWantParams(additionalDataString);
+            AAFwk::WantParams params = NotificationWantParamsHelper::ParseWantParams(additionalDataString);
             pUserInput->additionalData_ = std::make_shared<AAFwk::WantParams>(params);
         }
     }

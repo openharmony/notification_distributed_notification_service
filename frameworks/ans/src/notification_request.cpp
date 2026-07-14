@@ -21,11 +21,12 @@
 #include "ans_image_util.h"
 #include "ans_log_wrapper.h"
 #include "errors.h"
+#include "notification_action_button.h"
 #include "notification_live_view_content.h"
+#include "notification_want_params_helper.h"
 #include "refbase.h"
 #include "want_agent_helper.h"
 #include "want_params_wrapper.h"
-#include "notification_action_button.h"
 #include <memory>
 
 namespace OHOS {
@@ -908,8 +909,7 @@ bool NotificationRequest::CollaborationToJson(std::string& data) const
     jsonObject["notificationControlFlags"] = notificationControlFlags_;
 
     if (additionalParams_) {
-        AAFwk::WantParamWrapper wWrapper(*additionalParams_);
-        jsonObject["extraInfo"] = wWrapper.ToString();
+        jsonObject["extraInfo"] = NotificationWantParamsHelper::SerializeWantParams(*additionalParams_);
     }
 
     if (agentBundle_ != nullptr) {
@@ -926,8 +926,7 @@ bool NotificationRequest::CollaborationToJson(std::string& data) const
         templateOptionObj["templateName"] = notificationTemplate_->GetTemplateName();
         auto params = notificationTemplate_->GetTemplateData();
         if (params != nullptr) {
-            AAFwk::WantParamWrapper wWrapper(*params);
-            templateOptionObj["templateData"] = wWrapper.ToString();
+            templateOptionObj["templateData"] = NotificationWantParamsHelper::SerializeWantParams(*params);
         }
         jsonObject["template"] = templateOptionObj;
     }
@@ -964,7 +963,7 @@ NotificationRequest *NotificationRequest::CollaborationFromJson(const std::strin
     if (jsonObject.find("extraInfo") != jsonEnd && jsonObject.at("extraInfo").is_string()) {
         auto extraInfoStr = jsonObject.at("extraInfo").get<std::string>();
         if (!extraInfoStr.empty()) {
-            AAFwk::WantParams params = AAFwk::WantParamWrapper::ParseWantParams(extraInfoStr);
+            AAFwk::WantParams params = NotificationWantParamsHelper::ParseWantParams(extraInfoStr);
             pRequest->additionalParams_ = std::make_shared<AAFwk::WantParams>(params);
         }
     }
@@ -1021,7 +1020,7 @@ bool NotificationRequest::ConvertJsonToTemplate(
             templateOptionObj.at("templateData").is_string()) {
             std::string data = templateOptionObj.at("templateData").get<std::string>();
             if (!data.empty()) {
-                AAFwk::WantParams params = AAFwk::WantParamWrapper::ParseWantParams(data);
+                AAFwk::WantParams params = NotificationWantParamsHelper::ParseWantParams(data);
                 templatePtr->SetTemplateData(std::make_shared<AAFwk::WantParams>(params));
             }
         }
@@ -1117,7 +1116,7 @@ void NotificationRequest::ConvertJsonToWantAgent(
             targetUid = target->GetOwnerUid();
         }
         ANS_LOGI("wantAgent Fromjson, uid = %{public}d ", targetUid);
-        target->wantAgent_ = AbilityRuntime::WantAgent::WantAgentHelper::FromString(wantAgentValue, targetUid);
+        target->wantAgent_ = NotificationWantParamsHelper::ParseWantAgent(wantAgentValue, targetUid);
     }
 
     if (jsonObject.find("removalWantAgent") != jsonEnd && jsonObject.at("removalWantAgent").is_string()) {
@@ -1128,7 +1127,7 @@ void NotificationRequest::ConvertJsonToWantAgent(
         }
         ANS_LOGI("removalWantAgent Fromjson, uid = %{public}d ", targetUid);
         target->removalWantAgent_ =
-            AbilityRuntime::WantAgent::WantAgentHelper::FromString(wantAgentValue, targetUid);
+            NotificationWantParamsHelper::ParseWantAgent(wantAgentValue, targetUid);
     }
 }
 
@@ -1175,7 +1174,7 @@ NotificationRequest *NotificationRequest::FromJson(const nlohmann::json &jsonObj
     if (jsonObject.find("extraInfo") != jsonEnd && jsonObject.at("extraInfo").is_string()) {
         auto extraInfoStr = jsonObject.at("extraInfo").get<std::string>();
         if (!extraInfoStr.empty()) {
-            AAFwk::WantParams params    = AAFwk::WantParamWrapper::ParseWantParams(extraInfoStr);
+            AAFwk::WantParams params    = NotificationWantParamsHelper::ParseWantParams(extraInfoStr);
             pRequest->additionalParams_ = std::make_shared<AAFwk::WantParams>(params);
         }
     }
@@ -1183,7 +1182,7 @@ NotificationRequest *NotificationRequest::FromJson(const nlohmann::json &jsonObj
     if (jsonObject.find("extendInfo") != jsonEnd && jsonObject.at("extendInfo").is_string()) {
         auto extendInfoStr = jsonObject.at("extendInfo").get<std::string>();
         if (!extendInfoStr.empty()) {
-            AAFwk::WantParams extendInfoParams = AAFwk::WantParamWrapper::ParseWantParams(extendInfoStr);
+            AAFwk::WantParams extendInfoParams = NotificationWantParamsHelper::ParseWantParams(extendInfoStr);
             pRequest->extendInfo_ = std::make_shared<AAFwk::WantParams>(extendInfoParams);
         }
     }
@@ -2465,9 +2464,9 @@ void NotificationRequest::CopyOther(const NotificationRequest &other)
 
 void NotificationRequest::ConvertObjectsToJsonOhters(nlohmann::json &jsonObject) const
 {
-    jsonObject["wantAgent"] = wantAgent_ ? AbilityRuntime::WantAgent::WantAgentHelper::ToString(wantAgent_) : "";
+    jsonObject["wantAgent"] = wantAgent_ ? NotificationWantParamsHelper::SerializeWantAgent(wantAgent_) : "";
     jsonObject["removalWantAgent"] = removalWantAgent_ ?
-        AbilityRuntime::WantAgent::WantAgentHelper::ToString(removalWantAgent_) : "";
+        NotificationWantParamsHelper::SerializeWantAgent(removalWantAgent_) : "";
     jsonObject["smallIcon"] = AnsImageUtil::PackImage(littleIcon_);
     jsonObject["largeIcon"] = AnsImageUtil::PackImage(bigIcon_);
     jsonObject["overlayIcon"] = overlayIcon_ ? AnsImageUtil::PackImage(overlayIcon_) : "";
@@ -2503,15 +2502,13 @@ bool NotificationRequest::ConvertObjectsToJson(nlohmann::json &jsonObject) const
 
     std::string extraInfoStr;
     if (additionalParams_) {
-        AAFwk::WantParamWrapper wWrapper(*additionalParams_);
-        extraInfoStr = wWrapper.ToString();
+        extraInfoStr = NotificationWantParamsHelper::SerializeWantParams(*additionalParams_);
     }
     jsonObject["extraInfo"] = extraInfoStr;
 
     std::string extendInfoStr;
     if (extendInfo_) {
-        AAFwk::WantParamWrapper wWrapper(*extendInfo_);
-        extendInfoStr = wWrapper.ToString();
+        extendInfoStr = NotificationWantParamsHelper::SerializeWantParams(*extendInfo_);
     }
     jsonObject["extendInfo"] = extendInfoStr;
 
@@ -2911,7 +2908,7 @@ bool NotificationRequest::ConvertJsonToNotificationContent(
             std::vector<std::string> lineWantAgentStrs = content->GetLineWantAgentStrs();
             for (const auto &item : lineWantAgentStrs) {
                 std::shared_ptr<AbilityRuntime::WantAgent::WantAgent> wantAgent =
-                    AbilityRuntime::WantAgent::WantAgentHelper::FromString(item, targetUid);
+                    NotificationWantParamsHelper::ParseWantAgent(item, targetUid);
                 lineWantAgents.push_back(wantAgent);
             }
             content->SetLineWantAgents(lineWantAgents);
