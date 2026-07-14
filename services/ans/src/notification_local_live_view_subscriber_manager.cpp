@@ -61,7 +61,17 @@ NotificationLocalLiveViewSubscriberManager::~NotificationLocalLiveViewSubscriber
 void NotificationLocalLiveViewSubscriberManager::ResetFfrtQueue()
 {
     if (notificationButtonQueue_ != nullptr) {
+        auto handler = notificationButtonQueue_->submit_h([] {});
+        notificationButtonQueue_->wait(handler);
         notificationButtonQueue_.reset();
+    }
+}
+
+void NotificationLocalLiveViewSubscriberManager::WaitForFfrtQueue()
+{
+    if (notificationButtonQueue_ != nullptr) {
+        auto handler = notificationButtonQueue_->submit_h([] {});
+        notificationButtonQueue_->wait(handler);
     }
 }
 

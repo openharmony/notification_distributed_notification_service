@@ -36,7 +36,7 @@ namespace OHOS {
 
     bool DoSomethingInterestingWithMyAPI(FuzzedDataProvider *fuzzData)
     {
-        auto service = std::make_shared<Notification::AdvancedNotificationService>();
+        auto service = Notification::AdvancedNotificationService::GetInstance();
         sptr<Notification::NotificationBundleOption> bundleOption = new Notification::NotificationBundleOption();
         bundleOption->SetBundleName(fuzzData->ConsumeRandomLengthString());
         bundleOption->SetUid(fuzzData->ConsumeIntegral<int32_t>());
@@ -117,9 +117,6 @@ namespace OHOS {
         service->IsDistributedEnableByBundle(bundleOption, enabled);
         int32_t remindType;
         service->GetDeviceRemindType(remindType);
-        service->SelfClean();
-        constexpr int sleepMs = 1000;
-        std::this_thread::sleep_for(std::chrono::milliseconds(sleepMs));
         return true;
     }
 }
@@ -136,5 +133,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     };
     SystemHapTokenGet(requestPermission);
     OHOS::DoSomethingInterestingWithMyAPI(&fdp);
+    ENSURE_ANS_SERVICE_CLEANED_AT_EXIT();
     return 0;
 }

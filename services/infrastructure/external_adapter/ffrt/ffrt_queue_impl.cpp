@@ -67,6 +67,7 @@ void FfrtQueueImpl::Reset()
     if (queue_ == nullptr) {
         return;
     }
+    SyncSubmit(std::function<void()>([] {}));
     queue_.reset();
 }
 

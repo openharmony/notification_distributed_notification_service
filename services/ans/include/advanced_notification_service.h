@@ -112,7 +112,7 @@ public:
 
     static std::map<std::string, uint32_t>& GetDefaultSlotConfig();
 
-    void SelfClean();
+    void SelfClean(bool resetQueues = false);
 
     /**
      * @brief Get notification_svr_queue of service.

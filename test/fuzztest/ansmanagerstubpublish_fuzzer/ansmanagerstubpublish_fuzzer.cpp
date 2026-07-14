@@ -34,7 +34,7 @@ namespace OHOS {
 
     bool DoSomethingInterestingWithMyAPI(FuzzedDataProvider *fuzzData)
     {
-        auto service = std::make_shared<Notification::AdvancedNotificationService>();
+        auto service = Notification::AdvancedNotificationService::GetInstance();
         service->InitPublishProcess();
         service->CreateDialogManager();
         std::string stringData = fuzzData->ConsumeRandomLengthString();
@@ -106,9 +106,6 @@ namespace OHOS {
         service->RemoveNotifications(keys, fuzzData->ConsumeIntegral<int32_t>());
         sptr<Notification::NotificationSlot> slot = new Notification::NotificationSlot();
         service->RemoveNotificationBySlot(bundleOption, slot, fuzzData->ConsumeIntegral<int32_t>());
-        service->SelfClean();
-        constexpr int sleepMs = 1000;
-        std::this_thread::sleep_for(std::chrono::milliseconds(sleepMs));
         return true;
     }
 }
@@ -125,5 +122,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     };
     SystemHapTokenGet(requestPermission);
     OHOS::DoSomethingInterestingWithMyAPI(&fdp);
+    ENSURE_ANS_SERVICE_CLEANED_AT_EXIT();
     return 0;
 }

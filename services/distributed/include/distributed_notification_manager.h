@@ -134,6 +134,7 @@ public:
      * @brief Reset ffrt queue
      */
     void ResetFfrtQueue();
+    void WaitForFfrtQueue();
 
 private:
     void OnDatabaseInsert(const std::string &deviceId, const std::string &key, const std::string &value);

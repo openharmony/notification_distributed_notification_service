@@ -373,14 +373,24 @@ AdvancedNotificationService::~AdvancedNotificationService()
     ANS_LOGD("called");
 }
 
-void AdvancedNotificationService::SelfClean()
+void AdvancedNotificationService::SelfClean(bool resetQueues)
 {
-    notificationSvrQueue_.Reset();
-    NotificationSubscriberManager::GetInstance()->ResetFfrtQueue();
+    if (resetQueues) {
+        notificationSvrQueue_.Reset();
+        NotificationSubscriberManager::GetInstance()->ResetFfrtQueue();
 #ifdef ANS_FEATURE_ORIGINAL_DISTRIBUTED
-    DistributedNotificationManager::GetInstance()->ResetFfrtQueue();
+        DistributedNotificationManager::GetInstance()->ResetFfrtQueue();
 #endif
-    NotificationLocalLiveViewSubscriberManager::GetInstance()->ResetFfrtQueue();
+        NotificationLocalLiveViewSubscriberManager::GetInstance()->ResetFfrtQueue();
+        NotificationPreferences::GetInstance()->StopCacheCleanupTimer();
+    } else {
+        notificationSvrQueue_.SyncSubmit(std::function<void()>([] {}));
+        NotificationSubscriberManager::GetInstance()->WaitForFfrtQueue();
+#ifdef ANS_FEATURE_ORIGINAL_DISTRIBUTED
+        DistributedNotificationManager::GetInstance()->WaitForFfrtQueue();
+#endif
+        NotificationLocalLiveViewSubscriberManager::GetInstance()->WaitForFfrtQueue();
+    }
 }
 
 ErrCode AdvancedNotificationService::AssignToNotificationList(const std::shared_ptr<NotificationRecord> &record)
