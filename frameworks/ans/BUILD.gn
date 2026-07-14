@@ -80,6 +80,7 @@ ohos_shared_library("ans_innerkits") {
     "${core_path}/common/src/ans_service_errors.cpp",
     "${core_path}/common/src/ans_log_wrapper.cpp",
     "${core_path}/common/src/ans_permission_def.cpp",
+    "${core_path}/common/src/notification_want_params_helper.cpp",
     "${core_path}/src/ans_image_util.cpp",
     "${core_path}/src/ans_notification.cpp",
     "${core_path}/src/ans_result_data_synchronizer.cpp",
