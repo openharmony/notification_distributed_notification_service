@@ -28,9 +28,13 @@ public:
     static void MockUnRegisterObserver(const bool ret);
     // value: Query(Uri&, const std::string&, std::string& value)
     // reminders: Query(std::map<std::string, sptr<ReminderRequest>>& reminders)
-    static void MockQuery(const bool ret, const std::string& value,
-        const std::map<std::string, sptr<ReminderRequest>>& reminders);
+    static void MockQuery(const std::vector<bool>& rets, const std::vector<std::string>& values,
+        const std::vector<std::map<std::string, sptr<ReminderRequest>>>& reminders);
     static void MockUpdate(const bool ret);
+
+    static void Reset();
+
+    static int32_t callQueryCount_;
 };
 }  // namespace OHOS::Notification
 #endif  // BASE_NOTIFICATION_REMINDER_MOCK_REMINDER_DATASHARE_HELPER_H
