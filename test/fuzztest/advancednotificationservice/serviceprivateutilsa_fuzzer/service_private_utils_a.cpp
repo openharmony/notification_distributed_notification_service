@@ -48,7 +48,7 @@ namespace OHOS {
 namespace Notification {
     bool DoSomethingInterestingWithMyAPI(FuzzedDataProvider *fuzzData)
     {
-        sptr<AdvancedNotificationService> service = new AdvancedNotificationService();
+        auto service = AdvancedNotificationService::GetInstance();
         sptr<AnsResultDataSynchronizerImpl> synchronizer = new AnsResultDataSynchronizerImpl();
         service->InitPublishProcess();
         service->CreateDialogManager();
@@ -266,7 +266,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     };
     SystemHapTokenGet(requestPermission);
     OHOS::Notification::DoSomethingInterestingWithMyAPI(&fdp);
-    constexpr int sleepMs = 1000;
-    std::this_thread::sleep_for(std::chrono::milliseconds(sleepMs));
+    ENSURE_ANS_SERVICE_CLEANED_AT_EXIT();
     return 0;
 }

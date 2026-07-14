@@ -204,6 +204,7 @@ public:
      * @brief Reset ffrt queue
      */
     void ResetFfrtQueue();
+    void WaitForFfrtQueue();
 
     /**
      * @brief Distribution operation based on hashCode.

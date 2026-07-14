@@ -816,6 +816,12 @@ public:
 
     void GetAllNotificationSwitchInfo(const int32_t userId,
         std::vector<NotificationCloneNotificationSwitchInfo> &notificationSwitchInfos);
+
+    /**
+     * @brief Stop the ffrt cache cleanup timer.
+     */
+    void StopCacheCleanupTimer();
+
  private:
      bool GetBundleInfo(NotificationPreferencesInfo &preferencesInfo,
          const sptr<NotificationBundleOption> &bundleOption, NotificationPreferencesInfo::BundleInfo &info) const;
@@ -871,11 +877,6 @@ public:
      * @brief Execute cache cleanup and reschedule if cache is non-empty.
      */
     void ExecuteCacheCleanup();
-
-    /**
-     * @brief Stop the ffrt cache cleanup timer.
-     */
-    void StopCacheCleanupTimer();
 
 private:
     std::map<int32_t, int64_t> cloneTimestamp;

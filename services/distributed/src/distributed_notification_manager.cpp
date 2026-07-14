@@ -71,7 +71,17 @@ DistributedNotificationManager::~DistributedNotificationManager()
 void DistributedNotificationManager::ResetFfrtQueue()
 {
     if (distributedQueue_ != nullptr) {
+        auto handler = distributedQueue_->submit_h([] {});
+        distributedQueue_->wait(handler);
         distributedQueue_.reset();
+    }
+}
+
+void DistributedNotificationManager::WaitForFfrtQueue()
+{
+    if (distributedQueue_ != nullptr) {
+        auto handler = distributedQueue_->submit_h([] {});
+        distributedQueue_->wait(handler);
     }
 }
 
