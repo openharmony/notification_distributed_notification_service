@@ -792,14 +792,168 @@ permission:
 传入:
   - kb_dir: "docs/features/${feature-name}"
   - action: "update_current_phase"
-  - current_phase: "doc"
+  - current_phase: "verify"
 ```
+
+---
+
+### Phase 5.5: VERIFY（设备端测试验证）
+
+**前置条件**：
+
+- 通过 Feature-State-SubAgent 确认 `phases.build.status == "done"`（所有任务已通过编译验证，状态为 `done`）
+
+**设计理由**：Build 阶段只验证测试代码"编得过"，但不保证测试在设备上"跑得通"。ARM 交叉编译的二进制无法在主机执行，必须推送到已连接设备运行。将设备端测试验证独立为单独阶段，原因如下：
+- 与编译验证解耦：设备不可用时编译验证仍可完成，测试验证标记为 skipped 不阻塞流程
+- 结果可追溯：verify-log.md 记录真实的通过/失败/崩溃数据，供 Doc 阶段生成有数据支撑的测试报告
+- 失败回退路径清晰：测试失败 → 定位关联任务 → 回退 Execute 修复 → 重新 Build → 重新 Verify
+
+**执行**：
+
+```text
+  0. 先将阶段状态设为 running:
+     调用: @Feature/Feature-State-SubAgent
+     传入:
+       - kb_dir: "docs/features/${feature-name}"
+       - action: "update_phase"
+       - phase: "verify"
+       - status: "running"
+
+     调用: @Feature/Feature-State-SubAgent
+     传入:
+       - kb_dir: "docs/features/${feature-name}"
+       - action: "update_current_phase"
+       - current_phase: "verify"
+
+  1. 收集所有 done 任务的 task_ids、files_changed 和 test_commands 并集
+     从 plan.md 提取 module_name（默认 "distributed_notification_service"）
+
+  2. 调用 Feature-Verify-SubAgent 执行设备端测试验证:
+     调用子代理: @Feature/Feature-Verify-SubAgent
+     传入上下文:
+       - task_ids: [<所有 done 任务的 task_id 列表>]
+       - kb_dir (docs/features/${feature-name}/)
+       - files_changed: [<所有任务修改文件的并集>]
+       - test_commands: [<测试命令并集>]
+       - module_name: "<模块名>"
+
+     Verify 子代理使用 verify-test skill 执行真实测试:
+     - 设备探活（hdc shell echo ok）
+     - 推送库和测试二进制到设备
+     - 通过 hdc shell 运行测试并收集通过/失败/崩溃/超时计数
+     - 失败时定位关联任务并提供修复建议
+
+  3. 根据验证结果处理:
+```
+
+**情况A：VERIFY_PASS（测试全部通过）**
+
+```text
+  调用: @Feature/Feature-State-SubAgent
+  传入:
+    - kb_dir: "docs/features/${feature-name}"
+    - action: "update_phase"
+    - phase: "verify"
+    - status: "done"
+
+  调用: @Feature/Feature-State-SubAgent
+  传入:
+    - kb_dir: "docs/features/${feature-name}"
+    - action: "update_current_phase"
+    - current_phase: "doc"
+```
+
+正常进入 Phase 6 DOC。
+
+**情况B：VERIFY_SKIPPED（无设备 / 设备不可用）**
+
+```text
+  调用: @Feature/Feature-State-SubAgent
+  传入:
+    - kb_dir: "docs/features/${feature-name}"
+    - action: "update_phase"
+    - phase: "verify"
+    - status: "skipped"
+    - skipped: true
+    - skip_reason: "no_device"
+
+  调用: @Feature/Feature-State-SubAgent
+  传入:
+    - kb_dir: "docs/features/${feature-name}"
+    - action: "update_current_phase"
+    - current_phase: "doc"
+```
+
+进入 Phase 6 DOC。Doc 子代理需在 `test-report.md` 中标注"设备端测试未执行（原因：无设备连接），测试报告基于编译验证结果"。
+
+**情况C：VERIFY_FAIL（测试有失败 / 崩溃 / 超时）**
+
+状态回退与 Build 失败处理一致：
+
+```text
+  状态回退：进入修复循环前，先回退阶段状态:
+  调用: @Feature/Feature-State-SubAgent
+  传入:
+    - kb_dir: "docs/features/${feature-name}"
+    - action: "update_phase"
+    - phase: "execute"
+    - status: "running"
+  调用: @Feature/Feature-State-SubAgent
+  传入:
+    - kb_dir: "docs/features/${feature-name}"
+    - action: "update_current_phase"
+    - current_phase: "execute"
+```
+
+根据 Verify 子代理返回的 `affected_task_ids`，将关联任务状态更新为 `failed`：
+
+```text
+  对每个 affected_task_id:
+    调用: @Feature/Feature-State-SubAgent
+    传入:
+      - kb_dir: "docs/features/${feature-name}"
+      - action: "update_task"
+      - task_id: "<task_id>"
+      - status: "failed"
+      - files_locked: []
+```
+
+Verify 子代理的诊断信息（`failed_binaries`、`fix_suggestions`）传递给 Execute 子代理的 `verify_retry_info`，指导修复方向。
+
+按以下步骤修复（与 Phase 4 / Phase 5 Build 修复循环一致）：
+1. 获取文件锁，更新状态为 running
+2. 调用 Execute 子代理修复测试失败
+3. 修复完成后调用 Review 子代理重新检视
+4. Review 通过后标记为 reviewed 并释放文件锁
+5. 检查 retry_count，决定是否重试或标记 human_review
+
+修复后重新进入 Build → Verify：
+- 所有修复任务均 reviewed 后，恢复阶段状态为 `execute: done`，`current_phase: build`
+- 重新调用 Build 子代理执行统一编译验证
+- Build 通过后重新调用 Verify 子代理执行设备端测试验证
+- 若仍有未通过的任务，重复修复循环
+- 直到所有测试通过或达到最大重试次数
+
+**Verify 修复循环重试上限**：
+- Verify 修复循环复用任务的 `retry_count` 字段（与 Execute / Build 阶段的重试共享计数）
+- 每个任务的 `retry_count` 上限为 **3 次**（含 Execute + Build + Verify 阶段的重试总和）
+- 达到上限后，该任务标记为 `human_review`，不再参与修复循环
+- 若所有未通过任务均达到上限，Verify 阶段结束并向用户报告
+
+**无法映射到任务的失败二进制**（`unmapped_binaries`）：
+- 直接标记为 `human_review`，由用户人工排查
+
+直到：所有测试通过（VERIFY_PASS）或无设备（VERIFY_SKIPPED）或所有失败任务达到重试上限
+
+**进度汇报**：Verify 完成后，汇报测试验证结果，详见 .opencode/skills/execute/references/progress-report-templates.md。
+
+所有测试通过后，进入 Phase 6 DOC（已在情况A中更新状态）。
 
 ---
 
 ### Phase 6: DOC（总结文档与测试报告）
 
-**前置条件**：通过 Feature-State-SubAgent 确认 `phases.build.status == "done"`（所有任务已通过编译验证，状态为 `done`）
+**前置条件**：通过 Feature-State-SubAgent 确认 `phases.verify.status in ["done", "skipped"]`（设备端测试验证已通过或因无设备跳过）
 
 **执行**：
 
