@@ -30,4 +30,5 @@
 - {kb_dir}/plan.md (任务计划)
 - {kb_dir}/review-log.md (检视日志)
 - {kb_dir}/build-log.md (编译日志)
+- {kb_dir}/verify-log.md (设备端测试验证日志)
 ```
