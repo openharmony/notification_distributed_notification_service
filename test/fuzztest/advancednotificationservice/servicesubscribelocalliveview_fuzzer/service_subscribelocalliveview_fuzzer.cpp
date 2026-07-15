@@ -44,7 +44,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     FuzzedDataProvider fdp(data, size);
     OHOS::Notification::DoSomethingInterestingWithMyAPI(&fdp);
-    constexpr int sleepMs = 1000;
-    std::this_thread::sleep_for(std::chrono::milliseconds(sleepMs));
+    ENSURE_ANS_SERVICE_CLEANED_AT_EXIT();
     return 0;
 }

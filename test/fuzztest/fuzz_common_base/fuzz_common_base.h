@@ -16,9 +16,11 @@
 #ifndef FUZZ_COMMON_BASE_H
 #define FUZZ_COMMON_BASE_H
 
+#include <cstdlib>
 #include <iostream>
 #include <string>
 #include <vector>
+#include <unistd.h>
 #include "securec.h"
 #include <fuzzer/FuzzedDataProvider.h>
 
@@ -31,5 +33,20 @@ void SystemHapTokenGet(const std::vector<std::string> &permissions);
 
 void MockRandomToken(FuzzedDataProvider *fdp, const std::vector<std::string> &permissions);
 }
+
+#define ENSURE_ANS_SERVICE_CLEANED_AT_EXIT() \
+    do { \
+        static bool _ans_cleanup_registered = [] { \
+            atexit([] { \
+                auto _exit_svc = OHOS::Notification::AdvancedNotificationService::GetInstance(); \
+                if (_exit_svc != nullptr) { _exit_svc->SelfClean(true); } \
+                _exit(0); \
+            }); \
+            return true; \
+        }(); \
+        (void)_ans_cleanup_registered; \
+        auto _drain_svc = OHOS::Notification::AdvancedNotificationService::GetInstance(); \
+        if (_drain_svc != nullptr) { _drain_svc->SelfClean(); } \
+    } while(0)
 
 #endif // FUZZ_COMMON_BASE_H
