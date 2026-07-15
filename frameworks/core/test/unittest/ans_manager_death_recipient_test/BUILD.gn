@@ -36,6 +36,7 @@ ohos_unittest("ans_manager_death_recipient_test") {
   ]
  
   external_deps = [
+    "ability_runtime:wantagent_innerkits",
     "ability_base:configuration",
     "ability_base:zuri",
     "bundle_framework:appexecfwk_base",
@@ -43,6 +44,7 @@ ohos_unittest("ans_manager_death_recipient_test") {
     "ffrt:libffrt",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "image_framework:image_native",
     "os_account:os_account_innerkits",
     "samgr:samgr_proxy",
     "googletest:gmock_main",
