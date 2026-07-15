@@ -34,10 +34,12 @@ ohos_unittest("ans_subscriber_listener_test") {
  
   external_deps = [
     "ability_base:configuration",
+    "ability_runtime:wantagent_innerkits",
     "ability_base:zuri",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "ipc:ipc_single",
+    "image_framework:image_native",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
   ]
