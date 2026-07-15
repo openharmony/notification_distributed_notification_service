@@ -80,6 +80,7 @@ public:
      * @brief Reset ffrt queue
      */
     void ResetFfrtQueue();
+    void WaitForFfrtQueue();
 
 private:
     struct LocalLiveViewSubscriberRecord;

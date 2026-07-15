@@ -77,7 +77,17 @@ NotificationSubscriberManager::~NotificationSubscriberManager()
 void NotificationSubscriberManager::ResetFfrtQueue()
 {
     if (notificationSubQueue_ != nullptr) {
+        auto handler = notificationSubQueue_->submit_h([] {});
+        notificationSubQueue_->wait(handler);
         notificationSubQueue_.reset();
+    }
+}
+
+void NotificationSubscriberManager::WaitForFfrtQueue()
+{
+    if (notificationSubQueue_ != nullptr) {
+        auto handler = notificationSubQueue_->submit_h([] {});
+        notificationSubQueue_->wait(handler);
     }
 }
 
