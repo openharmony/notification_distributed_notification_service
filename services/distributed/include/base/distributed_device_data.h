@@ -41,7 +41,7 @@ enum DeviceState {
 };
 
 struct DistributedDeviceInfo {
-    DistributedDeviceInfo() {}
+    DistributedDeviceInfo() : deviceType_(0) {}
     DistributedDeviceInfo(uint16_t deviceType, std::string deviceId)
         : deviceType_(deviceType), deviceId_(deviceId) {}
     DistributedDeviceInfo(uint16_t deviceType, std::string deviceId, std::string networkId)

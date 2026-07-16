@@ -178,6 +178,8 @@ DistributedBundleOption *DistributedBundleOption::FromJson(const nlohmann::json 
             auto *pBundleOption = NotificationJsonConverter::ConvertFromJson<NotificationBundleOption>(bundleOptionObj);
             if (pBundleOption == nullptr) {
                 ANS_LOGE("null pBundleOption");
+                delete pDistributedBundleOption;
+                pDistributedBundleOption = nullptr;
                 return nullptr;
             }
 

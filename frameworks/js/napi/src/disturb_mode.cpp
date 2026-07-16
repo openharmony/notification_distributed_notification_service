@@ -546,6 +546,9 @@ napi_value SupportDoNotDisturbMode(napi_env env, napi_callback_info info)
 
     napi_ref callback = nullptr;
     if (Common::ParseParaOnlyCallback(env, info, callback) == nullptr) {
+        if (callback) {
+            napi_delete_reference(env, callback);
+        }
         return Common::NapiGetUndefined(env);
     }
 
