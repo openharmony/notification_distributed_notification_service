@@ -134,7 +134,8 @@
         "window_manager",
         "graphic_2d",
         "api_metrics",
-        "ets_frontend"
+        "ets_frontend",
+        "taihe_ffi_gen"
       ],
       "third_party": [
         "libuv",
