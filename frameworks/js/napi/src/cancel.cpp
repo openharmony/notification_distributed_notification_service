@@ -440,6 +440,9 @@ napi_value CancelAsBundle(napi_env env, napi_callback_info info)
 
     ParametersInfoCancelAsBundle paras;
     if (ParseParameters(env, info, paras) == nullptr) {
+        if (paras.callback) {
+            napi_delete_reference(env, paras.callback);
+        }
         return Common::NapiGetUndefined(env);
     }
 

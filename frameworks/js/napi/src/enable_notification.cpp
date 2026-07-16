@@ -177,6 +177,9 @@ napi_value EnableNotification(napi_env env, napi_callback_info info)
 
     EnableParams params {};
     if (ParseParameters(env, info, params) == nullptr) {
+        if (params.callback) {
+            napi_delete_reference(env, params.callback);
+        }
         return Common::NapiGetUndefined(env);
     }
 

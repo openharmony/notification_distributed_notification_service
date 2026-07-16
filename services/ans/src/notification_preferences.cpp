@@ -1887,7 +1887,7 @@ void NotificationPreferences::GetAllNotificationSwitchInfo(const int32_t userId,
         return;
     }
 
-    ANS_LOGI("Get all notification switch info %{ public}zu", dbNotificationSwitchInfos.size());
+    ANS_LOGI("Get all notification switch info %{public}zu", dbNotificationSwitchInfos.size());
     std::set<std::string> notificationSwitchSet;
     for (const auto &iter : dbNotificationSwitchInfos) {
         auto begin = iter.first.find(KEY_UNDER_LINE);

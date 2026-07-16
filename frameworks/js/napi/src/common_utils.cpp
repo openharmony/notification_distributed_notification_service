@@ -311,6 +311,7 @@ void Common::SetPromise(const napi_env &env,
 napi_value Common::JSParaError(const napi_env &env, const napi_ref &callback)
 {
     if (callback) {
+        napi_delete_reference(env, callback);
         return Common::NapiGetNull(env);
     }
     napi_value promise = nullptr;

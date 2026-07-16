@@ -349,6 +349,9 @@ napi_value IsDistributedEnabled(napi_env env, napi_callback_info info)
 
     napi_ref callback = nullptr;
     if (Common::ParseParaOnlyCallback(env, info, callback) == nullptr) {
+        if (callback) {
+            napi_delete_reference(env, callback);
+        }
         return Common::NapiGetUndefined(env);
     }
 
@@ -398,6 +401,9 @@ napi_value EnableDistributed(napi_env env, napi_callback_info info)
 
     EnabledParams params {};
     if (ParseParameters(env, info, params) == nullptr) {
+        if (params.callback) {
+            napi_delete_reference(env, params.callback);
+        }
         return Common::NapiGetUndefined(env);
     }
 
@@ -460,6 +466,9 @@ napi_value EnableDistributedByBundle(napi_env env, napi_callback_info info)
 
     EnabledByBundleParams params {};
     if (ParseParameters(env, info, params) == nullptr) {
+        if (params.callback) {
+            napi_delete_reference(env, params.callback);
+        }
         return Common::NapiGetUndefined(env);
     }
 
@@ -522,6 +531,9 @@ napi_value EnableDistributedSelf(napi_env env, napi_callback_info info)
 
     EnabledParams params {};
     if (ParseParameters(env, info, params) == nullptr) {
+        if (params.callback) {
+            napi_delete_reference(env, params.callback);
+        }
         return Common::NapiGetUndefined(env);
     }
 

@@ -132,7 +132,7 @@ const char* NotificationPreferencesInfo::BundleInfo::GetSlotFlagsKeyFromType(
         case NotificationConstant::SlotType::EMERGENCY_INFORMATION:
             return NotificationConstant::SLOTTYPECCMNAMES[NotificationConstant::SlotType::EMERGENCY_INFORMATION];
         default:
-            return nullptr;
+            return "";
     }
 }
 
