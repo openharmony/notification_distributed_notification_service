@@ -1359,7 +1359,6 @@ ohos_unittest("notification_extension_service_test") {
   ]
 
   sources = [
-    "/${frameworks_path}/core/test/unittest/mock/mock_ans_manager_proxy.cpp",
     "/${services_path}/ans/test/unittest/mock/mock_bundle_mgr.cpp",
     "/${services_path}/ans/src/bundle_manager_helper.cpp",
     "/${services_path}/ans/src/common/file_utils.cpp",
