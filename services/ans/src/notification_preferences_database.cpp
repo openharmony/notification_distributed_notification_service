@@ -1765,7 +1765,9 @@ std::string NotificationPreferencesDatabase::FindLastString(
 std::string NotificationPreferencesDatabase::VectorToString(const std::vector<int64_t> &data) const
 {
     std::stringstream streamStr;
-    std::copy(data.begin(), data.end(), std::ostream_iterator<int>(streamStr, KEY_UNDER_LINE.c_str()));
+    for (size_t i = 0; i < data.size(); ++i) {
+        streamStr << data[i] << KEY_UNDER_LINE;
+    }
     return streamStr.str();
 }
 
@@ -1774,12 +1776,14 @@ void NotificationPreferencesDatabase::StringToVector(const std::string &str, std
     if (str.empty()) {
         return;
     }
-
-    if (str.find_first_of(KEY_UNDER_LINE) != std::string::npos) {
-        std::string str1 = str.substr(0, str.find_first_of(KEY_UNDER_LINE));
-        std::string afterStr = str.substr(str.find_first_of(KEY_UNDER_LINE) + 1);
-        data.push_back(StringToInt(str1));
-        StringToVector(afterStr, data);
+    const char delim = KEY_UNDER_LINE.empty() ? '_' : KEY_UNDER_LINE.back();
+    std::string token;
+    std::istringstream streamStr(str);
+    while (std::getline(streamStr, token, delim)) {
+        if (token.empty()) {
+            continue;
+        }
+        data.push_back(StringToInt64(token));
     }
 }
 
