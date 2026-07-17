@@ -1773,17 +1773,20 @@ std::string NotificationPreferencesDatabase::VectorToString(const std::vector<in
 
 void NotificationPreferencesDatabase::StringToVector(const std::string &str, std::vector<int64_t> &data) const
 {
-    if (str.empty()) {
+    if (str.empty() || KEY_UNDER_LINE.empty()) {
         return;
     }
-    const char delim = KEY_UNDER_LINE.empty() ? '_' : KEY_UNDER_LINE.back();
-    std::string token;
-    std::istringstream streamStr(str);
-    while (std::getline(streamStr, token, delim)) {
-        if (token.empty()) {
-            continue;
+    size_t start = 0;
+    size_t pos = str.find(KEY_UNDER_LINE, start);
+    while (pos != std::string::npos) {
+        if (pos > start) {
+            data.push_back(StringToInt64(str.substr(start, pos - start)));
         }
-        data.push_back(StringToInt64(token));
+        start = pos + KEY_UNDER_LINE.size();
+        pos = str.find(KEY_UNDER_LINE, start);
+    }
+    if (start < str.size()) {
+        data.push_back(StringToInt64(str.substr(start)));
     }
 }
 
