@@ -14,13 +14,12 @@
 import("//base/notification/distributed_notification_service/notification.gni")
 import("//build/ohos.gni")
 
-cflags = []
-
 config("native_module_config") {
   visibility = [ ":*" ]
 
   include_dirs = []
 
+  cflags = []
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
@@ -42,23 +41,18 @@ ohos_shared_library("reminderagent") {
   configs = [ ":native_module_config" ]
   defines = []
 
+  cflags = notification_size_opt_cflags
+  cflags_cc = [ "-fstack-protector-strong" ]
+  ldflags = notification_size_opt_ldflags
+
   sources = [
-    "../common.cpp",
-    "../common2.cpp",
-    "../common_convert_content.cpp",
-    "../common_convert_liveview.cpp",
-    "../common_convert_notification.cpp",
-    "../common_convert_request.cpp",
-    "../common_convert_trigger.cpp",
-    "../common_utils.cpp",
-    "../slot.cpp",
     "native_module.cpp",
     "publish.cpp",
     "reminder_common.cpp",
     "reminder_state_listener.cpp",
   ]
-  cflags_cc = [ "-fstack-protector-strong" ]
   deps = [
+    "${frameworks_path}/js/napi:notification_napi_common",
     "${frameworks_module_ans_path}:ans_innerkits",
     "${frameworks_module_reminder_path}:reminder_innerkits",
   ]
@@ -113,18 +107,19 @@ ohos_shared_library("reminderagentmanager") {
   configs = [ ":native_module_config" ]
   defines = []
 
+  cflags = notification_size_opt_cflags
+  cflags_cc = [ "-fstack-protector-strong" ]
+  ldflags = notification_size_opt_ldflags
+
   sources = [
-    "../common.cpp",
-    "../common_utils.cpp",
     "../manager/napi_slot.cpp",
-    "../slot.cpp",
     "native_module_manager.cpp",
     "publish.cpp",
     "reminder_common.cpp",
     "reminder_state_listener.cpp",
   ]
-  cflags_cc = [ "-fstack-protector-strong" ]
   deps = [
+    "${frameworks_path}/js/napi:notification_napi_common",
     "${frameworks_module_ans_path}:ans_innerkits",
     "${frameworks_module_reminder_path}:reminder_innerkits",
   ]

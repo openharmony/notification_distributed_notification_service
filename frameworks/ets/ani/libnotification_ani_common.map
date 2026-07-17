@@ -1,0 +1,33 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# version_script for libnotification_ani_common
+# Exports STS common symbols so 4 ANI .so targets can link against them.
+# Pattern: *NotificationSts* covers namespace OHOS::NotificationSts
+#          *NotificationManagerSts* / *NotificationSubScribeSts* cover per-target namespaces
+#          *SubscriberInstanceManager* / *StsDistributedOperationCallback* are key classes
+#          vtable/typeinfo/VTT symbols are needed for C++ cross-.so inheritance [PR#4766]
+
+1.0 {
+  global:
+    *NotificationSts*;
+    *NotificationManagerSts*;
+    *NotificationSubScribeSts*;
+    *SubscriberInstanceManager*;
+    *StsDistributedOperationCallback*;
+    *vtable*for*;
+    *typeinfo*for*;
+    *VTT*for*;
+  local:
+    *;
+};

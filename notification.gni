@@ -148,6 +148,32 @@ declare_args() {
     distributed_notification_service_feature_api_metrics = false
   }
 
+  # Clone feature flag（ANCO 迁移，第一期默认 true 不裁剪，
+  # 第二期 ROM-014 添加调用点 #ifdef 守卫后可改为 false 生效）
+  distributed_notification_service_feature_clone = true
+
   print("hisysevent_usage = " + "$hisysevent_usage")
   print("ans_hitrace_usage = " + "$ans_hitrace_usage")
 }
+
+# ROM size optimization 公共编译 flag
+# 参考 PR#4766: LTO 必须同时在 cflags 和 ldflags 才能生效
+notification_size_opt_cflags = [
+  "-fno-math-errno",
+  "-fno-unroll-loops",
+  "-fmerge-all-constants",
+  "-fno-ident",
+  "-Oz",
+  "-flto",
+  "-ffunction-sections",
+  "-fdata-sections",
+  "-fno-rtti",
+]
+
+# ROM size optimization 公共链接 flag
+notification_size_opt_ldflags = [
+  "-flto",
+  "-Wl,--gc-sections",
+  "-Wl,-Bsymbolic",
+]
+

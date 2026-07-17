@@ -12,3 +12,15 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+
+# -fno-exceptions 独立 config（第一期定义但不引用，第二期 parse 改造后引用）
+config("ans_no_exceptions_config") {
+  cflags = [ "-fno-exceptions" ]
+  defines = [ "JSON_NOEXCEPTION" ]
+}
+
+# -fvisibility=hidden 独立 config（公共库不加，其他 target 加）
+config("ans_visibility_hidden_config") {
+  cflags = [ "-fvisibility=hidden" ]
+  cflags_cc = [ "-fvisibility-inlines-hidden" ]
+}

@@ -13,8 +13,36 @@
 
 1.0 {
   global:
-    *;
+    # NotificationHelper 公共 API
+    *NotificationHelper*;
+    # IDL 生成的 proxy/stub
+    *AnsManagerProxy*;
+    *AnsManagerStub*;
+    *AnsDialogCallbackProxy*;
+    *AnsDialogCallbackStub*;
+    *AnsSubscriberProxy*;
+    *AnsSubscriberStub*;
+    *AnsOperationCallbackProxy*;
+    *AnsOperationCallbackStub*;
+    *AnsResultDataSynchronizerProxy*;
+    *AnsResultDataSynchronizerStub*;
+    *AnsSubscriberLocalLiveViewProxy*;
+    *AnsSubscriberLocalLiveViewStub*;
+    *BadgeQueryCallbackProxy*;
+    *BadgeQueryCallbackStub*;
+    # Parcelable 数据模型
+    *NotificationRequest*;
+    *NotificationContent*;
+    *NotificationSlot*;
+    *NotificationBundleOption*;
+    *NotificationDoNotDisturbDate*;
+    *NotificationSubscriber*;
+    *Notification*;
+    *Ans*;
+    # C 接口
+    OHOS_*;
+    # vtable（CFI 需要）
+    _ZTV*;
   local:
-    *mutex*;
-    *Mutex*;
+    *;
 };
