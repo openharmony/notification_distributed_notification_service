@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,22 +13,19 @@
  * limitations under the License.
  */
 
+#ifndef OHOS_NOTIFICATION_MOCK_ANS_NOTIFICATION_H
+#define OHOS_NOTIFICATION_MOCK_ANS_NOTIFICATION_H
+
+#include "gmock/gmock.h"
 #include "ans_notification.h"
-
-namespace {
-    OHOS::sptr<OHOS::Notification::IAnsManager> g_mockGetAnsManagerProxy = nullptr;
-}
-
-void MockGetAnsManagerProxy(OHOS::sptr<OHOS::Notification::IAnsManager> mockRet)
-{
-    g_mockGetAnsManagerProxy = mockRet;
-}
 
 namespace OHOS {
 namespace Notification {
-sptr<IAnsManager> AnsNotification::GetAnsManagerProxy()
-{
-    return g_mockGetAnsManagerProxy;
-}
+class MockAnsNotification : public AnsNotification {
+public:
+    MOCK_METHOD0(GetAnsManagerProxy, sptr<IAnsManager>());
+};
 }  // namespace Notification
 }  // namespace OHOS
+
+#endif  // OHOS_NOTIFICATION_MOCK_ANS_NOTIFICATION_H
