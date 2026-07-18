@@ -882,11 +882,113 @@ HWTEST_F(NotificationRequestTest, CheckLiveViewRequestParam_0010, Level1)
 }
 
 /**
- * @tc.name: FillMissingParameters_0001
- * @tc.desc: Check no need to fill parameter when not live view request
+ * @tc.name: CheckVersion_NullOldContent_001
+ * @tc.desc: Test CheckVersion when oldRequest has LIVE_VIEW type but GetContent() returns nullptr
+ *           (type field set, content pointer null - IPC inconsistent state).
  * @tc.type: FUNC
- * @tc.require: issue
  */
+HWTEST_F(NotificationRequestTest, CheckVersion_NullOldContent_001, Level1)
+{
+    int32_t myNotificationId = 10;
+    NotificationRequest notificationRequest(myNotificationId);
+    notificationRequest.SetSlotType(NotificationConstant::SlotType::LIVE_VIEW);
+    auto liveContent = std::make_shared<NotificationLiveViewContent>();
+    auto content = std::make_shared<NotificationContent>(liveContent);
+    notificationRequest.SetContent(content);
+
+    sptr<NotificationRequest> oldRequest(new (std::nothrow) NotificationRequest());
+    oldRequest->SetSlotType(NotificationConstant::SlotType::LIVE_VIEW);
+    auto oldLiveContent = std::make_shared<NotificationLiveViewContent>();
+    auto oldContent = std::make_shared<NotificationContent>(oldLiveContent);
+    oldRequest->SetContent(oldContent);
+    oldRequest->notificationContent_ = nullptr;
+
+    ErrCode result = notificationRequest.CheckVersion(oldRequest);
+    EXPECT_EQ(result, ERR_ANS_INNER_INVALID_PARAM);
+}
+
+/**
+ * @tc.name: CheckVersion_NullOldContent_002
+ * @tc.desc: Test CheckVersion when oldRequest GetContent() is non-null but
+ *           GetNotificationContent() returns nullptr (inner content_ null).
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationRequestTest, CheckVersion_NullOldContent_002, Level1)
+{
+    int32_t myNotificationId = 10;
+    NotificationRequest notificationRequest(myNotificationId);
+    notificationRequest.SetSlotType(NotificationConstant::SlotType::LIVE_VIEW);
+    auto liveContent = std::make_shared<NotificationLiveViewContent>();
+    auto content = std::make_shared<NotificationContent>(liveContent);
+    notificationRequest.SetContent(content);
+
+    sptr<NotificationRequest> oldRequest(new (std::nothrow) NotificationRequest());
+    oldRequest->SetSlotType(NotificationConstant::SlotType::LIVE_VIEW);
+    auto oldLiveContent = std::make_shared<NotificationLiveViewContent>();
+    auto oldContent = std::make_shared<NotificationContent>(oldLiveContent);
+    oldRequest->SetContent(oldContent);
+    oldRequest->GetContent()->content_ = nullptr;
+
+    ErrCode result = notificationRequest.CheckVersion(oldRequest);
+    EXPECT_EQ(result, ERR_ANS_INNER_INVALID_PARAM);
+}
+
+/**
+ * @tc.name: CheckNotificationRequest_NullOldContent_001
+ * @tc.desc: Test CheckNotificationRequest when oldRequest has LIVE_VIEW type but
+ *           GetContent() returns nullptr (IPC inconsistent state).
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationRequestTest, CheckNotificationRequest_NullOldContent_001, Level1)
+{
+    int32_t myNotificationId = 10;
+    NotificationRequest notificationRequest(myNotificationId);
+    notificationRequest.SetSlotType(NotificationConstant::SlotType::LIVE_VIEW);
+    auto liveContent = std::make_shared<NotificationLiveViewContent>();
+    liveContent->SetLiveViewStatus(NotificationLiveViewContent::LiveViewStatus::LIVE_VIEW_INCREMENTAL_UPDATE);
+    auto content = std::make_shared<NotificationContent>(liveContent);
+    notificationRequest.SetContent(content);
+
+    sptr<NotificationRequest> oldRequest(new (std::nothrow) NotificationRequest());
+    oldRequest->SetNotificationId(myNotificationId);
+    oldRequest->SetSlotType(NotificationConstant::SlotType::LIVE_VIEW);
+    auto oldLiveContent = std::make_shared<NotificationLiveViewContent>();
+    auto oldContent = std::make_shared<NotificationContent>(oldLiveContent);
+    oldRequest->SetContent(oldContent);
+    oldRequest->notificationContent_ = nullptr;
+
+    ErrCode result = notificationRequest.CheckNotificationRequest(oldRequest);
+    EXPECT_EQ(result, ERR_ANS_INNER_INVALID_PARAM);
+}
+
+/**
+ * @tc.name: CheckNotificationRequest_NullOldContent_002
+ * @tc.desc: Test CheckNotificationRequest when oldRequest GetContent() is non-null but
+ *           GetNotificationContent() returns nullptr (inner content_ null).
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationRequestTest, CheckNotificationRequest_NullOldContent_002, Level1)
+{
+    int32_t myNotificationId = 10;
+    NotificationRequest notificationRequest(myNotificationId);
+    notificationRequest.SetSlotType(NotificationConstant::SlotType::LIVE_VIEW);
+    auto liveContent = std::make_shared<NotificationLiveViewContent>();
+    liveContent->SetLiveViewStatus(NotificationLiveViewContent::LiveViewStatus::LIVE_VIEW_INCREMENTAL_UPDATE);
+    auto content = std::make_shared<NotificationContent>(liveContent);
+    notificationRequest.SetContent(content);
+
+    sptr<NotificationRequest> oldRequest(new (std::nothrow) NotificationRequest());
+    oldRequest->SetNotificationId(myNotificationId);
+    oldRequest->SetSlotType(NotificationConstant::SlotType::LIVE_VIEW);
+    auto oldLiveContent = std::make_shared<NotificationLiveViewContent>();
+    auto oldContent = std::make_shared<NotificationContent>(oldLiveContent);
+    oldRequest->SetContent(oldContent);
+    oldRequest->GetContent()->content_ = nullptr;
+
+    ErrCode result = notificationRequest.CheckNotificationRequest(oldRequest);
+    EXPECT_EQ(result, ERR_ANS_INNER_INVALID_PARAM);
+}
+
 HWTEST_F(NotificationRequestTest, FillMissingParameters_0001, Level1)
 {
     int32_t myNotificationId = 10;
