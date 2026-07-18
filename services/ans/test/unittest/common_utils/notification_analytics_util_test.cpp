@@ -901,6 +901,96 @@ HWTEST_F(NotificationAnalyticsUtilTest, ReportPublishSuccessEvent_001, Function 
 }
 
 /**
+ * @tc.name: ReportLiveViewNumber_001
+ * @tc.desc: Test ReportLiveViewNumber via ReportPublishFailedEvent when contentType is LIVE_VIEW but
+ *           GetContent() returns nullptr (type field set, content pointer null - IPC inconsistent state).
+ *           Verifies the failure-reporting path does not crash.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationAnalyticsUtilTest, ReportLiveViewNumber_001, Function | SmallTest | Level1)
+{
+    HaMetaMessage message;
+    message.sceneId_ = 1;
+    message.branchId_ = 1;
+    sptr<NotificationRequest> request = new (std::nothrow) NotificationRequest();
+    ASSERT_NE(request, nullptr);
+    auto liveViewContent = std::make_shared<NotificationLiveViewContent>();
+    auto content = std::make_shared<NotificationContent>(liveViewContent);
+    request->SetContent(content);
+    ASSERT_EQ(request->GetNotificationType(), NotificationContent::Type::LIVE_VIEW);
+    request->notificationContent_ = nullptr;
+    ASSERT_EQ(request->GetNotificationType(), NotificationContent::Type::LIVE_VIEW);
+    ASSERT_EQ(request->GetContent(), nullptr);
+
+    EXPECT_NO_THROW(NotificationAnalyticsUtil::ReportPublishFailedEvent(request, message));
+}
+
+/**
+ * @tc.name: ReportLiveViewNumber_002
+ * @tc.desc: Test ReportLiveViewNumber via ReportPublishSuccessEvent when GetContent() is non-null but
+ *           GetNotificationContent() returns nullptr (inner content_ null while outer wrapper exists).
+ *           Verifies the success-reporting path does not crash on inner null.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationAnalyticsUtilTest, ReportLiveViewNumber_002, Function | SmallTest | Level1)
+{
+    HaMetaMessage message;
+    sptr<NotificationRequest> request = new (std::nothrow) NotificationRequest();
+    ASSERT_NE(request, nullptr);
+    auto liveViewContent = std::make_shared<NotificationLiveViewContent>();
+    auto content = std::make_shared<NotificationContent>(liveViewContent);
+    request->SetContent(content);
+    ASSERT_EQ(request->GetNotificationType(), NotificationContent::Type::LIVE_VIEW);
+    request->GetContent()->content_ = nullptr;
+    ASSERT_NE(request->GetContent(), nullptr);
+    ASSERT_EQ(request->GetContent()->GetNotificationContent(), nullptr);
+
+    EXPECT_NO_THROW(NotificationAnalyticsUtil::ReportPublishSuccessEvent(request, message));
+}
+
+/**
+ * @tc.name: ReportLiveViewNumber_003
+ * @tc.desc: Test ReportLiveViewNumber via ReportPublishFailedEvent when GetContent() is non-null but
+ *           GetNotificationContent() returns nullptr. Verifies failure path does not crash on inner null.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationAnalyticsUtilTest, ReportLiveViewNumber_003, Function | SmallTest | Level1)
+{
+    HaMetaMessage message;
+    message.sceneId_ = 1;
+    message.branchId_ = 1;
+    sptr<NotificationRequest> request = new (std::nothrow) NotificationRequest();
+    ASSERT_NE(request, nullptr);
+    auto liveViewContent = std::make_shared<NotificationLiveViewContent>();
+    auto content = std::make_shared<NotificationContent>(liveViewContent);
+    request->SetContent(content);
+    ASSERT_EQ(request->GetNotificationType(), NotificationContent::Type::LIVE_VIEW);
+    request->GetContent()->content_ = nullptr;
+    ASSERT_EQ(request->GetContent()->GetNotificationContent(), nullptr);
+
+    EXPECT_NO_THROW(NotificationAnalyticsUtil::ReportPublishFailedEvent(request, message));
+}
+
+/**
+ * @tc.name: ReportLiveViewNumber_004
+ * @tc.desc: Test ReportLiveViewNumber via ReportPublishSuccessEvent with LIVE_VIEW type and null content,
+ *           verifies the success-reporting path does not crash on inconsistent request state.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationAnalyticsUtilTest, ReportLiveViewNumber_004, Function | SmallTest | Level1)
+{
+    HaMetaMessage message;
+    sptr<NotificationRequest> request = new (std::nothrow) NotificationRequest();
+    ASSERT_NE(request, nullptr);
+    auto liveViewContent = std::make_shared<NotificationLiveViewContent>();
+    auto content = std::make_shared<NotificationContent>(liveViewContent);
+    request->SetContent(content);
+    request->notificationContent_ = nullptr;
+
+    EXPECT_NO_THROW(NotificationAnalyticsUtil::ReportPublishSuccessEvent(request, message));
+}
+
+/**
  * @tc.name: ReportBadgeChange_001
  * @tc.desc: Test ReportBadgeChange with nullptr badgeData
  * @tc.type: FUNC
@@ -972,6 +1062,59 @@ HWTEST_F(NotificationAnalyticsUtilTest, BuildExtraInfoWithReq_001, Function | Sm
 
     auto ret = NotificationAnalyticsUtil::BuildExtraInfoWithReq(message, request);
 
+    ASSERT_TRUE(ret.find("scene") != std::string::npos);
+}
+
+/**
+ * @tc.name: BuildExtraInfoWithReq_002
+ * @tc.desc: Test BuildExtraInfoWithReq when contentType is LIVE_VIEW but GetContent() returns nullptr,
+ *           verifies no null deref when type field and content pointer are inconsistent.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationAnalyticsUtilTest, BuildExtraInfoWithReq_002, Function | SmallTest | Level1)
+{
+    HaMetaMessage message;
+    message.sceneId_ = 1;
+    message.branchId_ = 1;
+    message.errorCode_ = ERR_OK;
+    sptr<NotificationRequest> request = new (std::nothrow) NotificationRequest();
+    ASSERT_NE(request, nullptr);
+    auto liveViewContent = std::make_shared<NotificationLiveViewContent>();
+    auto content = std::make_shared<NotificationContent>(liveViewContent);
+    request->SetContent(content);
+    ASSERT_EQ(request->GetNotificationType(), NotificationContent::Type::LIVE_VIEW);
+    request->notificationContent_ = nullptr;
+    ASSERT_EQ(request->GetContent(), nullptr);
+
+    std::string ret;
+    EXPECT_NO_THROW(ret = NotificationAnalyticsUtil::BuildExtraInfoWithReq(message, request));
+    ASSERT_TRUE(ret.find("scene") != std::string::npos);
+}
+
+/**
+ * @tc.name: BuildExtraInfoWithReq_003
+ * @tc.desc: Test BuildExtraInfoWithReq when GetContent() is non-null but GetNotificationContent() returns nullptr,
+ *           verifies no null deref on inner content_ being null.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationAnalyticsUtilTest, BuildExtraInfoWithReq_003, Function | SmallTest | Level1)
+{
+    HaMetaMessage message;
+    message.sceneId_ = 1;
+    message.branchId_ = 1;
+    message.errorCode_ = ERR_OK;
+    sptr<NotificationRequest> request = new (std::nothrow) NotificationRequest();
+    ASSERT_NE(request, nullptr);
+    auto liveViewContent = std::make_shared<NotificationLiveViewContent>();
+    auto content = std::make_shared<NotificationContent>(liveViewContent);
+    request->SetContent(content);
+    ASSERT_EQ(request->GetNotificationType(), NotificationContent::Type::LIVE_VIEW);
+    request->GetContent()->content_ = nullptr;
+    ASSERT_NE(request->GetContent(), nullptr);
+    ASSERT_EQ(request->GetContent()->GetNotificationContent(), nullptr);
+
+    std::string ret;
+    EXPECT_NO_THROW(ret = NotificationAnalyticsUtil::BuildExtraInfoWithReq(message, request));
     ASSERT_TRUE(ret.find("scene") != std::string::npos);
 }
 
