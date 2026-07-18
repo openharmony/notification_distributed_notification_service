@@ -167,16 +167,65 @@ Use grep/regex patterns for quick scanning:
    - [ ] P0-32: 是否禁止硬编码密钥/密码
    - [ ] P0-33: 是否禁止日志打印敏感信息
 
+### JSON 接口使用安全 Checklist (P0 - Block Submission)
+
+**来源：notification_distributed_notification_service 仓 nlohmann::json cppcrash 排查总结**
+
+详细检视清单请参考：[references/json-usage-checklist.md](references/json-usage-checklist.md)
+
+> nlohmann::json 多个接口（`parse`/`at`/`get<T>`/`operator[]`）在类型或存在性不匹配时抛 C++ 异常，本仓默认不捕获，抛出即 cppcrash。凡涉及 `nlohmann::json` 用法的变更，必须按此清单逐项核对。
+
+#### 必须检查的 JSON 安全问题（10项）
+
+| 类别 | 检视点数量 | 关键检查项 |
+|------|-----------|-----------|
+| **解析 parse** | 2项 | 禁止裸 `parse(str)`、必须用 `nullptr,false` 或前置 `accept()` |
+| **键访问 at/operator[]** | 2项 | `at()` 前置 `find/contains`、链式 `operator[][]` 逐层 `is_object()` |
+| **类型转换 get** | 3项 | 标量 get 前 `is_xxx()`、容器 `get<vector/set>` 必须**遍历逐元素校验**、遍历中 get 前校验 |
+| **容器边界** | 2项 | `front/back` 前 `!empty()`、整数下标前 `size()` 校验 |
+| **序列化 dump** | 1项 | `dump` 传 `error_handler_t::replace` |
+
+#### 详细检视清单（出现 nlohmann::json 用法即过一遍）
+
+1. **解析 (P0-34)**
+   - [ ] P0-34: 所有 `parse()` 是否用 `nullptr, false` 或前置 `accept()`，无裸 `parse(str)`
+
+2. **键访问 (P0-35 ~ P0-36)**
+   - [ ] P0-35: 所有 `at(key)` 前是否有 `find(key)` / `contains(key)`（public 方法自带防御）
+   - [ ] P0-36: 链式 `operator[][]` 是否逐层 `is_object()` 校验
+
+3. **类型转换 (P0-37 ~ P0-39)**
+   - [ ] P0-37: 标量 `get<T>()` 前是否有对应 `is_xxx()`；取 int32/uint32 是否用 `is_number_integer()`（**禁止 `is_number()`**：含 float，大浮点/NaN/Inf 取 int 抛 `out_of_range` 崩溃）+ `get<int64_t>()` + 值域校验后窄化（`is_number_integer()` 后不崩，但超域静默截断致值错误，见 references/json-usage-checklist.md 3.1.1）
+   - [ ] P0-38: `get<vector<T>>()` / `get<set<T>>()` 是否遍历逐元素校验（**禁止仅 `is_array()` 后直接 get**）
+   - [ ] P0-39: 遍历中 `iter.value().get<T>()` / `item.get<T>()` 前是否 `is_xxx()` 校验
+
+4. **容器边界 (P1-01 ~ P1-02)**
+   - [ ] P1-01: `front()` / `back()` 前是否 `!empty()`
+   - [ ] P1-02: 整数下标 `arr[i]` 前是否 `i < size()` 校验
+
+5. **序列化 (P2-01)**
+   - [ ] P2-01: `dump()` 是否传 `error_handler_t::replace`
+
 #### 检视时必须使用以下方式
 
 ```bash
 # 自动检测命令
-grep -n "\bNULL\b" *.cpp *.h              # P0-10: NULL使用
-grep -n "\(\w+\*\)" *.cpp *.h             # P0-15: C风格转换
-grep -n "memcpy\b" *.cpp *.h              # P0-07: memcpy使用
-grep -n "strcpy\b" *.cpp *.h              # P0-08: strcpy使用
-grep -n "sprintf\b" *.cpp *.h             # P0-09: sprintf使用
-grep -n "password\|secret\|key" *.cpp *.h # P0-32: 硬编码敏感信息
+# 注意：必须用 `grep -rn "pattern" --include="*.cpp" --include="*.h" .` 形式递归搜索。
+# 禁止用 `grep -rn "pattern" *.cpp *.h`：shell 会把 *.cpp/*.h 展开为当前目录文件列表，
+# -r 只对目录参数生效，导致只搜当前目录、无法进入 frameworks/services/tools 等子目录。
+grep -rn "\bNULL\b" --include="*.cpp" --include="*.h" .              # P0-10: NULL使用
+grep -rn "\(\w+\*\)" --include="*.cpp" --include="*.h" .            # P0-15: C风格转换
+grep -rn "memcpy\b" --include="*.cpp" --include="*.h" .             # P0-07: memcpy使用
+grep -rn "strcpy\b" --include="*.cpp" --include="*.h" .             # P0-08: strcpy使用
+grep -rn "sprintf\b" --include="*.cpp" --include="*.h" .            # P0-09: sprintf使用
+grep -rn "password\|secret\|key" --include="*.cpp" --include="*.h" . # P0-32: 硬编码敏感信息
+
+# JSON 接口安全检测（nlohmann::json，见 references/json-usage-checklist.md）
+grep -rn "json::parse(" --include="*.cpp" --include="*.h" .           # P0-34: 裸 parse（需确认 nullptr,false 或前置 accept）
+grep -rn "get<std::vector\|get<std::set" --include="*.cpp" --include="*.h" .  # P0-38: 容器 get（需回溯是否遍历逐元素校验）
+grep -rn "\.value()\.get<\|\.value()\.get" --include="*.cpp" --include="*.h" . # P0-39: 遍历中 get（需确认前置 is_xxx）
+grep -rn "is_number()" --include="*.cpp" --include="*.h" .           # P0-37: is_number()（含 float，若其后 get<int32_t/uint32_t> 会因大浮点/NaN/Inf 抛 out_of_range 崩溃，需改 is_number_integer + 值域校验；get<double> 可保留）
+grep -rn "\.front()\|\.back()" --include="*.cpp" --include="*.h" .   # P1-01: 容器首尾访问（需确认 !empty()）
 
 # 人工审查项（无法自动检测）
 # P0-01~06, P0-11~21, P0-22~31, P0-33: 需要人工逐行审查代码逻辑
