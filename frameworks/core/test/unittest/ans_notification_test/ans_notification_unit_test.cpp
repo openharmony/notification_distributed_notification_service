@@ -29,9 +29,13 @@
 #include "ans_notification.h"
 #include "ans_subscriber_proxy.h"
 #include "ans_manager_proxy.h"
+#include "iservice_registry.h"
 #include "notification_subscriber.h"
 #undef private
 #undef protected
+#define private public
+#include "mock_service_registry.h"
+#undef private
 #include "ans_inner_errors.h"
 #include "ans_service_errors.h"
 #include "ipc_types.h"
@@ -39,7 +43,6 @@
 #include "notification.h"
 #include "singleton.h"
 #include "mock_ans_manager_proxy.h"
-#include "mock_ans_notification.h"
 #include "mock_pixel_map.cpp"
 
 using namespace testing;
@@ -67,12 +70,13 @@ public:
 
     void TearDown();
     std::shared_ptr<AnsNotification> ans_;
-    sptr<IAnsManager> ansManagerProxy_{nullptr};
+    sptr<MockAnsManagerProxy> mockProxy_;
+    sptr<MockSystemAbilityManager> mockSAMgr_;
     void SetMockProxy()
     {
-        ansManagerProxy_ = new (std::nothrow) MockAnsManagerProxy();
-        ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy())
-            .WillByDefault(Return(ansManagerProxy_));
+        mockProxy_ = sptr<MockAnsManagerProxy>(new MockAnsManagerProxy());
+        ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_))
+            .WillByDefault(Return(mockProxy_));
     }
 #ifdef NOTIFICATION_SMART_REMINDER_SUPPORTED
     void UpdateStatuts(bool isEnable, int status) {}
@@ -89,10 +93,13 @@ void AnsNotificationUnitTest::TearDownTestCase() {}
 void AnsNotificationUnitTest::SetUp()
 {
     if (!ans_) {
-        ans_ = std::make_shared<MockAnsNotification>();
+        ans_ = DelayedSingleton<AnsNotification>::GetInstance();
     }
-    ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy())
+    mockProxy_ = sptr<MockAnsManagerProxy>(new MockAnsManagerProxy());
+    mockSAMgr_ = sptr<MockSystemAbilityManager>(new MockSystemAbilityManager());
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_))
         .WillByDefault(Return(nullptr));
+    SystemAbilityManagerClient::GetInstance().systemAbilityManager_ = mockSAMgr_;
 }
 
 void AnsNotificationUnitTest::TearDown() {}
@@ -2109,7 +2116,7 @@ HWTEST_F(AnsNotificationUnitTest, GetUserGrantedEnabledBundlesForSelf_0100, Func
 HWTEST_F(AnsNotificationUnitTest, GetNotificationSettings_0200, Function | MediumTest | Level1)
 {
     sptr<MockAnsManagerProxy> proxy = new (std::nothrow) MockAnsManagerProxy();
-    ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy()).WillByDefault(Return(proxy));
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_)).WillByDefault(Return(mockProxy_));
     uint32_t slotFlags = 0;
     InnerErrorCode result = ans_->GetNotificationSettings(slotFlags);
     EXPECT_EQ(result, ERR_OK);
@@ -3251,7 +3258,7 @@ HWTEST_F(AnsNotificationUnitTest, SetAdditionConfig_0200, Function | MediumTest 
 {
     sptr<MockAnsManagerProxy> proxy = new (std::nothrow) MockAnsManagerProxy();
     ASSERT_NE(proxy, nullptr);
-    ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy()).WillByDefault(Return(proxy));
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_)).WillByDefault(Return(mockProxy_));
     std::string key = "key";
     std::string value = "value";
     ErrCode ret1 = ans_->SetAdditionConfig(key, value);
@@ -3265,11 +3272,11 @@ HWTEST_F(AnsNotificationUnitTest, SetAdditionConfig_0200, Function | MediumTest 
  */
 HWTEST_F(AnsNotificationUnitTest, SetDeviceDistributedBundleList_0100, Function | MediumTest | Level1)
 {
-    ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy()).WillByDefault(Return(nullptr));
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_)).WillByDefault(Return(nullptr));
     InnerErrorCode res = ans_->SetDeviceDistributedBundleList(DistributedBundleChangeType::INIT_DEVICE_CONNECT, {});
     EXPECT_EQ(res, ERR_ANS_INNER_SERVICE_NOT_CONNECTED);
     sptr<MockAnsManagerProxy> proxy = new (std::nothrow) MockAnsManagerProxy();
-    ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy()).WillByDefault(Return(proxy));
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_)).WillByDefault(Return(mockProxy_));
     res = ans_->SetDeviceDistributedBundleList(DistributedBundleChangeType::INIT_DEVICE_CONNECT, {});
     EXPECT_EQ(res, ERR_OK);
 }
@@ -3281,11 +3288,11 @@ HWTEST_F(AnsNotificationUnitTest, SetDeviceDistributedBundleList_0100, Function 
  */
 HWTEST_F(AnsNotificationUnitTest, SetTargetDeviceAbility_0100, Function | MediumTest | Level1)
 {
-    ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy()).WillByDefault(Return(nullptr));
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_)).WillByDefault(Return(nullptr));
     InnerErrorCode res = ans_->SetTargetDeviceAbility("tablet", 0);
     EXPECT_EQ(res, ERR_ANS_INNER_SERVICE_NOT_CONNECTED);
     sptr<MockAnsManagerProxy> proxy = new (std::nothrow) MockAnsManagerProxy();
-    ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy()).WillByDefault(Return(proxy));
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_)).WillByDefault(Return(mockProxy_));
     res = ans_->SetTargetDeviceAbility("tablet", 0);
     EXPECT_EQ(res, ERR_OK);
 }
@@ -3298,11 +3305,11 @@ HWTEST_F(AnsNotificationUnitTest, SetTargetDeviceAbility_0100, Function | Medium
 HWTEST_F(AnsNotificationUnitTest, GetLocalDistributedBundleList_0100, Function | MediumTest | Level1)
 {
     std::vector<NotificationDistributedBundle> bundles;
-    ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy()).WillByDefault(Return(nullptr));
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_)).WillByDefault(Return(nullptr));
     InnerErrorCode res = ans_->GetLocalDistributedBundleList("tablet", bundles);
     EXPECT_EQ(res, ERR_ANS_INNER_SERVICE_NOT_CONNECTED);
     sptr<MockAnsManagerProxy> proxy = new (std::nothrow) MockAnsManagerProxy();
-    ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy()).WillByDefault(Return(proxy));
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_)).WillByDefault(Return(mockProxy_));
     res = ans_->GetLocalDistributedBundleList("tablet", bundles);
     EXPECT_EQ(res, ERR_OK);
 }
@@ -3314,12 +3321,12 @@ HWTEST_F(AnsNotificationUnitTest, GetLocalDistributedBundleList_0100, Function |
  */
 HWTEST_F(AnsNotificationUnitTest, GetDistributedBundleListByType_0100, TestSize.Level1)
 {
-    ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy()).WillByDefault(Return(nullptr));
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_)).WillByDefault(Return(nullptr));
     std::vector<DistributedBundleOption> bundleList;
     InnerErrorCode res = ans_->GetDistributedBundleListByType(true, bundleList);
     EXPECT_EQ(res, ERR_ANS_INNER_SERVICE_NOT_CONNECTED);
     sptr<MockAnsManagerProxy> proxy = new (std::nothrow) MockAnsManagerProxy();
-    ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy()).WillByDefault(Return(proxy));
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_)).WillByDefault(Return(mockProxy_));
 
     res = ans_->GetDistributedBundleListByType(true, bundleList);
     EXPECT_EQ(res, ERR_OK);
@@ -3339,12 +3346,12 @@ HWTEST_F(AnsNotificationUnitTest, GetDistributedBundleInfo_0100, TestSize.Level1
 
     NotificationBundleOption bundle = NotificationBundleOption("com.test.demo", 20020001);
     bundleOption.emplace_back(bundle);
-    ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy()).WillByDefault(Return(nullptr));
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_)).WillByDefault(Return(nullptr));
     std::vector<DistributedBundleOption> bundleList;
     res = ans_->GetDistributedBundleInfo(bundleOption, bundleInfoList);
     EXPECT_EQ(res, ERR_ANS_INNER_SERVICE_NOT_CONNECTED);
     sptr<MockAnsManagerProxy> proxy = new (std::nothrow) MockAnsManagerProxy();
-    ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy()).WillByDefault(Return(proxy));
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_)).WillByDefault(Return(mockProxy_));
 
     res = ans_->GetDistributedBundleInfo(bundleOption, bundleInfoList);
     EXPECT_EQ(res, ERR_OK);
@@ -3363,7 +3370,7 @@ HWTEST_F(AnsNotificationUnitTest, SubscribeNotificationv26_0300, Function | Medi
     ASSERT_NE(nullptr, iremoteObject_);
     std::shared_ptr<AnsManagerProxy> proxy = std::make_shared<AnsManagerProxy>(iremoteObject_);
     ASSERT_NE(nullptr, proxy);
-    ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy()).WillByDefault(Return(nullptr));
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_)).WillByDefault(Return(nullptr));
     bool res = ans_->GetAnsManagerProxy();
     EXPECT_EQ(res, false);
 
@@ -3386,7 +3393,7 @@ HWTEST_F(AnsNotificationUnitTest, SubscribeNotificationv26_0400, Function | Medi
     ASSERT_NE(nullptr, iremoteObject);
     std::shared_ptr<AnsManagerProxy> proxy = std::make_shared<AnsManagerProxy>(iremoteObject);
     ASSERT_NE(nullptr, proxy);
-    ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy()).WillByDefault(Return(nullptr));
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_)).WillByDefault(Return(nullptr));
     bool res = ans_->GetAnsManagerProxy();
     EXPECT_EQ(res, false);
 
@@ -3403,7 +3410,7 @@ HWTEST_F(AnsNotificationUnitTest, SubscribeNotificationv26_0400, Function | Medi
 HWTEST_F(AnsNotificationUnitTest, SubscribeNotificationv26_0800, Function | MediumTest | Level1)
 {
     sptr<MockAnsManagerProxy> proxy = new (std::nothrow) MockAnsManagerProxy();
-    ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy()).WillByDefault(Return(proxy));
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_)).WillByDefault(Return(mockProxy_));
     std::shared_ptr<TestAnsSubscriber> subscriberPtr = std::make_shared<TestAnsSubscriber>();
     sptr<NotificationSubscribeInfo> infoPtr = new (std::nothrow) NotificationSubscribeInfo();
     infoPtr->AddDeviceType("phone");
@@ -3422,7 +3429,7 @@ HWTEST_F(AnsNotificationUnitTest, SubscribeNotificationv26_0800, Function | Medi
 HWTEST_F(AnsNotificationUnitTest, SubscribeNotificationv26_0900, Function | MediumTest | Level1)
 {
     sptr<MockAnsManagerProxy> proxy = new (std::nothrow) MockAnsManagerProxy();
-    ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy()).WillByDefault(Return(proxy));
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_)).WillByDefault(Return(mockProxy_));
     std::shared_ptr<TestAnsSubscriber> subscriberPtr = std::make_shared<TestAnsSubscriber>();
     InnerErrorCode ret1 = ans_->SubscribeNotificationV26(subscriberPtr, nullptr);
     EXPECT_EQ(ret1, ERR_OK);
@@ -3439,7 +3446,7 @@ HWTEST_F(AnsNotificationUnitTest, SubscribeNotificationv26_0900, Function | Medi
 HWTEST_F(AnsNotificationUnitTest, SubscribeNotificationv26_1000, Function | MediumTest | Level1)
 {
     sptr<MockAnsManagerProxy> proxy = new (std::nothrow) MockAnsManagerProxy();
-    ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy()).WillByDefault(Return(proxy));
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_)).WillByDefault(Return(mockProxy_));
     std::shared_ptr<TestAnsSubscriber> subscriberPtr = std::make_shared<TestAnsSubscriber>();
     sptr<NotificationSubscribeInfo> infoPtr = new (std::nothrow) NotificationSubscribeInfo();
     sptr<PictureOption> pictureOption = new PictureOption({"pic1", "pic2", "pic3"});
@@ -3459,7 +3466,7 @@ HWTEST_F(AnsNotificationUnitTest, SubscribeNotificationv26_1000, Function | Medi
 HWTEST_F(AnsNotificationUnitTest, SnoozeNotification_0100, Function | MediumTest | Level1)
 {
     sptr<MockAnsManagerProxy> proxy = new (std::nothrow) MockAnsManagerProxy();
-    ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy()).WillByDefault(Return(proxy));
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_)).WillByDefault(Return(mockProxy_));
     std::string hashCode = "";
     int64_t delayTime = 10;
     InnerErrorCode ret1 = ans_->SnoozeNotification(hashCode, delayTime);
@@ -3475,7 +3482,7 @@ HWTEST_F(AnsNotificationUnitTest, SnoozeNotification_0100, Function | MediumTest
 HWTEST_F(AnsNotificationUnitTest, SnoozeNotification_0200, Function | MediumTest | Level1)
 {
     sptr<MockAnsManagerProxy> proxy = new (std::nothrow) MockAnsManagerProxy();
-    ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy()).WillByDefault(Return(proxy));
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_)).WillByDefault(Return(mockProxy_));
     std::string hashCode = "test123";
     int64_t delayTime = 0;
     InnerErrorCode ret1 = ans_->SnoozeNotification(hashCode, delayTime);
@@ -3500,7 +3507,7 @@ HWTEST_F(AnsNotificationUnitTest, SnoozeNotification_0300, Function | MediumTest
     ASSERT_NE(nullptr, iremoteObject_);
     std::shared_ptr<AnsManagerProxy> proxy = std::make_shared<AnsManagerProxy>(iremoteObject_);
     ASSERT_NE(nullptr, proxy);
-    ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy()).WillByDefault(Return(nullptr));
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_)).WillByDefault(Return(nullptr));
     bool res = ans_->GetAnsManagerProxy();
     EXPECT_EQ(res, false);
 
@@ -3523,7 +3530,7 @@ HWTEST_F(AnsNotificationUnitTest, TriggerUpdateAiExtNotification_0100, Function 
     ASSERT_NE(nullptr, iremoteObject_);
     std::shared_ptr<AnsManagerProxy> proxy = std::make_shared<AnsManagerProxy>(iremoteObject_);
     ASSERT_NE(nullptr, proxy);
-    ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy()).WillByDefault(Return(nullptr));
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_)).WillByDefault(Return(nullptr));
     bool res = ans_->GetAnsManagerProxy();
     EXPECT_EQ(res, false);
 
@@ -3542,7 +3549,7 @@ HWTEST_F(AnsNotificationUnitTest, TriggerUpdateAiExtNotification_0100, Function 
 HWTEST_F(AnsNotificationUnitTest, TriggerUpdateAiExtNotification_0200, Function | MediumTest | Level1)
 {
     sptr<MockAnsManagerProxy> proxy = new (std::nothrow) MockAnsManagerProxy();
-    ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy()).WillByDefault(Return(proxy));
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_)).WillByDefault(Return(mockProxy_));
     sptr<NotificationRequest> request = new (std::nothrow) NotificationRequest();
     sptr<NotificationClassification> classification = new (std::nothrow) NotificationClassification();
     InnerErrorCode ret = ans_->TriggerUpdateAiExtNotification(request, classification);
@@ -3562,7 +3569,7 @@ HWTEST_F(AnsNotificationUnitTest, SetNotificationSwitch_0100, Function | MediumT
     ASSERT_NE(nullptr, iremoteObject_);
     std::shared_ptr<AnsManagerProxy> proxy = std::make_shared<AnsManagerProxy>(iremoteObject_);
     ASSERT_NE(nullptr, proxy);
-    ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy()).WillByDefault(Return(nullptr));
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_)).WillByDefault(Return(nullptr));
     bool res = ans_->GetAnsManagerProxy();
     EXPECT_EQ(res, false);
 
@@ -3579,7 +3586,7 @@ HWTEST_F(AnsNotificationUnitTest, SetNotificationSwitch_0100, Function | MediumT
 HWTEST_F(AnsNotificationUnitTest, SetNotificationSwitch_0200, Function | MediumTest | Level1)
 {
     sptr<MockAnsManagerProxy> proxy = new (std::nothrow) MockAnsManagerProxy();
-    ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy()).WillByDefault(Return(proxy));
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_)).WillByDefault(Return(mockProxy_));
     InnerErrorCode ret = ans_->SetNotificationSwitch("switchName", true, 100);
     EXPECT_EQ(ret, ERR_OK);
 }
@@ -3597,7 +3604,7 @@ HWTEST_F(AnsNotificationUnitTest, GetNotificationSwitch_0100, Function | MediumT
     ASSERT_NE(nullptr, iremoteObject_);
     std::shared_ptr<AnsManagerProxy> proxy = std::make_shared<AnsManagerProxy>(iremoteObject_);
     ASSERT_NE(nullptr, proxy);
-    ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy()).WillByDefault(Return(nullptr));
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_)).WillByDefault(Return(nullptr));
     bool res = ans_->GetAnsManagerProxy();
     EXPECT_EQ(res, false);
 
@@ -3615,7 +3622,7 @@ HWTEST_F(AnsNotificationUnitTest, GetNotificationSwitch_0100, Function | MediumT
 HWTEST_F(AnsNotificationUnitTest, GetNotificationSwitch_0200, Function | MediumTest | Level1)
 {
     sptr<MockAnsManagerProxy> proxy = new (std::nothrow) MockAnsManagerProxy();
-    ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy()).WillByDefault(Return(proxy));
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_)).WillByDefault(Return(mockProxy_));
     NotificationConstant::SWITCH_STATE switchState;
     InnerErrorCode ret = ans_->GetNotificationSwitch("switchName", 100, switchState);
     EXPECT_EQ(ret, ERR_OK);
@@ -3648,7 +3655,7 @@ HWTEST_F(AnsNotificationUnitTest, GetNotificationSwitch_0400, Function | MediumT
     ASSERT_NE(nullptr, iremoteObject_);
     std::shared_ptr<AnsManagerProxy> proxy = std::make_shared<AnsManagerProxy>(iremoteObject_);
     ASSERT_NE(nullptr, proxy);
-    ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy()).WillByDefault(Return(nullptr));
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_)).WillByDefault(Return(nullptr));
     bool res = ans_->GetAnsManagerProxy();
     EXPECT_EQ(res, false);
 
@@ -3668,7 +3675,7 @@ HWTEST_F(AnsNotificationUnitTest, GetNotificationSwitch_0400, Function | MediumT
 HWTEST_F(AnsNotificationUnitTest, GetNotificationSwitch_0500, Function | MediumTest | Level1)
 {
     sptr<MockAnsManagerProxy> proxy = new (std::nothrow) MockAnsManagerProxy();
-    ON_CALL(*std::static_pointer_cast<MockAnsNotification>(ans_), GetAnsManagerProxy()).WillByDefault(Return(proxy));
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_)).WillByDefault(Return(mockProxy_));
     NotificationBundleOption bundleOption;
     bundleOption.SetBundleName("bundleName");
     NotificationConstant::SWITCH_STATE state;
