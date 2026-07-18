@@ -40,7 +40,6 @@ namespace OHOS {
 namespace Notification {
 class AnsNotification {
 public:
-    virtual ~AnsNotification() = default;
     /**
      * @brief Creates a notification slot.
      * @note You can call the NotificationRequest::SetSlotType(NotificationConstant::SlotType) method to bind the slot
@@ -1946,13 +1945,13 @@ public:
     InnerErrorCode GetEnabledForBundleSlots(const std::vector<NotificationBundleOption> &bundleOptions,
         const NotificationConstant::SlotType &slotType,
         std::map<sptr<NotificationBundleOption>, bool> &slotEnabled);
-protected:
+private:
     /**
      * @brief Gets Ans Manager proxy.
      *
      * @return Returns true if succeed; returns false otherwise.
      */
-    virtual sptr<IAnsManager> GetAnsManagerProxy();
+    sptr<IAnsManager> GetAnsManagerProxy();
 
     /**
      * @brief Checks if the MediaContent can be published.

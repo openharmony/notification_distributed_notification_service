@@ -18,22 +18,17 @@
 
 #include "gmock/gmock.h"
 
-#include <iremote_proxy.h>
+#include "iremote_stub.h"
 #include "ians_manager.h"
 #include "ibadge_query_callback.h"
 #include "notification_bundle_option.h"
 
 namespace OHOS {
 namespace Notification {
-class MockAnsManagerProxy : public IAnsManager {
+class MockAnsManagerProxy : public IRemoteStub<IAnsManager> {
 public:
     MockAnsManagerProxy() = default;
     virtual ~MockAnsManagerProxy() {};
-
-    sptr<IRemoteObject> AsObject() override
-    {
-        return nullptr;
-    }
 
     ErrCode GetBundleImportance(int32_t& importance)
     {
