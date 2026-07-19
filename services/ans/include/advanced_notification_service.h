@@ -2174,6 +2174,8 @@ private:
     std::shared_ptr<NotificationRecord> GetFromNotificationList(const std::string &key);
     std::shared_ptr<NotificationRecord> GetFromNotificationListByAtomicServiceKey(
         const sptr<NotificationRequest> &request);
+    std::shared_ptr<NotificationRecord> GetSharedNotificationRecordFromList(
+        const sptr<NotificationRequest> &request);
     std::shared_ptr<NotificationRecord> GetFromNotificationList(const int32_t ownerUid, const int32_t notificationId);
     std::shared_ptr<NotificationRecord> GetFromDelayedNotificationList(
         const int32_t ownerUid, const int32_t notificationId);
@@ -2536,6 +2538,7 @@ private:
     void SetChainIdToExtraInfo(const sptr<NotificationRequest> &request, OHOS::HiviewDFX::HiTraceId traceId);
     void SetIsFromSAToExtendInfo(const sptr<NotificationRequest> &request);
     void SetVersionCodeToExtendInfo(const sptr<NotificationRequest> &request);
+    void SetLiveViewShareSwitchToExtendInfo(const sptr<NotificationRequest> &request);
 
     ErrCode CheckNotificationRequest(const sptr<NotificationRequest> &request);
     ErrCode CheckNotificationRequestLineWantAgents(const std::shared_ptr<NotificationContent> &content,

@@ -252,6 +252,11 @@ bool SmartReminderCenter::IsCollaborationAllowed(const sptr<NotificationRequest>
         return false;
     }
 
+    if (request->IsSharedThirdpartyLiveView()) {
+        ANS_LOGD("share live view not allowed to collaborate");
+        return false;
+    }
+
     if (!request->IsSystemApp()) {
         ANS_LOGD("IsSystemApp <%{public}d> allowed to collaborate.", request->IsSystemApp());
         return true;
