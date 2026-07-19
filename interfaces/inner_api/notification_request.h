@@ -1297,6 +1297,8 @@ public:
 
     bool IsCommonLiveView() const;
 
+    bool IsSharedThirdpartyLiveView() const;
+
     bool IsSystemLiveView() const;
 
     bool IsTriggerLiveView() const;

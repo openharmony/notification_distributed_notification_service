@@ -140,6 +140,7 @@ AnsStatus AdvancedNotificationService::PrepareNotificationRequest(const sptr<Not
             EventSceneId::SCENE_14, EventBranchId::BRANCH_1);
     }
 
+    bool isShared = false;
     if (request->IsAgentNotification()) {
         bool isSubsystem = AccessTokenHelper::VerifyNativeToken(IPCSkeleton::GetCallingTokenID());
         if (!isSubsystem && !AccessTokenHelper::IsSystemApp()) {
@@ -151,32 +152,62 @@ AnsStatus AdvancedNotificationService::PrepareNotificationRequest(const sptr<Not
             return AnsStatus(ERR_ANS_INNER_PERMISSION_DENIED, "ERR_ANS_INNER_PERMISSION_DENIED");
         }
 
-        std::shared_ptr<BundleManagerHelper> bundleManager = BundleManagerHelper::GetInstance();
+        isShared = request->IsSharedThirdpartyLiveView();
+        ANS_LOGI("isShared = %{public}d", isShared);
         int32_t uid = -1;
-        if (request->GetOwnerUserId() != SUBSCRIBE_USER_INIT) {
-            if (bundleManager != nullptr) {
-                uid = bundleManager->GetDefaultUidByBundleName(request->GetOwnerBundleName(),
-                request->GetOwnerUserId());
+        bool isSharedRestored = false;
+        if (isShared) {
+            std::shared_ptr<NotificationRecord> oldRecord = nullptr;
+            auto submitResult = notificationSvrQueue_.SyncSubmit([&]() {
+                oldRecord = GetSharedNotificationRecordFromList(request);
+            });
+            ANS_COND_DO_ERR(submitResult != ERR_OK,
+                return AnsStatus(submitResult, "Shared thirdparty lookup serial queue invalid"),
+                "Shared thirdparty liveview lookup failed");
+            if (oldRecord != nullptr && oldRecord->request != nullptr) {
+                uid = oldRecord->request->GetOwnerUid();
+                request->SetOwnerUserId(oldRecord->request->GetOwnerUserId());
+                isSharedRestored = true;
+                ANS_LOGD("Shared thirdparty liveview update, restore ownerUid from existing record: %{public}d", uid);
             }
-            if (uid < 0) {
-                return AnsStatus::InvalidUid(EventSceneId::SCENE_14, EventBranchId::BRANCH_2);
-            }
-        } else {
-            int32_t userId = SUBSCRIBE_USER_INIT;
-            if (request->GetOwnerUid() < DEFAULT_UID) {
-                return AnsStatus(ERR_ANS_INNER_GET_ACTIVE_USER_FAILED, "ERR_ANS_INNER_GET_ACTIVE_USER_FAILED",
-                    EventSceneId::SCENE_14, EventBranchId::BRANCH_3);
-            }
-            if (request->GetOwnerUid() == DEFAULT_UID) {
+        }
+        if (!isSharedRestored) {
+            std::shared_ptr<BundleManagerHelper> bundleManager = BundleManagerHelper::GetInstance();
+            if (request->GetOwnerUserId() != SUBSCRIBE_USER_INIT) {
                 if (bundleManager != nullptr) {
-                    OsAccountManagerHelper::GetInstance().GetCurrentActiveUserId(userId);
-                    uid = bundleManager->GetDefaultUidByBundleName(request->GetOwnerBundleName(), userId);
+                    uid = bundleManager->GetDefaultUidByBundleName(request->GetOwnerBundleName(),
+                    request->GetOwnerUserId());
                 }
                 if (uid < 0) {
-                    return AnsStatus::InvalidUid(EventSceneId::SCENE_14, EventBranchId::BRANCH_2);
+                    if (isShared) {
+                        ANS_LOGD("Shared thirdparty liveview owner app not installed, keep ownerUid default");
+                        uid = DEFAULT_UID;
+                    } else {
+                        return AnsStatus::InvalidUid(EventSceneId::SCENE_14, EventBranchId::BRANCH_2);
+                    }
                 }
             } else {
-                uid = request->GetOwnerUid();
+                int32_t userId = SUBSCRIBE_USER_INIT;
+                if (request->GetOwnerUid() < DEFAULT_UID) {
+                    return AnsStatus(ERR_ANS_INNER_GET_ACTIVE_USER_FAILED, "ERR_ANS_INNER_GET_ACTIVE_USER_FAILED",
+                        EventSceneId::SCENE_14, EventBranchId::BRANCH_3);
+                }
+                if (request->GetOwnerUid() == DEFAULT_UID) {
+                    if (bundleManager != nullptr) {
+                        OsAccountManagerHelper::GetInstance().GetCurrentActiveUserId(userId);
+                        uid = bundleManager->GetDefaultUidByBundleName(request->GetOwnerBundleName(), userId);
+                    }
+                    if (uid < 0) {
+                        if (isShared) {
+                            ANS_LOGD("Shared thirdparty liveview owner app not installed, keep ownerUid default");
+                            uid = DEFAULT_UID;
+                        } else {
+                            return AnsStatus::InvalidUid(EventSceneId::SCENE_14, EventBranchId::BRANCH_2);
+                        }
+                    }
+                } else {
+                    uid = request->GetOwnerUid();
+                }
             }
         }
         request->SetOwnerUid(uid);
@@ -243,7 +274,7 @@ AnsStatus AdvancedNotificationService::PrepareNotificationRequest(const sptr<Not
     int32_t pid = IPCSkeleton::GetCallingPid();
     request->SetCreatorUid(uid);
     request->SetCreatorPid(pid);
-    if (request->GetOwnerUid() == DEFAULT_UID) {
+    if (request->GetOwnerUid() == DEFAULT_UID && !isShared) {
         request->SetOwnerUid(uid);
     }
 
@@ -259,7 +290,11 @@ AnsStatus AdvancedNotificationService::PrepareNotificationRequest(const sptr<Not
     if (request->GetOwnerUserId() == SUBSCRIBE_USER_INIT) {
         int32_t ownerUserId = SUBSCRIBE_USER_INIT;
         OsAccountManagerHelper::GetInstance().GetOsAccountLocalIdFromUid(request->GetOwnerUid(), ownerUserId);
-        request->SetOwnerUserId(ownerUserId);
+        if(!isShared) {
+            request->SetOwnerUserId(ownerUserId);
+        } else {
+            request->SetOwnerUserId(request->GetCreatorUserId());
+        }
         std::shared_ptr<AAFwk::WantParams> additionalData = request->GetAdditionalData();
         if (AccessTokenHelper::CheckPermission(OHOS_PERMISSION_NOTIFICATION_CONTROLLER) &&
             AccessTokenHelper::CheckPermission(OHOS_PERMISSION_NOTIFICATION_AGENT_CONTROLLER) &&
@@ -1324,8 +1359,10 @@ ErrCode AdvancedNotificationService::UpdateSlotAuthInfo(const std::shared_ptr<No
             slot->SetAuthorizedStatus(NotificationSlot::AuthorizedStatus::AUTHORIZED);
         }
     }
-    if (record->request->IsSystemLiveView() || record->isAtomicService) {
-        ANS_LOGI("System live view or stomicService no need add slot");
+    if (record->request->IsSystemLiveView() || record->isAtomicService ||
+        (record->request->IsSharedThirdpartyLiveView() &&
+        record->request->GetOwnerUid() == DEFAULT_UID)) {
+        ANS_LOGI("System live view, stomicService or shared thirdparty uninstalled no need add slot");
         return ERR_OK;
     }
     std::vector<sptr<NotificationSlot>> slots;
@@ -1381,7 +1418,8 @@ AnsStatus AdvancedNotificationService::Filter(const std::shared_ptr<Notification
         }
     }
 
-    if (record->isAtomicService) {
+    if (record->isAtomicService ||
+        (record->request->IsSharedThirdpartyLiveView() && record->request->GetOwnerUid() == DEFAULT_UID)) {
         return AnsStatus();
     }
 
@@ -1673,6 +1711,9 @@ std::vector<std::string> AdvancedNotificationService::GetNotificationKeys(
     std::vector<std::string> keys;
 
     for (auto record : notificationList_) {
+        if (record->request->IsSharedThirdpartyLiveView()) {
+            continue;
+        }
         if ((bundleOption != nullptr) &&
             (record->bundleOption->GetUid() != bundleOption->GetUid()) &&
             (record->request->GetOwnerUid() != bundleOption->GetUid())) {
@@ -1684,6 +1725,9 @@ std::vector<std::string> AdvancedNotificationService::GetNotificationKeys(
     {
         std::lock_guard<ffrt::mutex> lock(triggerNotificationMutex_);
         for (const auto &record : triggerNotificationList_) {
+            if (record->request->IsSharedThirdpartyLiveView()) {
+                continue;
+            }
             if ((bundleOption != nullptr) &&
                 (record->bundleOption->GetUid() != bundleOption->GetUid()) &&
                 (record->request->GetOwnerUid() != bundleOption->GetUid())) {
@@ -1918,6 +1962,29 @@ std::shared_ptr<NotificationRecord> AdvancedNotificationService::GetFromNotifica
             item->request->GetLabel() == request->GetLabel()) {
             return item;
         }
+    }
+    return nullptr;
+}
+
+std::shared_ptr<NotificationRecord> AdvancedNotificationService::GetSharedNotificationRecordFromList(
+    const sptr<NotificationRequest> &request)
+{
+    if (request == nullptr) {
+        return nullptr;
+    }
+    for (auto item : notificationList_) {
+        if (item == nullptr || item->request == nullptr) {
+            continue;
+        }
+        if (!item->request->IsAgentNotification() || !item->request->IsSharedThirdpartyLiveView()) {
+            continue;
+        }
+        if (item->request->GetOwnerBundleName() != request->GetOwnerBundleName() ||
+            item->request->GetLabel() != request->GetLabel() ||
+            item->request->GetNotificationId() != request->GetNotificationId()) {
+            continue;
+        }
+        return item;
     }
     return nullptr;
 }
