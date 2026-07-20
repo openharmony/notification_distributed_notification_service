@@ -74,6 +74,7 @@ ohos_unittest("advanced_notification_aggregation_test") {
   }
 
   external_deps = [
+    "ability_runtime:wantagent_innerkits",
     "ability_base:configuration",
     "ability_base:zuri",
     "access_token:libaccesstoken_sdk",
@@ -86,6 +87,7 @@ ohos_unittest("advanced_notification_aggregation_test") {
     "ffrt:libffrt",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "image_framework:image_native",
     "kv_store:distributeddata_inner",
     "os_account:os_account_innerkits",
     "relational_store:native_rdb",
