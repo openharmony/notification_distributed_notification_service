@@ -20,6 +20,7 @@
 #include "ans_service_errors.h"
 #include "ans_image_util.h"
 #include "ans_log_wrapper.h"
+#include "bool_wrapper.h"
 #include "errors.h"
 #include "notification_action_button.h"
 #include "notification_live_view_content.h"
@@ -3083,6 +3084,22 @@ bool NotificationRequest::IsCommonLiveView() const
 {
     return (slotType_ == NotificationConstant::SlotType::LIVE_VIEW) &&
         (notificationContentType_ == NotificationContent::Type::LIVE_VIEW);
+}
+
+bool NotificationRequest::IsSharedThirdpartyLiveView() const
+{
+    if (!IsCommonLiveView()) {
+        return false;
+    }
+    if (extendInfo_ == nullptr || !extendInfo_->HasParam("isShared")) {
+        return false;
+    }
+    auto value = extendInfo_->GetParam("isShared");
+    auto ao = AAFwk::IBoolean::Query(value);
+    if (ao == nullptr) {
+        return false;
+    }
+    return AAFwk::Boolean::Unbox(ao);
 }
 
 bool NotificationRequest::IsSystemLiveView() const

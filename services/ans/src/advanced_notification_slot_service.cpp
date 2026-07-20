@@ -99,7 +99,8 @@ namespace {
         KIOSK_APP_TRUST_LIST_KEY,
         RESTRICTED_MODE_TRUST_LIST_KEY,
         COLLABORATION_BLOCKLIST,
-        VOICE_BROADCAST_CONFIG_RULE_KEY
+        VOICE_BROADCAST_CONFIG_RULE_KEY,
+        LIVE_VIEW_SHARE_FUNC_SWITCH_KEY,
     };
 
     std::vector<sptr<NotificationBundleOption>> ResolveBundleOptionUids(
@@ -599,8 +600,9 @@ AnsStatus AdvancedNotificationService::AssignValidNotificationSlot(const std::sh
         }
 
         GenerateSlotReminderMode(slot, bundleOption);
-        if (record->request->IsSystemLiveView() || record->isAtomicService) {
-            ANS_LOGD("System live view or atomicService no need add sloty.");
+        if (record->request->IsSystemLiveView() || record->isAtomicService ||
+            (record->request->IsSharedThirdpartyLiveView() && record->request->GetOwnerUid() == DEFAULT_UID)) {
+            ANS_LOGD("System live view or atomicService or uninstall share liveView no need add sloty.");
             result = ERR_OK;
         } else {
             std::vector<sptr<NotificationSlot>> slots;

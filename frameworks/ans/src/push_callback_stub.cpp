@@ -219,10 +219,6 @@ void PushCallBackProxy::HandleEventControl(
         return;
     }
     std::string event = pushCallBackParam->event;
-    if (event.empty()) {
-        ANS_LOGE("null event");
-        return;
-    }
     ANS_LOGI("eventControl:%{public}s,event:%{public}s", eventControl.c_str(), event.c_str());
     if (eventControl.empty() || !nlohmann::json::accept(eventControl)) {
         return;
@@ -232,11 +228,16 @@ void PushCallBackProxy::HandleEventControl(
         ANS_LOGE("jsonObject is not right");
         return;
     }
-    if (jsonObject.find(event)  == jsonObject.cend()) {
-        ANS_LOGE("This event has not eventControl");
-        return;
+    std::string key = event;
+    if (event.empty() || jsonObject.find(event) == jsonObject.cend()) {
+        ANS_LOGW("Event is empty or not found, fallback to ALL");
+        if (jsonObject.find("ALL") == jsonObject.cend()) {
+            ANS_LOGW("ALL has not eventControl");
+            return;
+        }
+        key = "ALL";
     }
-    pushCallBackParam->eventControl = jsonObject.at(event).dump(-1, ' ',
+    pushCallBackParam->eventControl = jsonObject.at(key).dump(-1, ' ',
         false, nlohmann::json::error_handler_t::replace);
 }
 } // namespace Notification

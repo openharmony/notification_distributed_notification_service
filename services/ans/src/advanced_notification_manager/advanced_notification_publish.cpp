@@ -28,6 +28,7 @@
 #include "ans_status.h"
 
 #include "notification_analytics_util.h"
+#include "notification_preferences.h"
 #include "os_account_manager.h"
 #include "os_account_manager_helper.h"
 #include "long_wrapper.h"
@@ -208,6 +209,8 @@ ErrCode AdvancedNotificationService::Publish(const std::string &label, const spt
         return checkResult;
     }
 
+    SetLiveViewShareSwitchToExtendInfo(request);
+
     SetChainIdToExtraInfo(request, traceId);
     if (request->GetDistributedCollaborate()) {
         return CollaboratePublish(request);
@@ -358,6 +361,28 @@ void AdvancedNotificationService::SetVersionCodeToExtendInfo(const sptr<Notifica
     }
     extendInfo->SetParam("versionCode", AAFwk::Long::Box(static_cast<long>(versionCode)));
     request->SetExtendInfo(extendInfo);
+}
+
+void AdvancedNotificationService::SetLiveViewShareSwitchToExtendInfo(const sptr<NotificationRequest> &request)
+{
+    if (!request) {
+        ANS_LOGE("request is null");
+        return;
+    }
+    std::string switchValue;
+    ErrCode result = NotificationPreferences::GetInstance()->GetKvFromDb(
+        LIVE_VIEW_SHARE_FUNC_SWITCH_KEY, switchValue, SUBSCRIBE_USER_INIT);
+    if (result != ERR_OK) {
+        ANS_LOGD("GetKvFromDb LIVE_VIEW_SHARE_FUNC_SWITCH_KEY failed, errCode=%{public}d", result);
+        return;
+    }
+    std::shared_ptr<AAFwk::WantParams> extendInfo = request->GetExtendInfo();
+    if (!extendInfo) {
+        extendInfo = std::make_shared<AAFwk::WantParams>();
+    }
+    extendInfo->SetParam(LIVE_VIEW_SHARE_FUNC_SWITCH_KEY, AAFwk::String::Box(switchValue));
+    request->SetExtendInfo(extendInfo);
+    ANS_LOGD("set LIVE_VIEW_SHARE_FUNC_SWITCH_KEY to extendInfo, value = %{public}s", switchValue.c_str());
 }
 
 void AdvancedNotificationService::SetChainIdToExtraInfo
@@ -662,6 +687,14 @@ ErrCode AdvancedNotificationService::CheckNotificationRequest(const sptr<Notific
 
     if (!isSystemApp  && !isSubsystem && request->GetExtendInfo() != nullptr) {
         request->SetExtendInfo(nullptr);
+    }
+
+    if (!isAgentController) {
+        std::shared_ptr<AAFwk::WantParams> sharedExtendInfo = request->GetExtendInfo();
+        if (sharedExtendInfo != nullptr && sharedExtendInfo->HasParam("isShared")) {
+            sharedExtendInfo->Remove("isShared");
+            ANS_LOGW("Caller lacks agent permission, isShared removed from extendInfo");
+        }
     }
 
     if (!isSystemApp && !isSubsystem && request->GetGroupInfo() != nullptr) {
