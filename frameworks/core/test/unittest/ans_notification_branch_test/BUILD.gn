@@ -58,6 +58,7 @@ ohos_unittest("ans_notification_branch_test") {
     "image_framework:image_native",
     "ipc:ipc_single",
     "relational_store:native_rdb",
+    "samgr:samgr_proxy",
   ]
   if (build_variant == "root") {
     defines = [ "ANM_SUPPORT_DUMP" ]

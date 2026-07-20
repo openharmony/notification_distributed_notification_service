@@ -21,6 +21,9 @@
 #include "ans_subscriber_proxy.h"
 #include "ans_manager_proxy.h"
 #include "ians_manager.h"
+#include "iremote_stub.h"
+#include "iservice_registry.h"
+#include "mock_service_registry.h"
 #undef private
 #undef protected
 #include "ians_dialog_callback.h"
@@ -32,7 +35,6 @@
 #include "singleton.h"
 #include "notification_subscriber.h"
 #include "ibadge_query_callback.h"
-#include "mock_ans_notification.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -41,15 +43,11 @@ using namespace OHOS::Notification;
 
 namespace OHOS {
 namespace Notification {
-class MockAnsManagerInterface : public IAnsManager {
+class MockAnsManagerInterface : public IRemoteStub<IAnsManager> {
 public:
     MockAnsManagerInterface() = default;
     virtual ~MockAnsManagerInterface()
     {};
-    sptr<IRemoteObject> AsObject() override
-    {
-        return nullptr;
-    }
 
     ErrCode Publish(const std::string &label, const sptr<NotificationRequest> &notification) override
     {
@@ -1215,6 +1213,9 @@ public:
     {
         return ERR_ANS_INNER_INVALID_PARAM;
     }
+
+private:
+    sptr<IRemoteObject> remoteObj_;
 };
 
 class AnsNotificationBranchTest : public testing::Test {
@@ -1228,6 +1229,7 @@ public:
     static void TearDownTestCase();
 
     void SetUp();
+    sptr<MockSystemAbilityManager> mockSAMgr_;
 };
 
 void AnsNotificationBranchTest::SetUpTestCase()
@@ -1236,7 +1238,13 @@ void AnsNotificationBranchTest::SetUpTestCase()
 
 void AnsNotificationBranchTest::TearDownTestCase() {}
 
-void AnsNotificationBranchTest::SetUp() {}
+void AnsNotificationBranchTest::SetUp()
+{
+    mockSAMgr_ = sptr<MockSystemAbilityManager>(new MockSystemAbilityManager());
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_))
+        .WillByDefault(Return(nullptr));
+    SystemAbilityManagerClient::GetInstance().systemAbilityManager_ = mockSAMgr_;
+}
 
 /*
  * @tc.name: RemoveNotifications_0100
@@ -1246,7 +1254,7 @@ void AnsNotificationBranchTest::SetUp() {}
  */
 HWTEST_F(AnsNotificationBranchTest, RemoveNotifications_0100, Function | MediumTest | Level1)
 {
-    auto ansNotification = std::make_shared<MockAnsNotification>();
+    auto ansNotification = std::make_shared<AnsNotification>();
     EXPECT_NE(ansNotification, nullptr);
     std::vector<std::string> hashcodes;
     int32_t removeReason = 1;
@@ -1263,7 +1271,7 @@ HWTEST_F(AnsNotificationBranchTest, RemoveNotifications_0100, Function | MediumT
  */
 HWTEST_F(AnsNotificationBranchTest, RemoveNotifications_0200, Function | MediumTest | Level1)
 {
-    auto ansNotification = std::make_shared<MockAnsNotification>();
+    auto ansNotification = std::make_shared<AnsNotification>();
     EXPECT_NE(ansNotification, nullptr);
     std::string hashcode = "aa";
     std::vector<std::string> hashcodes;
@@ -1271,24 +1279,6 @@ HWTEST_F(AnsNotificationBranchTest, RemoveNotifications_0200, Function | MediumT
     int32_t removeReason = 1;
     InnerErrorCode ret = ansNotification->RemoveNotifications(hashcodes, removeReason);
     EXPECT_EQ(ret, ERR_ANS_INNER_SERVICE_NOT_CONNECTED);
-}
-
-/*
- * @tc.name: RemoveNotifications_0300
- * @tc.desc: 1.Test RemoveNotifications and hashcodes is not empty
- *           2.GetAnsManagerProxy is true
- * @tc.type: FUNC
- * @tc.require: #I62SME
- */
-HWTEST_F(AnsNotificationBranchTest, RemoveNotifications_0300, Function | MediumTest | Level1)
-{
-    auto ansNotification = std::make_shared<MockAnsNotification>();
-    EXPECT_NE(ansNotification, nullptr);
-    std::string hashcode = "aa";
-    std::vector<std::string> hashcodes;
-    hashcodes.emplace_back(hashcode);
-    int32_t removeReason = 1;
-    ansNotification->RemoveNotifications(hashcodes, removeReason);
 }
 
 /*
@@ -1300,28 +1290,12 @@ HWTEST_F(AnsNotificationBranchTest, RemoveNotifications_0300, Function | MediumT
  */
 HWTEST_F(AnsNotificationBranchTest, RegisterPushCallback_0100, Function | MediumTest | Level1)
 {
-    auto ansNotification = std::make_shared<MockAnsNotification>();
+    auto ansNotification = std::make_shared<AnsNotification>();
     EXPECT_NE(ansNotification, nullptr);
     sptr<IRemoteObject> pushCallback = nullptr;
     sptr<NotificationCheckRequest> checkRequest = new (std::nothrow) NotificationCheckRequest();
     InnerErrorCode ret = ansNotification->RegisterPushCallback(pushCallback, checkRequest);
     EXPECT_EQ(ret, ERR_ANS_INNER_SERVICE_NOT_CONNECTED);
-}
-
-/*
- * @tc.name: RegisterPushCallback_0200
- * @tc.desc: 1.Test RegisterPushCallback
- *           2.GetAnsManagerProxy is true
- * @tc.type: FUNC
- * @tc.require: #I62SME
- */
-HWTEST_F(AnsNotificationBranchTest, RegisterPushCallback_0200, Function | MediumTest | Level1)
-{
-    auto ansNotification = std::make_shared<MockAnsNotification>();
-    EXPECT_NE(ansNotification, nullptr);
-    sptr<IRemoteObject> pushCallback = nullptr;
-    sptr<NotificationCheckRequest> checkRequest = new (std::nothrow) NotificationCheckRequest();
-    ansNotification->RegisterPushCallback(pushCallback, checkRequest);
 }
 
 /*
@@ -1333,24 +1307,10 @@ HWTEST_F(AnsNotificationBranchTest, RegisterPushCallback_0200, Function | Medium
  */
 HWTEST_F(AnsNotificationBranchTest, UnregisterPushCallback_0100, Function | MediumTest | Level1)
 {
-    auto ansNotification = std::make_shared<MockAnsNotification>();
+    auto ansNotification = std::make_shared<AnsNotification>();
     EXPECT_NE(ansNotification, nullptr);
     InnerErrorCode ret = ansNotification->UnregisterPushCallback();
     EXPECT_EQ(ret, ERR_ANS_INNER_SERVICE_NOT_CONNECTED);
-}
-
-/*
- * @tc.name: UnregisterPushCallback_0200
- * @tc.desc: 1.Test UnregisterPushCallback
- *           2.GetAnsManagerProxy is true
- * @tc.type: FUNC
- * @tc.require: #I62SME
- */
-HWTEST_F(AnsNotificationBranchTest, UnregisterPushCallback_0200, Function | MediumTest | Level1)
-{
-    auto ansNotification = std::make_shared<MockAnsNotification>();
-    EXPECT_NE(ansNotification, nullptr);
-    ansNotification->UnregisterPushCallback();
 }
 
 /*
@@ -1360,7 +1320,7 @@ HWTEST_F(AnsNotificationBranchTest, UnregisterPushCallback_0200, Function | Medi
  */
 HWTEST_F(AnsNotificationBranchTest, GetNotificationParameters_0100, Function | MediumTest | Level1)
 {
-    auto ansNotification = std::make_shared<MockAnsNotification>();
+    auto ansNotification = std::make_shared<AnsNotification>();
     EXPECT_NE(ansNotification, nullptr);
     int32_t notificationId = 0;
     std::string label = "label";
@@ -1376,10 +1336,12 @@ HWTEST_F(AnsNotificationBranchTest, GetNotificationParameters_0100, Function | M
  */
 HWTEST_F(AnsNotificationBranchTest, GetNotificationParameters_0200, Function | MediumTest | Level1)
 {
-    auto ansNotification = std::make_shared<MockAnsNotification>();
+    auto ansNotification = std::make_shared<AnsNotification>();
     EXPECT_NE(ansNotification, nullptr);
-    ON_CALL(*ansNotification, GetAnsManagerProxy())
-        .WillByDefault(Return(new (std::nothrow) MockAnsManagerInterface()));
+    sptr<MockAnsManagerInterface> mockProxy =
+        sptr<MockAnsManagerInterface>(new (std::nothrow) MockAnsManagerInterface());
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_))
+        .WillByDefault(Return(mockProxy));
     int32_t notificationId = 0;
     std::string label = "label";
     sptr<NotificationParameters> parameters = nullptr;
@@ -1396,7 +1358,7 @@ HWTEST_F(AnsNotificationBranchTest, GetNotificationParameters_0200, Function | M
 HWTEST_F(AnsNotificationBranchTest, CanPublishLiveViewContent_0100, Function | MediumTest | Level1)
 {
     NotificationRequest request;
-    auto notification = std::make_shared<MockAnsNotification>();
+    auto notification = std::make_shared<AnsNotification>();
     EXPECT_TRUE(notification->CanPublishLiveViewContent(request));
 }
 
@@ -1415,7 +1377,7 @@ HWTEST_F(AnsNotificationBranchTest, CanPublishLiveViewContent_0110, Function | M
     auto content = std::make_shared<NotificationContent>(liveViewContent);
     request.SetContent(content);
 
-    auto notification = std::make_shared<MockAnsNotification>();
+    auto notification = std::make_shared<AnsNotification>();
     EXPECT_FALSE(notification->CanPublishLiveViewContent(request));
 }
 
@@ -1433,7 +1395,7 @@ HWTEST_F(AnsNotificationBranchTest, CanPublishLiveViewContent_0120, Function | M
     auto content = std::make_shared<NotificationContent>(liveViewContent);
     request.SetContent(content);
 
-    auto notification = std::make_shared<MockAnsNotification>();
+    auto notification = std::make_shared<AnsNotification>();
     EXPECT_TRUE(notification->CanPublishLiveViewContent(request));
 }
 
@@ -1452,7 +1414,7 @@ HWTEST_F(AnsNotificationBranchTest, CanPublishLiveViewContent_0130, Function | M
     auto content = std::make_shared<NotificationContent>(liveViewContent);
     request.SetContent(content);
 
-    auto notification = std::make_shared<MockAnsNotification>();
+    auto notification = std::make_shared<AnsNotification>();
     EXPECT_TRUE(notification->CanPublishLiveViewContent(request));
 }
 
@@ -1471,7 +1433,7 @@ HWTEST_F(AnsNotificationBranchTest, CanPublishLiveViewContent_0140, Function | M
     request.SetContent(content);
     request.notificationContent_ = nullptr;
 
-    auto notification = std::make_shared<MockAnsNotification>();
+    auto notification = std::make_shared<AnsNotification>();
     EXPECT_FALSE(notification->CanPublishLiveViewContent(request));
 }
 
@@ -1490,7 +1452,7 @@ HWTEST_F(AnsNotificationBranchTest, CanPublishLiveViewContent_0150, Function | M
     content->content_ = nullptr;
     request.SetContent(content);
 
-    auto notification = std::make_shared<MockAnsNotification>();
+    auto notification = std::make_shared<AnsNotification>();
     EXPECT_FALSE(notification->CanPublishLiveViewContent(request));
 }
 
@@ -1504,7 +1466,7 @@ HWTEST_F(AnsNotificationBranchTest, SetNotificationSlotFlagsAsBundle_0001, Funct
 {
     NotificationBundleOption bundle;
     uint32_t slotFlags = 1;
-    auto notification = std::make_shared<MockAnsNotification>();
+    auto notification = std::make_shared<AnsNotification>();
     InnerErrorCode ret = notification->SetNotificationSlotFlagsAsBundle(bundle, slotFlags);
     EXPECT_EQ(ret, ERR_ANS_INNER_INVALID_PARAM);
     ret = notification->GetNotificationSlotFlagsAsBundle(bundle, slotFlags);
@@ -1519,9 +1481,11 @@ HWTEST_F(AnsNotificationBranchTest, SetNotificationSlotFlagsAsBundle_0001, Funct
  */
 HWTEST_F(AnsNotificationBranchTest, PublishNotification_0001, Function | MediumTest | Level1)
 {
-    auto notification = std::make_shared<MockAnsNotification>();
-    ON_CALL(*notification, GetAnsManagerProxy())
-        .WillByDefault(Return(new (std::nothrow) MockAnsManagerInterface()));
+    auto notification = std::make_shared<AnsNotification>();
+    sptr<MockAnsManagerInterface> mockProxy =
+        sptr<MockAnsManagerInterface>(new (std::nothrow) MockAnsManagerInterface());
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_))
+        .WillByDefault(Return(mockProxy));
     NotificationRequest req;
     std::shared_ptr<NotificationMediaContent> mediaContent = std::make_shared<NotificationMediaContent>();
     auto content = std::make_shared<NotificationContent>(mediaContent);
@@ -1551,7 +1515,7 @@ HWTEST_F(AnsNotificationBranchTest, PublishNotification_0001, Function | MediumT
  */
 HWTEST_F(AnsNotificationBranchTest, SetGeofenceEnabled_0100, Function | MediumTest | Level1)
 {
-    auto notification = std::make_shared<MockAnsNotification>();
+    auto notification = std::make_shared<AnsNotification>();
     ASSERT_NE(notification, nullptr);
     InnerErrorCode ret = notification->SetGeofenceEnabled(false);
     EXPECT_EQ(ret, ERR_ANS_INNER_SERVICE_NOT_CONNECTED);
@@ -1564,10 +1528,12 @@ HWTEST_F(AnsNotificationBranchTest, SetGeofenceEnabled_0100, Function | MediumTe
  */
 HWTEST_F(AnsNotificationBranchTest, SetGeofenceEnabled_0200, Function | MediumTest | Level1)
 {
-    auto notification = std::make_shared<MockAnsNotification>();
+    auto notification = std::make_shared<AnsNotification>();
     ASSERT_NE(notification, nullptr);
-    ON_CALL(*notification, GetAnsManagerProxy())
-        .WillByDefault(Return(new (std::nothrow) MockAnsManagerInterface()));
+    sptr<MockAnsManagerInterface> mockProxy =
+        sptr<MockAnsManagerInterface>(new (std::nothrow) MockAnsManagerInterface());
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_))
+        .WillByDefault(Return(mockProxy));
     InnerErrorCode ret = notification->SetGeofenceEnabled(false);
     EXPECT_EQ(ret, ERR_ANS_INNER_INVALID_PARAM);
 }
@@ -1579,7 +1545,7 @@ HWTEST_F(AnsNotificationBranchTest, SetGeofenceEnabled_0200, Function | MediumTe
  */
 HWTEST_F(AnsNotificationBranchTest, IsGeofenceEnabled_0100, Function | MediumTest | Level1)
 {
-    auto notification = std::make_shared<MockAnsNotification>();
+    auto notification = std::make_shared<AnsNotification>();
     ASSERT_NE(notification, nullptr);
     bool enabled = false;
     InnerErrorCode ret = notification->IsGeofenceEnabled(enabled);
@@ -1593,10 +1559,12 @@ HWTEST_F(AnsNotificationBranchTest, IsGeofenceEnabled_0100, Function | MediumTes
  */
 HWTEST_F(AnsNotificationBranchTest, IsGeofenceEnabled_0200, Function | MediumTest | Level1)
 {
-    auto notification = std::make_shared<MockAnsNotification>();
+    auto notification = std::make_shared<AnsNotification>();
     ASSERT_NE(notification, nullptr);
-    ON_CALL(*notification, GetAnsManagerProxy())
-        .WillByDefault(Return(new (std::nothrow) MockAnsManagerInterface()));
+    sptr<MockAnsManagerInterface> mockProxy =
+        sptr<MockAnsManagerInterface>(new (std::nothrow) MockAnsManagerInterface());
+    ON_CALL(*mockSAMgr_, GetSystemAbility(testing::_))
+        .WillByDefault(Return(mockProxy));
     bool enabled = false;
     InnerErrorCode ret = notification->IsGeofenceEnabled(enabled);
     EXPECT_EQ(ret, ERR_ANS_INNER_INVALID_PARAM);
@@ -1613,7 +1581,7 @@ HWTEST_F(AnsNotificationBranchTest, ClearDelayNotification_0100, Function | Medi
     triggerKeys.push_back("testKey");
     std::vector<int32_t> userIds;
     userIds.push_back(100);
-    auto notification = std::make_shared<MockAnsNotification>();
+    auto notification = std::make_shared<AnsNotification>();
     ASSERT_NE(notification, nullptr);
     InnerErrorCode ret = notification->ClearDelayNotification(triggerKeys, userIds);
     EXPECT_EQ(ret, ERR_ANS_INNER_SERVICE_NOT_CONNECTED);
@@ -1626,7 +1594,7 @@ HWTEST_F(AnsNotificationBranchTest, ClearDelayNotification_0100, Function | Medi
  */
 HWTEST_F(AnsNotificationBranchTest, PublishDelayedNotification_0100, Function | MediumTest | Level1)
 {
-    auto notification = std::make_shared<MockAnsNotification>();
+    auto notification = std::make_shared<AnsNotification>();
     ASSERT_NE(notification, nullptr);
     std::string triggerKey = "key";
     int32_t userId = 1000;
