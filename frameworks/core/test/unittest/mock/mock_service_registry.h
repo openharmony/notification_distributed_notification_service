@@ -20,6 +20,7 @@
  
 #include "iremote_object.h"
 #include "iremote_stub.h"
+#include "errors.h"
  
 namespace OHOS {
 namespace Notification {
@@ -63,7 +64,7 @@ public:
     int32_t SubscribeSystemAbility(int32_t systemAbilityId, const sptr<ISystemAbilityStatusChange>& listener) override
     {
         std::cout << "SubscribeSystemAbility" << std::endl;
-        return ERR_ANS_SERVICE_NOT_CONNECTED;
+        return ERR_INVALID_OPERATION;
     }
 };
 } // namespace Notification
