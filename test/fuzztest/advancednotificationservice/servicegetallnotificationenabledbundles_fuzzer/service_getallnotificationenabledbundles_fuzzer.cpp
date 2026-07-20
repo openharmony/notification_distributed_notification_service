@@ -29,11 +29,6 @@ namespace Notification {
 
         std::vector<NotificationBundleOption> bundelOptions;
         int32_t userId = fuzzData->ConsumeIntegralInRange<int32_t>(0, 100);
-        int32_t bundleNum = fuzzData->ConsumeIntegral<uint32_t>();
-        for (int i = 0; i < bundleNum; i++) {
-            NotificationBundleOption bundleOption = *(ObjectBuilder<NotificationBundleOption>::Build(fuzzData));
-            bundelOptions.emplace_back(bundleOption);
-        }
         service->GetAllNotificationEnabledBundles(bundelOptions, userId);
         return true;
     }
