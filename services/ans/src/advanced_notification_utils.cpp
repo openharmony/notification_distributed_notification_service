@@ -1068,6 +1068,9 @@ std::vector<std::string> AdvancedNotificationService::GetLocalNotificationKeys(
     std::vector<std::string> keys;
 
     for (auto record : notificationList_) {
+        if (record->request->IsSharedThirdpartyLiveView()) {
+            continue;
+        }
         if ((bundleOption != nullptr) &&
             ((record->bundleOption->GetBundleName() != bundleOption->GetBundleName()) ||
             (record->bundleOption->GetUid() != bundleOption->GetUid())) &&
@@ -1080,6 +1083,9 @@ std::vector<std::string> AdvancedNotificationService::GetLocalNotificationKeys(
     {
         std::lock_guard<ffrt::mutex> lock(triggerNotificationMutex_);
         for (const auto &record : triggerNotificationList_) {
+            if (record->request->IsSharedThirdpartyLiveView()) {
+                continue;
+            }
             if ((bundleOption != nullptr) &&
                 ((record->bundleOption->GetBundleName() != bundleOption->GetBundleName()) ||
                 (record->bundleOption->GetUid() != bundleOption->GetUid())) &&
