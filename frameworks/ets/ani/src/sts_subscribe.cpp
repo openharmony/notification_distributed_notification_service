@@ -31,7 +31,7 @@ namespace NotificationSts {
 using namespace arkts::ani_signature;
 
 StsDistributedOperationCallback::StsDistributedOperationCallback(ani_object promise, ani_resolver resolver)
-    : resolver_(resolver)
+    : etsVm_(nullptr), resolver_(resolver)
 {
 }
 

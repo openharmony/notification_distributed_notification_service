@@ -127,7 +127,7 @@ static bool g_reportSlotFlag = false;
 static ffrt::mutex reportSlotEnabledMutex_;
 
 static ffrt::mutex cleanExperDataMutex_;
-static int32_t g_cleanExperDataTimerId = 0;
+static uint64_t g_cleanExperDataTimerId = 0;
 static std::shared_ptr<ReportTimerInfo> cleanExperInfo = nullptr;
 
 static int32_t LIVEVIEW_SUB_CODE = 202;

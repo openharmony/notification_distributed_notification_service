@@ -16,6 +16,7 @@
 #include "notification_basic_content.h"
 #include "ans_log_wrapper.h"
 #include "ans_image_util.h"
+#include "ans_const_define.h"
 
 namespace OHOS {
 namespace Notification {
@@ -212,6 +213,10 @@ bool NotificationBasicContent::ReadFromParcel(Parcel &parcel)
     int32_t size = -1;
     if (!parcel.ReadInt32(size)) {
         ANS_LOGE("Failed to read structuredText size.");
+        return false;
+    }
+    if (size < 0 || size > MAX_PARCELABLE_VECTOR_NUM) {
+        ANS_LOGE("Invalid structuredText size: %{public}d", size);
         return false;
     }
     for (int32_t i = 0; i < size; ++i) {

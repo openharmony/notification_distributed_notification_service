@@ -173,7 +173,7 @@ void NotificationCloneManager::GetRestoreSystemApp(const std::string& extralInfo
     }
 
     nlohmann::json jsonObject = nlohmann::json::parse(extralInfo, nullptr, false);
-    if (jsonObject.is_null() || !jsonObject.is_array()) {
+    if (jsonObject.is_discarded() || jsonObject.is_null() || !jsonObject.is_array()) {
         ANS_LOGE("Invalid extralInfo array");
         return;
     }

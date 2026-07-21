@@ -445,6 +445,9 @@ napi_value NapiGetActiveNotificationByFilter(napi_env env, napi_callback_info in
         delete asyncLiveViewCallBackInfo;
         asyncLiveViewCallBackInfo = nullptr;
         Common::NapiThrow(env, ERR_ANS_INNER_INVALID_PARAM);
+        if (callback) {
+            napi_delete_reference(env, callback);
+        }
         return Common::NapiGetUndefined(env);
     }
     napi_value promise = nullptr;

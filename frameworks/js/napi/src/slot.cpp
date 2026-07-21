@@ -788,6 +788,9 @@ napi_value AddSlots(napi_env env, napi_callback_info info)
 
     ParametersInfoAddSlots paras;
     if (ParseParametersByAddSlots(env, info, paras) == nullptr) {
+        if (paras.callback) {
+            napi_delete_reference(env, paras.callback);
+        }
         return Common::NapiGetUndefined(env);
     }
 
@@ -847,6 +850,9 @@ napi_value SetSlotByBundle(napi_env env, napi_callback_info info)
 
     ParametersInfoSetSlotByBundle params {};
     if (ParseParametersSetSlotByBundle(env, info, params) == nullptr) {
+        if (params.callback) {
+            napi_delete_reference(env, params.callback);
+        }
         return Common::NapiGetUndefined(env);
     }
 
@@ -1196,6 +1202,9 @@ napi_value GetSlotsByBundle(napi_env env, napi_callback_info info)
 
     ParametersInfoGetSlotsByBundle params {};
     if (ParseParametersGetSlotsByBundle(env, info, params) == nullptr) {
+        if (params.callback) {
+            napi_delete_reference(env, params.callback);
+        }
         return Common::NapiGetUndefined(env);
     }
 
@@ -1303,6 +1312,9 @@ napi_value RemoveAllSlots(napi_env env, napi_callback_info info)
 
     napi_ref callback = nullptr;
     if (Common::ParseParaOnlyCallback(env, info, callback) == nullptr) {
+        if (callback) {
+            napi_delete_reference(env, callback);
+        }
         return Common::NapiGetUndefined(env);
     }
 
@@ -1450,6 +1462,9 @@ napi_value EnableNotificationSlot(napi_env env, napi_callback_info info)
 
     ParametersInfoEnableSlot params {};
     if (ParseParametersEnableSlot(env, info, params) == nullptr) {
+        if (params.callback) {
+            napi_delete_reference(env, params.callback);
+        }
         return Common::NapiGetUndefined(env);
     }
 
@@ -1571,6 +1586,9 @@ napi_value IsEnableNotificationSlot(napi_env env, napi_callback_info info)
 
     ParametersInfoIsEnableSlot params {};
     if (ParseParametersIsEnableSlot(env, info, params) == nullptr) {
+        if (params.callback) {
+            napi_delete_reference(env, params.callback);
+        }
         return Common::NapiGetUndefined(env);
     }
 
@@ -1631,6 +1649,9 @@ napi_value GetSlotFlagsByBundle(napi_env env, napi_callback_info info)
 
     ParametersInfoGetSlotFlagsByBundle params {};
     if (ParseParametersGetSlotFlagsByBundle(env, info, params) == nullptr) {
+        if (params.callback) {
+            napi_delete_reference(env, params.callback);
+        }
         return Common::NapiGetUndefined(env);
     }
 

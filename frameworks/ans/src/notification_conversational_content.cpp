@@ -157,7 +157,7 @@ NotificationConversationalContent *NotificationConversationalContent::FromJson(c
         }
     }
 
-    if (jsonObject.find("messages") != jsonEnd) {
+    if (jsonObject.find("messages") != jsonEnd && jsonObject.at("messages").is_array()) {
         nlohmann::json msgsArr = jsonObject.at("messages");
         for (auto &msgObj : msgsArr) {
             auto pMsg = NotificationJsonConverter::ConvertFromJson<NotificationConversationalMessage>(msgObj);
