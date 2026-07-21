@@ -14,6 +14,7 @@
  */
 #include "notification_rdb_data_mgr.h"
 
+#include "abs_rdb_predicates.h"
 #include "ans_log_wrapper.h"
 #include "os_account_manager_helper.h"
 #include "rdb_errno.h"
@@ -176,8 +177,7 @@ static bool UpdateContentByJsonObject(nlohmann::json &jsonObject, const std::str
         return false;
     }
 
-    if (static_cast<NotificationContent::Type>(contentType.get<int32_t>()) !=
-        NotificationContent::Type::LIVE_VIEW) {
+    if (contentType.get<int64_t>() != static_cast<int64_t>(NotificationContent::Type::LIVE_VIEW)) {
         ANS_LOGE("ContentType is not live view");
         return false;
     }
@@ -250,11 +250,24 @@ bool RdbStoreDataCallBackNotificationStorage::ProcessRow(
     if (!GetStringFromResultSet(absSharedResultSet, NOTIFICATION_VALUE_INDEX, resultValue)) {
         return false;
     }
-    std::string input;
-    AesGcmHelper::Decrypt(input, resultValue);
-    auto jsonObject = nlohmann::json::parse(input, nullptr, false);
+    auto deleteCorruptRow = [&rdbStore, &tableName, &resultKey]() {
+        NativeRdb::AbsRdbPredicates predicates(tableName);
+        predicates.EqualTo(NOTIFICATION_KEY, resultKey);
+        int32_t deletedRows = 0;
+        rdbStore.Delete(deletedRows, predicates);
+    };
+    std::string plainText;
+    ErrCode errorCode = AesGcmHelper::Decrypt(plainText, resultValue);
+    if (errorCode != ERR_OK) {
+        ANS_LOGE("ProcessRow decrypt error %{public}d, deleting corrupt row. key=%{public}s", errorCode,
+            resultKey.c_str());
+        deleteCorruptRow();
+        return true;
+    }
+    auto jsonObject = nlohmann::json::parse(plainText, nullptr, false);
     if (jsonObject.is_discarded()) {
-        ANS_LOGE("Failed to parse decrypted json string");
+        ANS_LOGE("Failed to parse decrypted json, deleting corrupt row. key=%{public}s", resultKey.c_str());
+        deleteCorruptRow();
         return true;
     }
     if (UpdateRequestByJsonObject(jsonObject)) {
@@ -302,6 +315,11 @@ int32_t RdbStoreDataCallBackNotificationStorage::OnOpen(NativeRdb::RdbStore &rdb
 
 int32_t RdbStoreDataCallBackNotificationStorage::onCorruption(std::string databaseFile)
 {
+    ANS_LOGE("Database corruption detected, deleting corrupt file: %{public}s", databaseFile.c_str());
+    HaMetaMessage message = HaMetaMessage(EventSceneId::SCENE_10, EventBranchId::BRANCH_1)
+        .ErrorCode(NativeRdb::E_SQLITE_CORRUPT).Message("onCorruption callback triggered.");
+    NotificationAnalyticsUtil::ReportModifyEvent(message);
+    NativeRdb::RdbHelper::DeleteRdbStore(databaseFile);
     return NativeRdb::E_OK;
 }
 
