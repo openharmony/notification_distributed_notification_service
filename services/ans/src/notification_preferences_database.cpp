@@ -1765,21 +1765,28 @@ std::string NotificationPreferencesDatabase::FindLastString(
 std::string NotificationPreferencesDatabase::VectorToString(const std::vector<int64_t> &data) const
 {
     std::stringstream streamStr;
-    std::copy(data.begin(), data.end(), std::ostream_iterator<int>(streamStr, KEY_UNDER_LINE.c_str()));
+    for (size_t i = 0; i < data.size(); ++i) {
+        streamStr << data[i] << KEY_UNDER_LINE;
+    }
     return streamStr.str();
 }
 
 void NotificationPreferencesDatabase::StringToVector(const std::string &str, std::vector<int64_t> &data) const
 {
-    if (str.empty()) {
+    if (str.empty() || KEY_UNDER_LINE.empty()) {
         return;
     }
-
-    if (str.find_first_of(KEY_UNDER_LINE) != std::string::npos) {
-        std::string str1 = str.substr(0, str.find_first_of(KEY_UNDER_LINE));
-        std::string afterStr = str.substr(str.find_first_of(KEY_UNDER_LINE) + 1);
-        data.push_back(StringToInt(str1));
-        StringToVector(afterStr, data);
+    size_t start = 0;
+    size_t pos = str.find(KEY_UNDER_LINE, start);
+    while (pos != std::string::npos) {
+        if (pos > start) {
+            data.push_back(StringToInt64(str.substr(start, pos - start)));
+        }
+        start = pos + KEY_UNDER_LINE.size();
+        pos = str.find(KEY_UNDER_LINE, start);
+    }
+    if (start < str.size()) {
+        data.push_back(StringToInt64(str.substr(start)));
     }
 }
 
