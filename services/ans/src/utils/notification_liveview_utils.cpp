@@ -92,6 +92,11 @@ bool NotificationLiveViewUtils::CheckLiveViewForBundle(const sptr<NotificationRe
         return false;
     }
 
+    if (request->GetContent() == nullptr || request->GetContent()->GetNotificationContent() == nullptr) {
+        ANS_LOGE("Invalid content.");
+        return false;
+    }
+
     std::string bundleName;
     if (request->IsAgentNotification()) {
         bundleName = request->GetOwnerBundleName();
