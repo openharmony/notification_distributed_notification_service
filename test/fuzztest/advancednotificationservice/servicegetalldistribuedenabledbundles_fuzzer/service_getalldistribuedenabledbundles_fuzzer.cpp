@@ -29,11 +29,6 @@ namespace Notification {
         service->CreateDialogManager();
         std::string stringData = fuzzData->ConsumeRandomLengthString();
         std::vector<NotificationBundleOption> bundelOptions;
-        int32_t bundleNum = fuzzData->ConsumeIntegral<uint32_t>();
-        for (int i = 0; i < bundleNum; i++) {
-            NotificationBundleOption bundleOption = *(ObjectBuilder<NotificationBundleOption>::Build(fuzzData));
-            bundelOptions.emplace_back(bundleOption);
-        }
         service->GetAllDistribuedEnabledBundles(stringData, bundelOptions);
         return true;
     }
