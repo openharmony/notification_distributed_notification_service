@@ -24,7 +24,7 @@
 namespace OHOS {
 namespace Notification {
 BadgeNumberCallbackData::BadgeNumberCallbackData(const std::string &bundle, int32_t uid, int32_t badgeNumber)
-    : bundle_(bundle), uid_(uid), badgeNumber_(badgeNumber)
+    : bundle_(bundle), uid_(uid), badgeNumber_(badgeNumber), instanceKey_(0)
 {}
 
 BadgeNumberCallbackData::BadgeNumberCallbackData(const std::string &bundle, const std::string &appInstanceKey,

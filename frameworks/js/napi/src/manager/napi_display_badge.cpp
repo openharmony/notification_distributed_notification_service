@@ -264,6 +264,9 @@ napi_value NapiSetBadgeNumber(napi_env env, napi_callback_info info)
     AsyncCallbackSetBadgeNumber *asynccallbackinfo =
         new (std::nothrow) AsyncCallbackSetBadgeNumber {.env = env, .asyncWork = nullptr, .params = params};
     if (!asynccallbackinfo) {
+        if (params.callback) {
+            napi_delete_reference(env, params.callback);
+        }
         Common::NapiThrow(env, ERR_ANS_INNER_INVALID_PARAM);
         return Common::NapiGetUndefined(env);
     }

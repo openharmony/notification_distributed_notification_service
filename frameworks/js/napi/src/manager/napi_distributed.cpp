@@ -94,6 +94,9 @@ napi_value NapiIsDistributedEnabled(napi_env env, napi_callback_info info)
     }
 
     if (!params.deviceType.empty()) {
+        if (params.callback) {
+            napi_delete_reference(env, params.callback);
+        }
         return DoIsDistributedEnabledWithDeviceType(env, info, params);
     }
 #ifdef ANS_FEATURE_ORIGINAL_DISTRIBUTED

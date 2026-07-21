@@ -18,6 +18,7 @@
 #include <algorithm>
 
 #include "ans_log_wrapper.h"
+#include "ans_const_define.h"
 #include "notification_want_params_helper.h"
 
 namespace OHOS {

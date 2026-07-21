@@ -86,7 +86,7 @@ void HealthWhiteListUtil::AddExtendFlagForRequest(std::vector<sptr<Notification>
         return false;
     }
     bundles = nlohmann::json::parse(dBvalue, nullptr, false);
-    if (bundles.is_null() || !bundles.is_array() || bundles.size() <= 0) {
+    if (bundles.is_discarded() || bundles.is_null() || !bundles.is_array() || bundles.size() <= 0) {
         ANS_LOGE("json data error, %{public}s", dBvalue.c_str());
         return false;
     }

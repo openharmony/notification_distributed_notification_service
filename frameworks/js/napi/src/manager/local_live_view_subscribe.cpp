@@ -299,6 +299,9 @@ napi_value ParseParameters(const napi_env &env, const napi_callback_info &info,
                 delete subscriberInstancesInfo.subscriber;
                 subscriberInstancesInfo.subscriber = nullptr;
             }
+            if (subscriberInstancesInfo.ref) {
+                napi_delete_reference(env, subscriberInstancesInfo.ref);
+            }
             return nullptr;
         }
         if (!AddSubscriberInstancesInfo(env, subscriberInstancesInfo)) {
@@ -307,6 +310,9 @@ napi_value ParseParameters(const napi_env &env, const napi_callback_info &info,
             if (subscriberInstancesInfo.subscriber) {
                 delete subscriberInstancesInfo.subscriber;
                 subscriberInstancesInfo.subscriber = nullptr;
+            }
+            if (subscriberInstancesInfo.ref) {
+                napi_delete_reference(env, subscriberInstancesInfo.ref);
             }
             return nullptr;
         }
