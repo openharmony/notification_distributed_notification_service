@@ -2026,7 +2026,65 @@ HWTEST_F(NotificationPreferencesDatabaseTest, StringToVector_0200, TestSize.Leve
     std::string str = "1_2_3";
     std::vector<int64_t> data;
     preferncesDB_->StringToVector(str, data);
-    EXPECT_EQ(2, data.size());
+    EXPECT_EQ(3, data.size());
+    EXPECT_EQ(1, data[0]);
+    EXPECT_EQ(2, data[1]);
+    EXPECT_EQ(3, data[2]);
+}
+
+/**
+ * @tc.name: VectorToString_0100
+ * @tc.desc: test VectorToString format keeps trailing separator
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesDatabaseTest, VectorToString_0100, TestSize.Level1)
+{
+    std::vector<int64_t> empty;
+    EXPECT_EQ("", preferncesDB_->VectorToString(empty));
+
+    std::vector<int64_t> data = {1, 2, 3};
+    EXPECT_EQ("1_2_3_", preferncesDB_->VectorToString(data));
+}
+
+/**
+ * @tc.name: VectorToString_0200
+ * @tc.desc: test VectorToString renders int64_t without truncation
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesDatabaseTest, VectorToString_0200, TestSize.Level1)
+{
+    std::vector<int64_t> data = {5000000000LL};
+    EXPECT_EQ("5000000000_", preferncesDB_->VectorToString(data));
+}
+
+/**
+ * @tc.name: StringToVector_0300
+ * @tc.desc: test StringToVector does not crash on huge corrupt input
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesDatabaseTest, StringToVector_0300, TestSize.Level1)
+{
+    std::string huge(100000, '_');
+    std::vector<int64_t> data;
+    preferncesDB_->StringToVector(huge, data);
+    EXPECT_EQ(0, data.size());
+}
+
+/**
+ * @tc.name: StringToVector_0400
+ * @tc.desc: test StringToVector round-trips VectorToString for int64 values
+ * @tc.type: FUNC
+ */
+HWTEST_F(NotificationPreferencesDatabaseTest, StringToVector_0400, TestSize.Level1)
+{
+    std::vector<int64_t> in = {1, 2, 5000000000LL};
+    std::string str = preferncesDB_->VectorToString(in);
+    std::vector<int64_t> out;
+    preferncesDB_->StringToVector(str, out);
+    EXPECT_EQ(in.size(), out.size());
+    for (size_t i = 0; i < in.size(); ++i) {
+        EXPECT_EQ(in[i], out[i]);
+    }
 }
 
 /**
