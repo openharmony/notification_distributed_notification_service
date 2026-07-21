@@ -2204,5 +2204,100 @@ HWTEST_F(AnsLiveViewServiceTest, RecoverLiveViewFromDb_AllUsersPath_00001, Funct
     ASSERT_EQ(advancedNotificationService_->notificationList_.size(), 0);
     ASSERT_EQ(GetFailCountFromDb(100), 0);
 }
+
+/**
+ * @tc.name: IsLiveViewCanRecover_NullContent_001
+ * @tc.desc: Test IsLiveViewCanRecover returns false (not crash) when IsCommonLiveView is true but content is nullptr,
+ *           simulating a deserialized request whose type field is set independently of the content pointer.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(AnsLiveViewServiceTest, IsLiveViewCanRecover_NullContent_001, Function | SmallTest | Level1)
+{
+    sptr<NotificationRequest> request = new (std::nothrow) NotificationRequest();
+    request->SetSlotType(NotificationConstant::SlotType::LIVE_VIEW);
+    request->notificationContentType_ = NotificationContent::Type::LIVE_VIEW;
+    ASSERT_EQ(request->IsCommonLiveView(), true);
+    ASSERT_EQ(request->GetContent(), nullptr);
+
+    ASSERT_EQ(advancedNotificationService_->IsLiveViewCanRecover(request), false);
+}
+
+/**
+ * @tc.name: GetLockScreenPictureFromDb_NullContent_001
+ * @tc.desc: Test GetLockScreenPictureFromDb returns ERR_ANS_INNER_INVALID_PARAM (not crash) when content is nullptr
+ *           but IsCommonLiveView is true, simulating a deserialized request from DB.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(AnsLiveViewServiceTest, GetLockScreenPictureFromDb_NullContent_001, Function | SmallTest | Level1)
+{
+    sptr<NotificationRequest> request = new (std::nothrow) NotificationRequest();
+    request->SetSlotType(NotificationConstant::SlotType::LIVE_VIEW);
+    request->notificationContentType_ = NotificationContent::Type::LIVE_VIEW;
+    ASSERT_EQ(request->IsCommonLiveView(), true);
+    ASSERT_EQ(request->GetContent(), nullptr);
+
+    ASSERT_EQ(advancedNotificationService_->GetLockScreenPictureFromDb(request), (int)ERR_ANS_INNER_INVALID_PARAM);
+}
+
+/**
+ * @tc.name: UpdateNotificationTimerInfo_NullContent_001
+ * @tc.desc: Test UpdateNotificationTimerInfo returns ERR_ANS_INNER_INVALID_PARAM (not crash) when IsCommonLiveView
+ *           is true but content is nullptr, simulating a deserialized/malformed request reaching the publish path.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(AnsLiveViewServiceTest, UpdateNotificationTimerInfo_NullContent_001, Function | SmallTest | Level1)
+{
+    auto record = std::make_shared<NotificationRecord>();
+    sptr<NotificationRequest> request = new (std::nothrow) NotificationRequest();
+    request->SetSlotType(NotificationConstant::SlotType::LIVE_VIEW);
+    request->notificationContentType_ = NotificationContent::Type::LIVE_VIEW;
+    ASSERT_EQ(request->IsCommonLiveView(), true);
+    ASSERT_EQ(request->GetContent(), nullptr);
+    record->request = request;
+
+    ASSERT_EQ(advancedNotificationService_->UpdateNotificationTimerInfo(record), (int)ERR_ANS_INNER_INVALID_PARAM);
+}
+
+/**
+ * @tc.name: SetNotificationRequestToDb_NullContent_001
+ * @tc.desc: Test SetNotificationRequestToDb returns ERR_ANS_INNER_INVALID_PARAM (not crash) when IsCommonLiveView
+ *           is true but content is nullptr, simulating a SA-published request with null content.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(AnsLiveViewServiceTest, SetNotificationRequestToDb_NullContent_001, Function | SmallTest | Level1)
+{
+    sptr<NotificationRequest> request = new (std::nothrow) NotificationRequest();
+    request->SetSlotType(NotificationConstant::SlotType::LIVE_VIEW);
+    request->notificationContentType_ = NotificationContent::Type::LIVE_VIEW;
+    ASSERT_EQ(request->IsCommonLiveView(), true);
+    ASSERT_EQ(request->GetContent(), nullptr);
+    sptr<NotificationBundleOption> bundle = new NotificationBundleOption("test", 1);
+    AdvancedNotificationService::NotificationRequestDb requestDb =
+        { .request = request, .bundleOption = bundle };
+
+    ASSERT_EQ(advancedNotificationService_->SetNotificationRequestToDb(requestDb), (int)ERR_ANS_INNER_INVALID_PARAM);
+}
+
+/**
+ * @tc.name: SetLockScreenPictureToDb_NullContent_001
+ * @tc.desc: Test SetLockScreenPictureToDb returns ERR_ANS_INNER_INVALID_PARAM (not crash) when content is nullptr,
+ *           covering the path where the old code dereferenced content before its own IsCommonLiveView check.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(AnsLiveViewServiceTest, SetLockScreenPictureToDb_NullContent_001, Function | SmallTest | Level1)
+{
+    sptr<NotificationRequest> request = new (std::nothrow) NotificationRequest();
+    request->SetSlotType(NotificationConstant::SlotType::LIVE_VIEW);
+    request->notificationContentType_ = NotificationContent::Type::LIVE_VIEW;
+    ASSERT_EQ(request->IsCommonLiveView(), true);
+    ASSERT_EQ(request->GetContent(), nullptr);
+
+    ASSERT_EQ(advancedNotificationService_->SetLockScreenPictureToDb(request), (int)ERR_ANS_INNER_INVALID_PARAM);
+}
 }  // namespace Notification
 }  // namespace OHOS
