@@ -238,6 +238,12 @@ ErrCode AdvancedNotificationService::GetAppTargetBundle(const sptr<NotificationB
 ErrCode AdvancedNotificationService::FillRequestByKeys(const sptr<NotificationRequest> &oldRequest,
     const std::vector<std::string> extraInfoKeys, sptr<NotificationRequest> &newRequest)
 {
+    if (oldRequest == nullptr || oldRequest->GetContent() == nullptr ||
+        oldRequest->GetContent()->GetNotificationContent() == nullptr) {
+        ANS_LOGE("Invalid content.");
+        return ERR_ANS_INNER_INVALID_PARAM;
+    }
+
     auto liveViewContent = std::static_pointer_cast<NotificationLiveViewContent>(
         oldRequest->GetContent()->GetNotificationContent());
     auto liveViewExtraInfo = liveViewContent->GetExtraInfo();
