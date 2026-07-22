@@ -128,6 +128,11 @@ void AdvancedNotificationService::UpdateCollaborateTimerInfo(const std::shared_p
         return;
     }
 
+    if (record->request->GetContent() == nullptr ||
+        record->request->GetContent()->GetNotificationContent() == nullptr) {
+        return;
+    }
+
     auto content = record->request->GetContent()->GetNotificationContent();
     auto liveViewContent = std::static_pointer_cast<NotificationLiveViewContent>(content);
     auto status = liveViewContent->GetLiveViewStatus();
