@@ -2375,7 +2375,8 @@ AnsStatus AdvancedNotificationService::PushCheck(const sptr<NotificationRequest>
     CreatePushCheckJson(request, checkRequest, jsonObject);
     std::shared_ptr<PushCallBackParam> pushCallBackParam = std::make_shared<PushCallBackParam>();
     std::shared_ptr<AAFwk::WantParams> extroInfo = nullptr;
-    if (request->IsCommonLiveView()) {
+    if (request->IsCommonLiveView() && request->GetContent() != nullptr &&
+        request->GetContent()->GetNotificationContent() != nullptr) {
         auto content = request->GetContent()->GetNotificationContent();
         auto liveViewContent = std::static_pointer_cast<NotificationLiveViewContent>(content);
         extroInfo = liveViewContent->GetExtraInfo();
@@ -2470,6 +2471,11 @@ void AdvancedNotificationService::FillActionButtons(const sptr<NotificationReque
 bool AdvancedNotificationService::IsNeedNotifyConsumed(const sptr<NotificationRequest> &request)
 {
     if (!request->IsCommonLiveView()) {
+        return true;
+    }
+
+    if (request->GetContent() == nullptr || request->GetContent()->GetNotificationContent() == nullptr) {
+        ANS_LOGE("Invalid content.");
         return true;
     }
 

@@ -365,6 +365,10 @@ ErrCode AdvancedNotificationService::SetTriggerNotificationRequestToDb(
         return ERR_OK;
     }
 
+    if (request->GetContent() == nullptr || request->GetContent()->GetNotificationContent() == nullptr) {
+        return ERR_ANS_INNER_INVALID_PARAM;
+    }
+
     auto content = std::static_pointer_cast<NotificationLiveViewContent>(
         request->GetContent()->GetNotificationContent());
     if (request->GetOwnerUid() != DEFAULT_UID) {
@@ -386,8 +390,6 @@ ErrCode AdvancedNotificationService::SetTriggerNotificationRequestToDb(
     }
     auto bundleOption = requestDb.bundleOption;
     if (!NotificationJsonConverter::ConvertToJson(bundleOption, jsonObject)) {
-        ANS_LOGE("Convert bundle to json object failed, bundle name %{public}s, id %{public}d.",
-            bundleOption->GetBundleName().c_str(), request->GetNotificationId());
         return ERR_ANS_INNER_TASK_ERR;
     }
     jsonObject["isUpdateByOwner"] = requestDb.isUpdateByOwner;
@@ -406,9 +408,8 @@ ErrCode AdvancedNotificationService::SetTriggerNotificationRequestToDb(
     auto result = NotificationPreferences::GetInstance()->SetKvToDb(
         request->GetTriggerSecureKey(), encryptValue, userId);
     if (result != ERR_OK) {
-        ANS_LOGE("Set failed, bundle name %{public}s, id %{public}d, key %{public}s, ret %{public}d.",
-            request->GetCreatorBundleName().c_str(), request->GetNotificationId(),
-            request->GetTriggerKey().c_str(), result);
+        ANS_LOGE("Set failed, %{public}d, %{public}s, %{public}s, %{public}d.", request->GetNotificationId(),
+            request->GetCreatorBundleName().c_str(), request->GetTriggerKey().c_str(), result);
         return result;
     }
 

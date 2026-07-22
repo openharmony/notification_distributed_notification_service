@@ -279,6 +279,12 @@ ErrCode AdvancedNotificationService::UpdateNotificationTimerInfo(const std::shar
         return ERR_OK;
     }
 
+    if (record->request->GetContent() == nullptr ||
+        record->request->GetContent()->GetNotificationContent() == nullptr) {
+        ANS_LOGE("Invalid content.");
+        return ERR_ANS_INNER_INVALID_PARAM;
+    }
+
     auto content = record->request->GetContent()->GetNotificationContent();
     auto liveViewContent = std::static_pointer_cast<NotificationLiveViewContent>(content);
     auto status = liveViewContent->GetLiveViewStatus();
@@ -475,6 +481,10 @@ bool AdvancedNotificationService::IsLiveViewCanRecover(const sptr<NotificationRe
         ANS_LOGE("Invalid liveview.");
         return false;
     }
+    if (request->GetContent() == nullptr || request->GetContent()->GetNotificationContent() == nullptr) {
+        ANS_LOGE("Invalid liveview content.");
+        return false;
+    }
 
     using StatusType = NotificationLiveViewContent::LiveViewStatus;
     auto liveViewContent =
@@ -533,6 +543,11 @@ int32_t AdvancedNotificationService::SetNotificationRequestToDb(const Notificati
             request->GetSlotType(), request->GetNotificationType());
 
         return ERR_OK;
+    }
+
+    if (request->GetContent() == nullptr || request->GetContent()->GetNotificationContent() == nullptr) {
+        ANS_LOGE("Invalid content.");
+        return ERR_ANS_INNER_INVALID_PARAM;
     }
 
     ANS_LOGD("Enter.");
@@ -808,6 +823,10 @@ void AdvancedNotificationService::FillLockScreenPicture(const sptr<NotificationR
 
 ErrCode AdvancedNotificationService::SetLockScreenPictureToDb(const sptr<NotificationRequest> &request)
 {
+    if (request->GetContent() == nullptr || request->GetContent()->GetNotificationContent() == nullptr) {
+        ANS_LOGE("Invalid content.");
+        return ERR_ANS_INNER_INVALID_PARAM;
+    }
     auto lockScreenPicture = request->GetContent()->GetNotificationContent()->GetLockScreenPicture();
     if (!request->IsCommonLiveView() || lockScreenPicture == nullptr) {
         return ERR_OK;
@@ -832,6 +851,11 @@ ErrCode AdvancedNotificationService::GetLockScreenPictureFromDb(NotificationRequ
     HaMetaMessage message = HaMetaMessage(EventSceneId::SCENE_12, EventBranchId::BRANCH_0);
     if (request == nullptr) {
         ANS_LOGE("Request is nullptr");
+        NotificationAnalyticsUtil::ReportModifyEvent(message.ErrorCode(ERR_ANS_INNER_INVALID_PARAM));
+        return ERR_ANS_INNER_INVALID_PARAM;
+    }
+    if (request->GetContent() == nullptr || request->GetContent()->GetNotificationContent() == nullptr) {
+        ANS_LOGE("Request content is nullptr");
         NotificationAnalyticsUtil::ReportModifyEvent(message.ErrorCode(ERR_ANS_INNER_INVALID_PARAM));
         return ERR_ANS_INNER_INVALID_PARAM;
     }
