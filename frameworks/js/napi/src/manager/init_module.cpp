@@ -101,6 +101,7 @@ napi_value NotificationManagerInit(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("getActiveNotifications", NapiGetActiveNotifications),
         DECLARE_NAPI_FUNCTION("getActiveNotificationCount", NapiGetActiveNotificationCount),
         DECLARE_NAPI_FUNCTION("getActiveNotificationByFilter", NapiGetActiveNotificationByFilter),
+        DECLARE_NAPI_FUNCTION("getActiveNotification", NapiGetActiveNotification),
         DECLARE_NAPI_FUNCTION("isSupportTemplate", NapiIsSupportTemplate),
         DECLARE_NAPI_FUNCTION("isNotificationEnabledSync", NapiIsNotificationEnabledSync),
         DECLARE_NAPI_FUNCTION("setDistributedEnabledBySlot", NapiSetDistributedEnabledBySlot),
