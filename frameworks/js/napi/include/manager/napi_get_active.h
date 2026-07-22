@@ -30,10 +30,19 @@ struct AsyncLiveViewCallBackInfo {
     sptr<OHOS::Notification::NotificationRequest> notificationRequest = nullptr;
 };
 
+struct AsyncGetActiveNotificationInfo {
+    napi_env env = nullptr;
+    napi_async_work asyncWork = nullptr;
+    CallbackPromiseInfo info;
+    std::string hashCode;
+    sptr<OHOS::Notification::NotificationRequest> notificationRequest = nullptr;
+};
+
 napi_value NapiGetAllActiveNotifications(napi_env env, napi_callback_info info);
 napi_value NapiGetActiveNotifications(napi_env env, napi_callback_info info);
 napi_value NapiGetActiveNotificationCount(napi_env env, napi_callback_info info);
 napi_value NapiGetActiveNotificationByFilter(napi_env env, napi_callback_info info);
+napi_value NapiGetActiveNotification(napi_env env, napi_callback_info info);
 }  // namespace NotificationNapi
 }  // namespace OHOS
 

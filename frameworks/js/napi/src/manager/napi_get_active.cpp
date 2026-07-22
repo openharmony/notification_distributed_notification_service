@@ -466,5 +466,135 @@ napi_value NapiGetActiveNotificationByFilter(napi_env env, napi_callback_info in
 
     return promise;
 }
+
+void AsyncCompleteCallbackNapiGetActiveNotification(napi_env env, napi_status status, void *data)
+{
+    ANS_LOGD("called");
+    auto asynccallbackinfo = static_cast<AsyncGetActiveNotificationInfo *>(data);
+    if (!data || !asynccallbackinfo) {
+        ANS_LOGE("Invalid async callback data.");
+        return;
+    }
+
+    napi_value result = nullptr;
+    if (asynccallbackinfo->info.errorCode != ERR_OK) {
+        result = Common::NapiGetNull(env);
+    } else if (asynccallbackinfo->notificationRequest == nullptr) {
+        asynccallbackinfo->info.errorCode = ERR_ANS_INNER_NOTIFICATION_NOT_EXISTS;
+        result = Common::NapiGetNull(env);
+    } else {
+        napi_create_object(env, &result);
+        if (!Common::SetNotificationRequest(env, asynccallbackinfo->notificationRequest, result)) {
+            result = Common::NapiGetNull(env);
+        }
+    }
+    Common::CreateReturnValue(env, asynccallbackinfo->info, result);
+    if (asynccallbackinfo->info.callback != nullptr) {
+        napi_delete_reference(env, asynccallbackinfo->info.callback);
+    }
+    napi_delete_async_work(env, asynccallbackinfo->asyncWork);
+    delete asynccallbackinfo;
+    asynccallbackinfo = nullptr;
+}
+
+bool ParseHashCodeParameter(napi_env env, napi_callback_info info, std::string &hashCode)
+{
+    size_t argc = ARGS_ONE;
+    napi_value argv[ARGS_ONE] = {nullptr};
+    if (napi_get_cb_info(env, info, &argc, argv, NULL, NULL) != napi_ok) {
+        ANS_LOGE("Failed to get callback info");
+        Common::NapiThrow(env, ERR_ANS_INNER_INVALID_PARAM);
+        return false;
+    }
+    if (argc < ARGS_ONE) {
+        ANS_LOGE("Wrong number of arguments");
+        Common::NapiThrow(env, ERR_ANS_INNER_INVALID_PARAM);
+        return false;
+    }
+    napi_valuetype valuetype = napi_undefined;
+    if (napi_typeof(env, argv[PARAM0], &valuetype) != napi_ok) {
+        ANS_LOGE("Failed to get argument type");
+        Common::NapiThrow(env, ERR_ANS_INNER_INVALID_PARAM);
+        return false;
+    }
+    if (valuetype != napi_string) {
+        ANS_LOGE("Wrong argument type. String expected.");
+        Common::NapiThrow(env, ERR_ANS_INNER_INVALID_PARAM);
+        return false;
+    }
+    char str[LONG_STR_MAX_SIZE] = {0};
+    size_t strLen = 0;
+    napi_get_value_string_utf8(env, argv[PARAM0], str, STR_MAX_SIZE - 1, &strLen);
+    hashCode = str;
+    return true;
+}
+
+napi_value HandleGetActiveNotificationAsyncWorkFailure(
+    napi_env env, AsyncGetActiveNotificationInfo *asynccallbackinfo, napi_value promise)
+{
+    asynccallbackinfo->info.errorCode = ERR_ANS_INNER_TASK_ERR;
+    Common::CreateReturnValue(env, asynccallbackinfo->info, Common::NapiGetNull(env));
+    if (asynccallbackinfo->info.callback != nullptr) {
+        napi_delete_reference(env, asynccallbackinfo->info.callback);
+    }
+    delete asynccallbackinfo;
+    return promise;
+}
+
+napi_value NapiGetActiveNotification(napi_env env, napi_callback_info info)
+{
+    ANS_LOGD("called");
+    std::string hashCode;
+    if (!ParseHashCodeParameter(env, info, hashCode)) {
+        return Common::NapiGetUndefined(env);
+    }
+
+    auto asynccallbackinfo = new (std::nothrow) AsyncGetActiveNotificationInfo {.env = env, .asyncWork = nullptr};
+    if (!asynccallbackinfo) {
+        ANS_LOGE("Create asynccallbackinfo failed.");
+        Common::NapiThrow(env, ERR_ANS_INNER_TASK_ERR);
+        return Common::NapiGetUndefined(env);
+    }
+    asynccallbackinfo->hashCode = hashCode;
+
+    napi_value promise = nullptr;
+    Common::PaddingCallbackPromiseInfo(env, nullptr, asynccallbackinfo->info, promise);
+
+    napi_value resourceName = nullptr;
+    napi_status status = napi_create_string_latin1(env, "getActiveNotification", NAPI_AUTO_LENGTH, &resourceName);
+    if (status != napi_ok) {
+        ANS_LOGE("Create resource name failed, status: %{public}d", status);
+        return HandleGetActiveNotificationAsyncWorkFailure(env, asynccallbackinfo, promise);
+    }
+    status = napi_create_async_work(
+        env,
+        nullptr,
+        resourceName,
+        [](napi_env env, void *data) {
+            ANS_LOGD("NapiGetActiveNotification work excute.");
+            auto asynccallbackinfo = static_cast<AsyncGetActiveNotificationInfo *>(data);
+            if (asynccallbackinfo) {
+                asynccallbackinfo->info.errorCode =
+                    DelayedSingleton<AnsNotification>::GetInstance()->GetNotificationRequestByHashCode(
+                        asynccallbackinfo->hashCode, asynccallbackinfo->notificationRequest);
+            }
+        },
+        AsyncCompleteCallbackNapiGetActiveNotification,
+        (void *)asynccallbackinfo,
+        &asynccallbackinfo->asyncWork);
+    if (status != napi_ok) {
+        ANS_LOGE("Create async work failed, status: %{public}d", status);
+        return HandleGetActiveNotificationAsyncWorkFailure(env, asynccallbackinfo, promise);
+    }
+
+    status = napi_queue_async_work_with_qos(env, asynccallbackinfo->asyncWork, napi_qos_user_initiated);
+    if (status != napi_ok) {
+        ANS_LOGE("Queue async work failed, status: %{public}d", status);
+        napi_delete_async_work(env, asynccallbackinfo->asyncWork);
+        return HandleGetActiveNotificationAsyncWorkFailure(env, asynccallbackinfo, promise);
+    }
+
+    return promise;
+}
 }  // namespace NotificationNapi
 }  // namespace OHOS

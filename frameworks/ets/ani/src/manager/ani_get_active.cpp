@@ -108,6 +108,44 @@ void GetInfoForGetActiveByFilter(ani_env* envCurr, AsyncCallbackActiveInfo* asyn
     }
 }
 
+void GetAllActiveNotificationsInfo(ani_env* envCurr, AsyncCallbackActiveInfo* asyncCallbackInfo)
+{
+    ani_array arrayNotificationObj = NotificationSts::GetAniNotificationRequestArrayByNotifocations(
+        envCurr, asyncCallbackInfo->notifications);
+    if (arrayNotificationObj == nullptr) {
+        ANS_LOGE("arrayNotificationObj is nullptr");
+        asyncCallbackInfo->info.returnCode = ERR_ANS_INNER_TASK_ERR;
+    } else {
+        asyncCallbackInfo->info.result = static_cast<ani_object>(arrayNotificationObj);
+    }
+}
+
+void GetActiveNotificationsInfo(ani_env* envCurr, AsyncCallbackActiveInfo* asyncCallbackInfo)
+{
+    ani_array arrayRequestObj = NotificationSts::GetAniNotificationRequestArray(envCurr,
+        asyncCallbackInfo->requests);
+    if (arrayRequestObj == nullptr) {
+        ANS_LOGE("arrayRequestObj is nullptr");
+        asyncCallbackInfo->info.returnCode = ERR_ANS_INNER_TASK_ERR;
+    } else {
+        asyncCallbackInfo->info.result = static_cast<ani_object>(arrayRequestObj);
+    }
+}
+
+void GetInfoForGetActiveByHashCode(ani_env* envCurr, AsyncCallbackActiveInfo* asyncCallbackInfo)
+{
+    if (asyncCallbackInfo->notificationRequest == nullptr) {
+        asyncCallbackInfo->info.returnCode = ERR_ANS_INNER_NOTIFICATION_NOT_EXISTS;
+        return;
+    }
+    ani_class requestCls;
+    if (!NotificationSts::WarpNotificationRequest(envCurr,
+        asyncCallbackInfo->notificationRequest.GetRefPtr(), requestCls, asyncCallbackInfo->info.result)) {
+        ANS_LOGE("WarpNotificationRequest failed");
+        asyncCallbackInfo->info.returnCode = ERR_ANS_INNER_TASK_ERR;
+    }
+}
+
 void HandleGetActiveFunctionComplete(ani_env* env, WorkStatus status, void* data)
 {
     auto asyncCallbackInfo = static_cast<AsyncCallbackActiveInfo*>(data);
@@ -124,32 +162,18 @@ void HandleGetActiveFunctionComplete(ani_env* env, WorkStatus status, void* data
             asyncCallbackInfo->info.result = NotificationSts::CreateLong(
                 envCurr, asyncCallbackInfo->notificationNums);
             break;
-        case GET_ALL_ACTIVE_NOTIFICATIONS: {
-            ani_array arrayNotificationObj = NotificationSts::GetAniNotificationRequestArrayByNotifocations(
-                envCurr, asyncCallbackInfo->notifications);
-            if (arrayNotificationObj == nullptr) {
-                ANS_LOGE("arrayNotificationObj is nullptr");
-                asyncCallbackInfo->info.returnCode = ERR_ANS_INNER_TASK_ERR;
-            } else {
-                asyncCallbackInfo->info.result = static_cast<ani_object>(arrayNotificationObj);
-            }
+        case GET_ALL_ACTIVE_NOTIFICATIONS:
+            GetAllActiveNotificationsInfo(envCurr, asyncCallbackInfo);
             break;
-        }
-        case GET_ACTIVE_NOTIFICATIONS: {
-            ani_array arrayRequestObj = NotificationSts::GetAniNotificationRequestArray(envCurr,
-                asyncCallbackInfo->requests);
-            if (arrayRequestObj == nullptr) {
-                ANS_LOGE("arrayRequestObj is nullptr");
-                asyncCallbackInfo->info.returnCode = ERR_ANS_INNER_TASK_ERR;
-            } else {
-                asyncCallbackInfo->info.result = static_cast<ani_object>(arrayRequestObj);
-            }
+        case GET_ACTIVE_NOTIFICATIONS:
+            GetActiveNotificationsInfo(envCurr, asyncCallbackInfo);
             break;
-        }
-        case GET_ACTIVE_NOTIFICATIONS_BY_FILTER: {
+        case GET_ACTIVE_NOTIFICATIONS_BY_FILTER:
             GetInfoForGetActiveByFilter(envCurr, asyncCallbackInfo);
             break;
-        }
+        case GET_ACTIVE_NOTIFICATION_BY_HASHCODE:
+            GetInfoForGetActiveByHashCode(envCurr, asyncCallbackInfo);
+            break;
         default:
             break;
     }
@@ -349,6 +373,53 @@ ani_object AniGetActiveNotificationByFilter(ani_env *env, ani_object obj, ani_ob
         return promise;
     }
     return nullptr;
+}
+
+ani_object AniGetActiveNotification(ani_env *env, ani_string hashCode)
+{
+    ANS_LOGD("AniGetActiveNotification called");
+    auto asyncCallbackInfo = new (std::nothrow)AsyncCallbackActiveInfo{.asyncWork = nullptr};
+    if (!asyncCallbackInfo) {
+        NotificationSts::ThrowInternerErrorWithLogE(env, "asyncCallbackInfo is null");
+        return nullptr;
+    }
+    std::string hashCodeStr;
+    ani_status status = NotificationSts::GetStringByAniString(env, hashCode, hashCodeStr);
+    if (status != ANI_OK) {
+        ANS_LOGE("GetStringByAniString failed, status: %{public}d", status);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetStringByAniString failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
+    asyncCallbackInfo->hashCode = hashCodeStr;
+
+    ani_ref callbackRef = nullptr;
+    ani_object promise;
+    NotificationSts::PaddingCallbackPromiseInfo(env, callbackRef, asyncCallbackInfo->info, promise);
+    ani_status aniStatus = env->GetVM(&asyncCallbackInfo->vm);
+    if (aniStatus != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", aniStatus);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
+    asyncCallbackInfo->functionType = GET_ACTIVE_NOTIFICATION_BY_HASHCODE;
+    WorkStatus workStatus = CreateAsyncWork(env,
+        [](ani_env* env, void* data) {
+            auto asyncCallbackInfo = static_cast<AsyncCallbackActiveInfo*>(data);
+            if (asyncCallbackInfo) {
+                asyncCallbackInfo->info.returnCode =
+                    DelayedSingleton<AnsNotification>::GetInstance()->GetNotificationRequestByHashCode(
+                        asyncCallbackInfo->hashCode, asyncCallbackInfo->notificationRequest);
+            }
+        },
+        HandleGetActiveFunctionComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
+    if (workStatus != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+        NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
+    return promise;
 }
 } // namespace NotificationManagerSts
 } // namespace OHOS
