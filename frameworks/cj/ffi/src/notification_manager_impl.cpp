@@ -14,6 +14,7 @@
  */
 
 #include "notification_manager_impl.h"
+#include "cj_modal_extension_callback.h"
 #include "notification_utils.h"
 #include "inner_errors.h"
 #include "notification_enable.h"
@@ -27,6 +28,7 @@ namespace OHOS {
 namespace CJSystemapi {
     using namespace OHOS::Notification;
     using namespace OHOS::CJSystemapi::Notification;
+    bool CreateUIExtension(sptr<AbilityRuntime::CJAbilityContext> context, const std::string &bundleName);
 
     static bool ParseParameters(CNotificationRequestV2 params, NotificationRequest &request)
     {
@@ -400,21 +402,29 @@ namespace CJSystemapi {
 
     int NotificationManagerImplV2::RequestEnableNotificationWithContext(sptr<AbilityRuntime::CJAbilityContext> context)
     {
-        IsEnableParams params {};
         sptr<IRemoteObject> callerToken = context->GetToken();
-        params.callerToken = callerToken;
         sptr<AnsDialogHostClient> client = nullptr;
-        params.hasCallerToken = true;
         std::string deviceId {""};
-        if (!AnsDialogHostClient::CreateIfNullptr(client)) {
-            LOGI("dialog is popping %{public}u.", ERR_ANS_INNER_DIALOG_IS_POPPING)
-            return InnerErrorToExternal(ERR_ANS_INNER_DIALOG_IS_POPPING);
+        AnsDialogHostClient::CreateIfNullptr(client, true);
+        if (client == nullptr) {
+            LOGE("create client fail");
+            return InnerErrorToExternal(ERR_ANS_INNER_TASK_ERR);
         }
-        uint32_t result =
-            DelayedSingleton<AnsNotification>::GetInstance()->RequestEnableNotification(
-                deviceId, client, params.callerToken);
-        LOGI("done, result is %{public}d.", InnerErrorToExternal(result))
-        return InnerErrorToExternal(result);
+        bool canPop = false;
+        std::string bundleName {""};
+        uint32_t result = DelayedSingleton<AnsNotification>::GetInstance()->CanPopEnableNotificationDialog(
+            client, canPop, bundleName);
+        LOGI("canPopDialog result=%{public}d canPop=%{public}d bundleName=%{public}s.",
+            result, canPop, bundleName.c_str());
+        if (canPop == false) {
+            return InnerErrorToExternal(result);
+        }
+        bool success = CreateUIExtension(context, bundleName);
+        if (!success) {
+            DelayedSingleton<AnsNotification>::GetInstance()->RemoveEnableNotificationDialog();
+            return InnerErrorToExternal(ERR_ANS_INNER_TASK_ERR);
+        }
+        return ERR_OK;
     }
 
     RetDataBool NotificationManagerImplV2::IsDistributedEnabled()
@@ -427,6 +437,56 @@ namespace CJSystemapi {
         ret.code = InnerErrorToExternal(result);
         ret.data = enable;
         return ret;
+    }
+
+    bool CreateUIExtension(sptr<AbilityRuntime::CJAbilityContext> context, const std::string &bundleName)
+    {
+        if (context == nullptr) {
+            LOGE("null cjContext");
+            return false;
+        }
+        auto abilityContext = context->GetAbilityContext();
+        if (abilityContext == nullptr) {
+            LOGE("null abilityContext");
+            return false;
+        }
+        auto uiContent = abilityContext->GetUIContent();
+        if (uiContent == nullptr) {
+            LOGE("null uiContent");
+            return false;
+        }
+        AAFwk::Want want;
+        std::string targetBundleName = "com.ohos.notificationdialog";
+        std::string targetAbilityName = "EnableNotificationDialog";
+        want.SetElementName(targetBundleName, targetAbilityName);
+        std::string typeKey = "ability.want.params.uiExtensionType";
+        std::string typeValue = "sysDialog/common";
+        want.SetParam(typeKey, typeValue);
+        auto modalCb = std::make_shared<CjModalExtensionCallback>();
+        modalCb->SetAbilityContext(abilityContext);
+        modalCb->SetBundleName(bundleName);
+        Ace::ModalUIExtensionCallbacks uiExtensionCallbacks = {
+            .onRelease = [modalCb](int32_t code) { modalCb->OnRelease(code); },
+            .onResult = [modalCb](int32_t rc, const AAFwk::Want& w) { modalCb->OnResult(rc, w); },
+            .onReceive = [modalCb](const AAFwk::WantParams& p) { modalCb->OnReceive(p); },
+            .onError = [modalCb](int32_t c, const std::string& n, const std::string& m) {
+                modalCb->OnError(c, n, m);
+            },
+            .onRemoteReady = [modalCb](const std::shared_ptr<Ace::ModalUIExtensionProxy>& uiProxy) {
+                modalCb->OnRemoteReady(uiProxy);
+            },
+            .onDestroy = [modalCb]() { modalCb->OnDestroy(); },
+        };
+        Ace::ModalUIExtensionConfig config;
+        config.isProhibitBack = true;
+
+        int32_t sessionId = uiContent->CreateModalUIExtension(want, uiExtensionCallbacks, config);
+        LOGI("CreateModalUIExtension sessionId=%{public}d", sessionId);
+        if (sessionId == 0) {
+            return false;
+        }
+        modalCb->SetSessionId(sessionId);
+        return true;
     }
 } // CJSystemapi
 } // namespace OHOS

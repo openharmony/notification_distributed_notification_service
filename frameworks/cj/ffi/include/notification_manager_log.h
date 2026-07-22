@@ -23,8 +23,15 @@
 #define LOG_DOMAIN 0xD001203
 #define LOG_TAG "NotificationManagerFFI"
 
+#undef LOGD
 #undef LOGI
 #undef LOGE
+
+#define LOGD(...)                                            \
+if (HiLogIsLoggable(LOG_DOMAIN, LOG_TAG, LOG_DEBUG)) {       \
+    HILOG_DEBUG(LOG_CORE, ##__VA_ARGS__);                    \
+}
+
 #define LOGI(...)                                           \
 if (HiLogIsLoggable(LOG_DOMAIN, LOG_TAG, LOG_INFO)) {       \
     HILOG_INFO(LOG_CORE, ##__VA_ARGS__);                    \
