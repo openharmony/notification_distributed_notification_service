@@ -29,6 +29,7 @@ napi_value NotificationSubscribeInit(napi_env env, napi_value exports)
 
     napi_property_descriptor desc[] = {
         DECLARE_NAPI_FUNCTION("subscribe", NapiNotificationExtensionSubscribe),
+        DECLARE_NAPI_FUNCTION("subscribeNotification", NapiNotificationExtensionSubscribeNotification),
         DECLARE_NAPI_FUNCTION("unsubscribe", NapiNotificationExtensionUnsubscribe),
         DECLARE_NAPI_FUNCTION("getSubscribeInfo", NapiGetSubscribeInfo),
         DECLARE_NAPI_FUNCTION("isUserGranted", NapiIsUserGranted),

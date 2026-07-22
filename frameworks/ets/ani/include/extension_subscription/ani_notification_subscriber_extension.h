@@ -34,7 +34,8 @@ enum class NotificationExtensionFunctionType {
     SET_USER_GRANTED_STATE,
     GET_USER_GRANTED_ENABLED_BUNDLES,
     GET_USER_GRANTED_ENABLED_BUNDLES_FOR_SELF,
-    SET_USER_GRANTED_BUNDLE_STATE
+    SET_USER_GRANTED_BUNDLE_STATE,
+    SUBSCRIBE_NOTIFICATION
 };
 struct AsyncCallbackInfoNotificationExtension {
     ani_vm *vm = nullptr;
@@ -43,6 +44,7 @@ struct AsyncCallbackInfoNotificationExtension {
     NotificationExtensionFunctionType funcType = NotificationExtensionFunctionType::NONE;
 
     bool enabled = false;
+    int32_t priorityStrategy = 0;
     Notification::NotificationBundleOption targetBundle;
     std::vector<sptr<Notification::NotificationBundleOption>> bundles;
     std::vector<sptr<Notification::NotificationExtensionSubscriptionInfo>> subscriptionInfo;
@@ -52,6 +54,7 @@ void HandleAsyncCallbackComplete(ani_env *env, arkts::concurrency_helpers::WorkS
 void HandleAsyncCallbackCompleteInner(ani_env *envCurr, AsyncCallbackInfoNotificationExtension *asyncCallbackInfo);
 
 ani_object AniSubscribe(ani_env *env, ani_object notificationInfoArrayobj);
+ani_object AniSubscribeNotification(ani_env *env, ani_int priorityStrategy);
 ani_object AniUnsubscribe(ani_env *env);
 ani_object AniGetSubscribeInfo(ani_env *env);
 ani_object AniGetAllSubscriptionBundles(ani_env *env);

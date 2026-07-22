@@ -46,6 +46,7 @@ NotificationSubscribeInfo::NotificationSubscribeInfo(const NotificationSubscribe
     pictureOption_ = subscribeInfo.GetPictureOption();
     enableClassification_ = subscribeInfo.GetEnableClassification();
     needSilentReplayOnSubscribe_ = subscribeInfo.GetNeedSilentReplayOnSubscribe();
+    priorityStrategy_ = subscribeInfo.GetPriorityStrategy();
 }
 
 void NotificationSubscribeInfo::AddAppName(const std::string appName)
@@ -195,6 +196,10 @@ bool NotificationSubscribeInfo::Marshalling(Parcel &parcel) const
         ANS_LOGE("Can't write needSilentReplayOnSubscribe");
         return false;
     }
+    if (!parcel.WriteInt32(priorityStrategy_)) {
+        ANS_LOGE("Can't write priorityStrategy");
+        return false;
+    }
     return true;
 }
 
@@ -292,6 +297,7 @@ bool NotificationSubscribeInfo::ReadFromParcel(Parcel &parcel)
     }
     enableClassification_ = parcel.ReadBool();
     needSilentReplayOnSubscribe_ = parcel.ReadBool();
+    priorityStrategy_ = parcel.ReadInt32();
     return true;
 }
 
@@ -335,8 +341,9 @@ std::string NotificationSubscribeInfo::Dump()
             "isSubscribeSelf = " + std::to_string(isSubscribeSelf_) +
             "voiceContentOption = " + voiceContentOption +
             "pictureOption = " + pictureOption +
-             "enableClassification = " + std::to_string(enableClassification_) +
-             "needSilentReplayOnSubscribe = " + std::to_string(needSilentReplayOnSubscribe_) +
+            "enableClassification = " + std::to_string(enableClassification_) +
+            "needSilentReplayOnSubscribe = " + std::to_string(needSilentReplayOnSubscribe_) +
+            "priorityStrategy = " + std::to_string(priorityStrategy_) +
             " }";
 }
 
@@ -448,6 +455,16 @@ void NotificationSubscribeInfo::SetNeedSilentReplayOnSubscribe(bool needSilentRe
 bool NotificationSubscribeInfo::GetNeedSilentReplayOnSubscribe() const
 {
     return needSilentReplayOnSubscribe_;
+}
+
+void NotificationSubscribeInfo::SetPriorityStrategy(int32_t priorityStrategy)
+{
+    priorityStrategy_ = priorityStrategy;
+}
+
+int32_t NotificationSubscribeInfo::GetPriorityStrategy() const
+{
+    return priorityStrategy_;
 }
 }  // namespace Notification
 }  // namespace OHOS

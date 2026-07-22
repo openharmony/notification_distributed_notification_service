@@ -222,6 +222,11 @@ public:
     void SetNeedSilentReplayOnSubscribe(bool needSilentReplayOnSubscribe);
 
     bool GetNeedSilentReplayOnSubscribe() const;
+
+    void SetPriorityStrategy(int32_t priorityStrategy);
+
+    int32_t GetPriorityStrategy() const;
+
 private:
     bool ReadFromParcel(Parcel &parcel);
     bool ReadVoiceContentOptionFromParcel(Parcel &parcel);
@@ -265,6 +270,7 @@ private:
     sptr<PictureOption> pictureOption_;
     bool enableClassification_ = false;
     bool needSilentReplayOnSubscribe_ = false;
+    int32_t priorityStrategy_ = 0;
     friend class NotificationSubscriberManager;
 };
 }  // namespace Notification

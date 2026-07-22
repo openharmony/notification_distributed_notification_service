@@ -135,6 +135,50 @@ ani_object AniSubscribe(ani_env *env, ani_object notificationInfoArrayobj)
     return nullptr;
 }
 
+ani_object AniSubscribeNotification(ani_env *env, ani_int priorityStrategy)
+{
+    ANS_LOGD("AniSubscribeNotification enter");
+    auto asyncCallbackInfo = new (std::nothrow) AsyncCallbackInfoNotificationExtension();
+    if (!asyncCallbackInfo) {
+        NotificationSts::ThrowInternerErrorWithLogE(env, "asyncCallbackInfo is null");
+        return nullptr;
+    }
+    asyncCallbackInfo->priorityStrategy = priorityStrategy;
+
+    ani_object promise;
+    NotificationSts::PaddingCallbackPromiseInfo(env, asyncCallbackInfo->info.callback,
+        asyncCallbackInfo->info, promise);
+
+    ani_status aniStatus = env->GetVM(&asyncCallbackInfo->vm);
+    if (aniStatus != ANI_OK) {
+        ANS_LOGE("GetVM failed, status: %{public}d", aniStatus);
+        NotificationSts::ThrowInternerErrorWithLogE(env, "GetVM failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
+
+    asyncCallbackInfo->funcType = NotificationExtensionFunctionType::SUBSCRIBE_NOTIFICATION;
+    WorkStatus status = CreateAsyncWork(env,
+        [](ani_env *env, void *data) {
+            auto asyncCallbackInfo = static_cast<AsyncCallbackInfoNotificationExtension*>(data);
+            if (asyncCallbackInfo) {
+                asyncCallbackInfo->info.returnCode =
+                    DelayedSingleton<AnsNotification>::GetInstance()->NotificationExtensionSubscribeNotification(
+                        asyncCallbackInfo->priorityStrategy);
+            }
+        },
+        HandleAsyncCallbackComplete, (void*)asyncCallbackInfo, &(asyncCallbackInfo->asyncWork));
+    if (status != WorkStatus::OK || WorkStatus::OK != QueueAsyncWork(env, asyncCallbackInfo->asyncWork)) {
+        NotificationSts::ThrowInternerErrorWithLogE(env, "CreateAsyncWork or QueueAsyncWork failed");
+        DeleteCallBackInfo(env, asyncCallbackInfo);
+        return nullptr;
+    }
+    if (asyncCallbackInfo->info.callback == nullptr) {
+        return promise;
+    }
+    return nullptr;
+}
+
 ani_object AniUnsubscribe(ani_env *env)
 {
     ANS_LOGD("AniUnsubscribe enter");
@@ -586,6 +630,7 @@ void HandleAsyncCallbackCompleteInner(ani_env *envCurr, AsyncCallbackInfoNotific
     ANS_LOGD("funcType: %{public}d", asyncCallbackInfo->funcType);
     switch (asyncCallbackInfo->funcType) {
         case NotificationExtensionFunctionType::SUBSCRIBE:
+        case NotificationExtensionFunctionType::SUBSCRIBE_NOTIFICATION:
         case NotificationExtensionFunctionType::UNSUBSCRIBE:
         case NotificationExtensionFunctionType::SET_USER_GRANTED_STATE:
         case NotificationExtensionFunctionType::SET_USER_GRANTED_BUNDLE_STATE:

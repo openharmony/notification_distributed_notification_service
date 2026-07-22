@@ -95,6 +95,19 @@ void NotificationExtensionService::SubscribeNotification(const sptr<Notification
     });
 }
 
+void NotificationExtensionService::SubscribeNotification(const sptr<NotificationBundleOption> bundle,
+    int32_t priorityStrategy)
+{
+    ANS_LOGD("NotificationExtensionService::SubscribeNotification with priorityStrategy");
+    if (serviceQueue_ == nullptr) {
+        ANS_LOGE("null serviceQueue.");
+        return;
+    }
+    serviceQueue_->submit_h([=]() {
+        ExtensionServiceSubscribeService::GetInstance().SubscribeNotification(bundle, priorityStrategy);
+    });
+}
+
 void NotificationExtensionService::UnsubscribeNotification(const sptr<NotificationBundleOption> bundle)
 {
     ANS_LOGD("NotificationExtensionService::UnsubscribeNotification");

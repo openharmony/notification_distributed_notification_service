@@ -307,7 +307,16 @@ public:
     };
 
     enum class SubscribeType {
-        BLUETOOTH = 0
+        BLUETOOTH = 0,
+        SYSTEM = 10,
+    };
+
+    enum class PrioritySourceResult {
+        INVALID_RESULT = -1,
+        PARAM_IN = 0,
+        KEYWORD = 1,
+        AI = 2,
+        PUSH_RULE = 3,
     };
 
     static const int32_t DEFAULT_REASON_DELETE = 0;
