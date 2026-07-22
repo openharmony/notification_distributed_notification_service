@@ -3124,16 +3124,17 @@ bool NotificationRequest::IsUpdateLiveView() const
 
 ErrCode NotificationRequest::CheckVersion(const sptr<NotificationRequest> &oldRequest) const
 {
-    if (oldRequest == nullptr) {
-        ANS_LOGE("oldRequest is nullptr");
+    if (oldRequest == nullptr || oldRequest->GetContent() == nullptr ||
+        oldRequest->GetContent()->GetNotificationContent() == nullptr) {
+        ANS_LOGE("oldRequest or content is nullptr");
         return ERR_ANS_INNER_INVALID_PARAM;
     }
-    
+
     if (notificationContent_ == nullptr) {
         ANS_LOGE("notificationContent_ is nullptr");
         return ERR_ANS_INNER_INVALID_PARAM;
     }
-    
+
     auto content = notificationContent_->GetNotificationContent();
     auto liveView = std::static_pointer_cast<NotificationLiveViewContent>(content);
     auto oldContent = oldRequest->GetContent()->GetNotificationContent();
@@ -3184,6 +3185,12 @@ ErrCode NotificationRequest::CheckNotificationRequest(const sptr<NotificationReq
     if (!oldRequest->IsCommonLiveView()) {
         ANS_LOGE("Invalid old request param, slot type %{public}d, content type %{public}d.",
             oldRequest->GetSlotType(), oldRequest->GetNotificationType());
+        return ERR_ANS_INNER_INVALID_PARAM;
+    }
+
+    if (oldRequest == nullptr || oldRequest->GetContent() == nullptr ||
+        oldRequest->GetContent()->GetNotificationContent() == nullptr) {
+        ANS_LOGE("oldRequest or content is nullptr");
         return ERR_ANS_INNER_INVALID_PARAM;
     }
 
@@ -3283,8 +3290,8 @@ void NotificationRequest::UpdateExtraInfo(const sptr<NotificationRequest> &oldRe
 
 void NotificationRequest::IncrementalUpdateLiveview(const sptr<NotificationRequest> &oldRequest)
 {
-    if (oldRequest == nullptr) {
-        ANS_LOGE("oldRequest is nullptr");
+    if (oldRequest == nullptr || oldRequest->GetContent() == nullptr ||
+        oldRequest->GetContent()->GetNotificationContent() == nullptr) {
         return;
     }
     
