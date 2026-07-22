@@ -28,6 +28,7 @@ enum GetActiveFunction {
     GET_ALL_ACTIVE_NOTIFICATIONS,
     GET_ACTIVE_NOTIFICATIONS,
     GET_ACTIVE_NOTIFICATIONS_BY_FILTER,
+    GET_ACTIVE_NOTIFICATION_BY_HASHCODE,
 };
 
 struct AsyncCallbackActiveInfo {
@@ -40,6 +41,7 @@ struct AsyncCallbackActiveInfo {
     std::vector<sptr<NotificationSts::NotificationRequest>> requests;
     sptr<OHOS::Notification::NotificationRequest> notificationRequest;
     Notification::LiveViewFilter liveViewFilter;
+    std::string hashCode;
 };
 
 void HandleGetActiveFunctionComplete(ani_env* env, arkts::concurrency_helpers::WorkStatus status, void* data);
@@ -48,6 +50,7 @@ ani_object AniGetActiveNotificationCount(ani_env *env, ani_object callback);
 ani_object AniGetAllActiveNotifications(ani_env *env, ani_object callback);
 ani_object AniGetActiveNotifications(ani_env *env, ani_object callback);
 ani_object AniGetActiveNotificationByFilter(ani_env *env, ani_object obj, ani_object callback);
+ani_object AniGetActiveNotification(ani_env *env, ani_string hashCode);
 } // namespace NotificationManagerSts
 } // namespace OHOS
 #endif
