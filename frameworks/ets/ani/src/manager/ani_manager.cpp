@@ -91,6 +91,8 @@ static std::array kitManagerFunctions = {
         reinterpret_cast<void *>(AniGetActiveNotificationCount)},
     ani_native_function {"nativeGetActiveNotificationByFilter", nullptr,
         reinterpret_cast<void *>(AniGetActiveNotificationByFilter)},
+    ani_native_function {"nativeGetActiveNotification", nullptr,
+        reinterpret_cast<void *>(AniGetActiveNotification)},
     ani_native_function {"nativeIsSupportTemplate", nullptr, reinterpret_cast<void *>(AniIsSupportTemplate)},
     ani_native_function {"nativesetDistributedEnabledBySlot", nullptr,
         reinterpret_cast<void *>(AniSetDistributedEnableBySlot)},

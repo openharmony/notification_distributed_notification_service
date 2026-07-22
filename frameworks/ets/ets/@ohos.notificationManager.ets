@@ -245,6 +245,7 @@ export default namespace notificationManager {
         callback?: AsyncCallback<Array<NotificationRequest>>): Promise<Array<NotificationRequest>>;
     export native function nativeGetActiveNotificationByFilter(filter: NotificationFilter,
         callback?: AsyncCallback<NotificationRequest|null>): Promise<NotificationRequest|null>;
+    export native function nativeGetActiveNotification(hashCode: string): Promise<NotificationRequest|null>;
     export native function nativeAddDoNotDisturbProfile(templates: Array<DoNotDisturbProfile>,
         callback?: AsyncCallback<void>): Promise<void>;
     export native function nativeAddDoNotDisturbProfileByUserId(templates: Array<DoNotDisturbProfile>, userId : int,
@@ -1903,6 +1904,21 @@ export default namespace notificationManager {
         let result: Promise<NotificationRequest|null>;
         try {
             result = nativeGetActiveNotificationByFilter(filter, undefined);
+        } catch (err) {
+            let error: BusinessError = err as BusinessError;
+            throw error;
+        }
+        return result;
+    }
+
+    export function getActiveNotification(hashCode: string): Promise<NotificationRequest|null>
+    {
+        if (hashCode === '') {
+            throw errorParamInvalid;
+        }
+        let result: Promise<NotificationRequest|null>;
+        try {
+            result = nativeGetActiveNotification(hashCode);
         } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;
