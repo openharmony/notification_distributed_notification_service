@@ -27,6 +27,7 @@ namespace NotificationNapi {
 using OHOS::Notification::AnsNotification;
 namespace {
 const int SUBSCRIBE_MAX_PARA = 1;
+const int SUBSCRIBE_NOTIFICATION_MAX_PARA = 1;
 const int NAPI_GET_USER_GRANTED_STATE_MAX_PARA = 1;
 const int NAPI_SET_USER_GRANTED_STATE_MAX_PARA = 2;
 const int NAPI_GET_USER_GRANTED_ENABLE_BUNDLES_MAX_PARA = 1;
@@ -1048,6 +1049,64 @@ napi_value NapiNotificationExtensionSubscribe(napi_env env, napi_callback_info i
                 asynccallbackinfo->info.errorCode =
                     DelayedSingleton<AnsNotification>::GetInstance()->NotificationExtensionSubscribe(
                         asynccallbackinfo->subscriptionInfo);
+                ANS_LOGI("errorCode = %{public}d", asynccallbackinfo->info.errorCode);
+            }
+        },
+        AsyncCompleteCallbackSubscriptionReturnVoid,
+        (void *)asynccallbackinfo,
+        &asynccallbackinfo->asyncWork);
+
+    napi_queue_async_work_with_qos(env, asynccallbackinfo->asyncWork, napi_qos_user_initiated);
+
+    return promise;
+}
+
+napi_value NapiNotificationExtensionSubscribeNotification(napi_env env, napi_callback_info info)
+{
+    ANS_LOGD("start subscribe notification");
+
+    AsyncCallbackInfoNotificationExtensionSubscription* asynccallbackinfo = new (std::nothrow)
+        AsyncCallbackInfoNotificationExtensionSubscription { .env = env, .asyncWork = nullptr };
+    if (!asynccallbackinfo) {
+        Common::NapiThrow(env, ERR_ANS_INNER_TASK_ERR);
+        return Common::JSParaError(env, nullptr);
+    }
+
+    size_t argc = SUBSCRIBE_NOTIFICATION_MAX_PARA;
+    napi_value argv[SUBSCRIBE_NOTIFICATION_MAX_PARA] = {nullptr};
+    napi_value thisVar = nullptr;
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, NULL));
+
+    if (argc > 0) {
+        napi_valuetype valuetype = napi_undefined;
+        NAPI_CALL(env, napi_typeof(env, argv[PARAM0], &valuetype));
+        if (valuetype != napi_number) {
+            ANS_LOGE("Wrong argument type. Number expected.");
+            std::string msg = "Incorrect parameter types.The type of priorityStrategy must be number.";
+            Common::NapiThrow(env, ERR_ANS_INNER_INVALID_PARAM, msg);
+            delete asynccallbackinfo;
+            asynccallbackinfo = nullptr;
+            return Common::NapiGetUndefined(env);
+        }
+        napi_get_value_int32(env, argv[PARAM0], &asynccallbackinfo->priorityStrategy);
+    }
+
+    napi_value promise = nullptr;
+    Common::PaddingCallbackPromiseInfo(env, nullptr, asynccallbackinfo->info, promise);
+
+    napi_value resourceName = nullptr;
+    napi_create_string_latin1(env, "subscribeNotification", NAPI_AUTO_LENGTH, &resourceName);
+    napi_create_async_work(env,
+        nullptr,
+        resourceName,
+        [](napi_env env, void *data) {
+            ANS_LOGD("subscribeNotification work execute.");
+            AsyncCallbackInfoNotificationExtensionSubscription *asynccallbackinfo =
+                static_cast<AsyncCallbackInfoNotificationExtensionSubscription *>(data);
+            if (asynccallbackinfo) {
+                asynccallbackinfo->info.errorCode =
+                    DelayedSingleton<AnsNotification>::GetInstance()->NotificationExtensionSubscribeNotification(
+                        asynccallbackinfo->priorityStrategy);
                 ANS_LOGI("errorCode = %{public}d", asynccallbackinfo->info.errorCode);
             }
         },

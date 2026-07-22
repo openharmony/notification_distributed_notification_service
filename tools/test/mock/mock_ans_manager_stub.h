@@ -908,6 +908,11 @@ public:
         return ERR_ANS_INVALID_PARAM;
     }
 
+    ErrCode NotificationExtensionSubscribeNotification(int32_t priorityStrategy) override
+    {
+        return ERR_ANS_INVALID_PARAM;
+    }
+
     ErrCode GetSubscribeInfo(std::vector<sptr<NotificationExtensionSubscriptionInfo>>& infos) override
     {
         return ERR_ANS_INVALID_PARAM;

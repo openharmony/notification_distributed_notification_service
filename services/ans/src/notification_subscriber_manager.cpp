@@ -676,6 +676,7 @@ void NotificationSubscriberManager::AddRecordInfo(
     record->subscribedFlags_ = subscribeInfo->GetSubscribedFlags();
     record->enableClassification = subscribeInfo->GetEnableClassification();
     record->needSilentReplayOnSubscribe = subscribeInfo->GetNeedSilentReplayOnSubscribe();
+    record->priorityStrategy_ = subscribeInfo->GetPriorityStrategy();
 }
 
 void NotificationSubscriberManager::RemoveRecordInfo(
@@ -842,32 +843,69 @@ void NotificationSubscriberManager::NotifyConsumedInner(const sptr<Notification>
     std::set<std::string> voiceFlag;
     GetVoiceContentInfo(notification, voiceFlag, content);
     for (auto record : subscriberRecordList_) {
-        ANS_LOGD("%{public}s record->userId = <%{public}d> BundleName  = <%{public}s deviceType = %{public}s",
-            __FUNCTION__, record->userId, notification->GetBundleName().c_str(), record->deviceType.c_str());
-        if (IsSubscribedBysubscriber(record, notification) &&  IsSubscribedByDeviceType(record, notification, false) &&
-            ConsumeRecordFilter(record, notification) &&
-            (record->subscribedFlags_ & NotificationConstant::SubscribedFlag::SUBSCRIBE_ON_CONSUMED)) {
-            std::string deviceVoiceContent;
-            if (!content.empty() && voiceFlag.count(record->deviceType)) {
-                deviceVoiceContent = content;
-            }
-            auto notificationStub = GenerateSubscribedNotification(record, notification, deviceVoiceContent);
-            if (notificationStub == nullptr) {
-                continue;
-            }
-            if (record->enableClassification && notificationClassifications.size() > 0) {
-                notificationStub->SetNotificationClassification(notificationClassifications.at(0));
-            }
-            notification->GetNotificationRequestPoint()->AddConsumedDevices(record->deviceType);
-            auto request = notificationStub->GetNotificationRequestPoint();
-            if (notificationMap != nullptr) {
-                record->subscriber->OnConsumed(notificationStub, notificationMap);
-            } else {
-                record->subscriber->OnConsumed(notificationStub);
-            }
+        ANS_LOGD(
+            "%{public}s record->userId = <%{public}d> BundleName  = "
+            "<%{public}s deviceType = %{public}s priorityStrategy = %{public}d",
+            __FUNCTION__, record->userId, notification->GetBundleName().c_str(),
+            record->deviceType.c_str(), record->priorityStrategy_);
+        if (record->priorityStrategy_ != 0) {
+            NotifyPriorityRecordOnConsumed(record, notification, notificationMap);
+            continue;
         }
+        NotifyRecordOnConsumed(record, notification, notificationMap, content, voiceFlag, notificationClassifications);
     }
     NotificationSubscriberManager::TrackCodeLog(notification);
+}
+
+void NotificationSubscriberManager::NotifyPriorityRecordOnConsumed(const std::shared_ptr<SubscriberRecord> &record,
+    const sptr<Notification> &notification, const sptr<NotificationSortingMap> &notificationMap)
+{
+    bool shouldNotify = record->priorityStrategy_ == 0 || IsSubscribedByPriority(record, notification);
+    if (!shouldNotify) {
+        ANS_LOGD("%{public}d should not notify", record->priorityStrategy_);
+        return;
+    }
+    auto notificationStub = GenerateSubscribedNotification(record, notification);
+    if (notificationStub == nullptr) {
+        ANS_LOGW("notificationStub null");
+        return;
+    }
+    if (notificationMap != nullptr) {
+        record->subscriber->OnConsumed(notificationStub, notificationMap);
+    } else {
+        record->subscriber->OnConsumed(notificationStub);
+    }
+}
+
+void NotificationSubscriberManager::NotifyRecordOnConsumed(
+    const std::shared_ptr<SubscriberRecord> &record, const sptr<Notification> &notification,
+    const sptr<NotificationSortingMap> &notificationMap, const std::string &content,
+    const std::set<std::string> &voiceFlag,
+    const std::vector<sptr<NotificationClassification>> &notificationClassifications)
+{
+    bool shouldNotify = record->priorityStrategy_ == 0 && IsSubscribedBysubscriber(record, notification) &&
+        IsSubscribedByDeviceType(record, notification, false) && ConsumeRecordFilter(record, notification) &&
+        (record->subscribedFlags_ & NotificationConstant::SubscribedFlag::SUBSCRIBE_ON_CONSUMED);
+    if (!shouldNotify) {
+        return;
+    }
+    std::string deviceVoiceContent;
+    if (!content.empty() && voiceFlag.count(record->deviceType)) {
+        deviceVoiceContent = content;
+    }
+    auto notificationStub = GenerateSubscribedNotification(record, notification, deviceVoiceContent);
+    if (notificationStub == nullptr) {
+        return;
+    }
+    if (record->enableClassification && notificationClassifications.size() > 0) {
+        notificationStub->SetNotificationClassification(notificationClassifications.at(0));
+    }
+    notification->GetNotificationRequestPoint()->AddConsumedDevices(record->deviceType);
+    if (notificationMap != nullptr) {
+        record->subscriber->OnConsumed(notificationStub, notificationMap);
+    } else {
+        record->subscriber->OnConsumed(notificationStub);
+    }
 }
 
 #ifdef NOTIFICATION_SMART_REMINDER_SUPPORTED
@@ -1032,7 +1070,6 @@ void NotificationSubscriberManager::NotifyCanceledInner(
             if (notificationStub == nullptr) {
                 continue;
             }
-            auto request = notificationStub->GetNotificationRequestPoint();
             if (notificationMap != nullptr) {
                 record->subscriber->OnCanceled(notificationStub, notificationMap, deleteReason);
             } else {
@@ -1174,6 +1211,101 @@ bool NotificationSubscriberManager::IsSubscribedByDeviceType(const std::shared_p
 #else
     return true;
 #endif
+}
+
+bool NotificationSubscriberManager::CheckAllPriorityByBundle(
+    const sptr<Notification> &notification, const sptr<NotificationRequest> &request)
+{
+    std::string bundleName = notification->GetBundleName();
+    sptr<NotificationBundleOption> bundleOption = new (std::nothrow) NotificationBundleOption();
+    if (bundleOption == nullptr) {
+        return false;
+    }
+    bundleOption->SetBundleName(bundleName);
+    bundleOption->SetUid(request->GetCreatorUid());
+    int64_t priorityStrategy = 0;
+    NotificationPreferences::GetInstance()->GetPriorityStrategyByBundle(bundleOption, priorityStrategy);
+    return priorityStrategy == NotificationConstant::PriorityStrategyStatus::STATUS_ALL_PRIORITY;
+}
+int32_t NotificationSubscriberManager::MatchPriorityTypeToBits(int32_t priorityType)
+{
+    static const std::map<int32_t, int32_t> typeToBits = {
+        { static_cast<int32_t>(NotificationConstant::PrioritySourceResult::PARAM_IN),
+            NotificationConstant::PriorityStrategyStatus::STATUS_SYSTEM_DEFAULT |
+            NotificationConstant::PriorityStrategyStatus::STATUS_APPLICATION_DEFINED },
+        { static_cast<int32_t>(NotificationConstant::PrioritySourceResult::KEYWORD),
+            NotificationConstant::PriorityStrategyStatus::STATUS_SYSTEM_DEFAULT |
+            NotificationConstant::PriorityStrategyStatus::STATUS_USER_DEFINED },
+        { static_cast<int32_t>(NotificationConstant::PrioritySourceResult::AI),
+            NotificationConstant::PriorityStrategyStatus::STATUS_SYSTEM_DEFAULT |
+            NotificationConstant::PriorityStrategyStatus::STATUS_INTELLIGENT },
+        { static_cast<int32_t>(NotificationConstant::PrioritySourceResult::PUSH_RULE),
+            NotificationConstant::PriorityStrategyStatus::STATUS_SYSTEM_DEFAULT |
+            NotificationConstant::PriorityStrategyStatus::STATUS_SYSTEM_RULE }
+    };
+    auto it = typeToBits.find(priorityType);
+    if (it != typeToBits.end()) {
+        return it->second;
+    }
+    return 0;
+}
+
+bool NotificationSubscriberManager::IsSubscribedByPriority(
+    const std::shared_ptr<SubscriberRecord> &record, const sptr<Notification> &notification)
+{
+    if (notification == nullptr) {
+        return false;
+    }
+    auto request = notification->GetNotificationRequestPoint();
+    if (request == nullptr) {
+        return false;
+    }
+    int32_t strategy = record->priorityStrategy_;
+    ANS_LOGD("IsSubscribedByPriority in, strategy=%{public}d, bundleName=%{public}s",
+        strategy, notification->GetBundleName().c_str());
+    if ((strategy & NotificationConstant::PriorityStrategyStatus::STATUS_ALL_PRIORITY) != 0) {
+        if (CheckAllPriorityByBundle(notification, request)) {
+            return true;
+        }
+    }
+
+    auto extendInfo = request->GetExtendInfo();
+    if (extendInfo == nullptr) {
+        ANS_LOGE("extendInfo null");
+        return false;
+    }
+    AAFwk::WantParams classifyParams = extendInfo->GetWantParams("notificationClassify");
+    int32_t priorityType = classifyParams.GetIntParam("type", -1);
+    ANS_LOGD("priorityType=%{public}d", priorityType);
+
+    return MatchPriorityStrategy(strategy, priorityType);
+}
+
+bool NotificationSubscriberManager::MatchPriorityStrategy(int32_t strategy, int32_t priorityType)
+{
+    static const std::map<int32_t, std::vector<int32_t>> strategyToTypes = {
+        { NotificationConstant::PriorityStrategyStatus::STATUS_SYSTEM_DEFAULT,
+            { static_cast<int32_t>(NotificationConstant::PrioritySourceResult::PARAM_IN),
+              static_cast<int32_t>(NotificationConstant::PrioritySourceResult::KEYWORD),
+              static_cast<int32_t>(NotificationConstant::PrioritySourceResult::AI),
+              static_cast<int32_t>(NotificationConstant::PrioritySourceResult::PUSH_RULE) } },
+        { NotificationConstant::PriorityStrategyStatus::STATUS_SYSTEM_RULE,
+            { static_cast<int32_t>(NotificationConstant::PrioritySourceResult::PUSH_RULE) } },
+        { NotificationConstant::PriorityStrategyStatus::STATUS_INTELLIGENT,
+            { static_cast<int32_t>(NotificationConstant::PrioritySourceResult::AI) } },
+        { NotificationConstant::PriorityStrategyStatus::STATUS_USER_DEFINED,
+            { static_cast<int32_t>(NotificationConstant::PrioritySourceResult::KEYWORD) } },
+        { NotificationConstant::PriorityStrategyStatus::STATUS_APPLICATION_DEFINED,
+            { static_cast<int32_t>(NotificationConstant::PrioritySourceResult::PARAM_IN) } }
+    };
+
+    for (const auto &entry : strategyToTypes) {
+        if ((strategy & entry.first) != 0 && std::find(entry.second.begin(), entry.second.end(), priorityType) !=
+            entry.second.end()) {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool NotificationSubscriberManager::ConsumeRecordFilter(

@@ -439,6 +439,8 @@ interface OHOS.Notification.IAnsManager {
 
     void NotificationExtensionSubscribe([in] sptr<NotificationExtensionSubscriptionInfo>[] infos);
 
+    void NotificationExtensionSubscribeNotification([in] int priorityStrategy);
+
     void NotificationExtensionUnsubscribe();
 
     void GetSubscribeInfo([out] sptr<NotificationExtensionSubscriptionInfo>[] infos);
