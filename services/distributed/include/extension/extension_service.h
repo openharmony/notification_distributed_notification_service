@@ -32,6 +32,7 @@ public:
     void DestroyService();
     void SubscribeNotification(const sptr<NotificationBundleOption> bundle,
         const std::vector<sptr<NotificationBundleOption>>& subscribedBundles);
+    void SubscribeNotification(const sptr<NotificationBundleOption> bundle, int32_t priorityStrategy);
     void UnsubscribeNotification(const sptr<NotificationBundleOption> bundle);
     void SendHaReport(uint32_t scene, uint32_t branchId, int32_t errorCode, const std::string& message);
     bool IsPCModeEnabled() const;

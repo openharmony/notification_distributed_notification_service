@@ -3681,6 +3681,19 @@ InnerErrorCode AnsNotification::NotificationExtensionSubscribe(
     return static_cast<InnerErrorCode>(proxy->NotificationExtensionSubscribe(infos));
 }
 
+InnerErrorCode AnsNotification::NotificationExtensionSubscribeNotification(int32_t priorityStrategy)
+{
+    ANS_LOGD("called");
+
+    sptr<IAnsManager> proxy = GetAnsManagerProxy();
+    if (!proxy) {
+        ANS_LOGE("Get ans manager proxy fail");
+        return ERR_ANS_INNER_SERVICE_NOT_CONNECTED;
+    }
+
+    return static_cast<InnerErrorCode>(proxy->NotificationExtensionSubscribeNotification(priorityStrategy));
+}
+
 InnerErrorCode AnsNotification::NotificationExtensionUnsubscribe()
 {
     ANS_LOGD("called");

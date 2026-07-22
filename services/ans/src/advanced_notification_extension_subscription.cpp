@@ -41,6 +41,7 @@ using STARTUP = int32_t (*)(std::function<void()>, std::function<void(uint32_t, 
 using SHUTDOWN = void (*)();
 using SUBSCRIBE = void (*)(const sptr<NotificationBundleOption>,
     const std::vector<sptr<NotificationBundleOption>> &);
+using SUBSCRIBE_NOTIFICATION = void (*)(const sptr<NotificationBundleOption>, int32_t);
 using UNSUBSCRIBE = void (*)(const sptr<NotificationBundleOption>);
 using GETSUBSCRIBECOUNT = size_t (*)();
 namespace {
@@ -130,6 +131,23 @@ int32_t AdvancedNotificationService::ShutdownExtensionService()
         return -1;
     }
     shutdown();
+    return 0;
+}
+
+int32_t AdvancedNotificationService::SubscribeExtensionServiceNotification(
+    const sptr<NotificationBundleOption> &bundleOption, int32_t priorityStrategy)
+{
+    if (!isExtensionServiceExist()) {
+        return -1;
+    }
+
+    SUBSCRIBE_NOTIFICATION subscribeNotification =
+        (SUBSCRIBE_NOTIFICATION)notificationExtensionHandler_->GetProxyFunc("SubscribeWithStrategy");
+    if (subscribeNotification == nullptr) {
+        ANS_LOGW("GetProxyFunc SubscribeNotification init failed.");
+        return -1;
+    }
+    subscribeNotification(bundleOption, priorityStrategy);
     return 0;
 }
 
@@ -361,7 +379,6 @@ bool AdvancedNotificationService::EnsureBundlesCanSubscribeOrUnsubscribe(
     }
     return true;
 }
-
 bool AdvancedNotificationService::ShutdownExtensionServiceAndUnSubscribed(const sptr<NotificationBundleOption> &bundle)
 {
     if (UnSubscribeExtensionService(bundle) != 0) {
@@ -517,6 +534,29 @@ void AdvancedNotificationService::HandleNewWhitelistBundle(const sptr<Notificati
     }
     ANS_LOGD("HandleNewWhitelistBundle exit");
 }
+
+bool AdvancedNotificationService::EnsureBundlesCanSubscribePriority(
+    const sptr<NotificationBundleOption> &bundle)
+{
+    if (bundle == nullptr) {
+        ANS_LOGE("null bundle");
+        return false;
+    }
+    if (!isExtensionServiceExist() && LoadExtensionService() != 0) {
+        ANS_LOGW("Failed to load extension service.");
+        return false;
+    }
+    int32_t priorityStrategy = 0;
+    ErrCode strategyResult = NotificationPreferences::GetInstance()->GetExtensionSubscriptionNotificationStrategy(
+        bundle, priorityStrategy);
+    if (strategyResult != ERR_OK) {
+        ANS_LOGE("Failed to get extension subscription notification strategy, ret: %{public}d", strategyResult);
+        return false;
+    }
+    SubscribeExtensionServiceNotification(bundle, priorityStrategy);
+    return true;
+}
+
 #endif
 
 void AdvancedNotificationService::GetCachedNotificationExtensionBundles(
@@ -612,20 +652,79 @@ bool AdvancedNotificationService::TryStartExtensionSubscribeService()
         NotificationBluetoothHelper::GetInstance().RegisterHfpObserver();
         NotificationBluetoothHelper::GetInstance().RegisterBluetoothPairedDeviceObserver();
         std::vector<sptr<NotificationBundleOption>> bundles;
-        if (!NotificationBluetoothHelper::GetInstance().CheckBluetoothSwitchState()) {
+        bool hasBundles = GetNotificationExtensionEnabledBundles(bundles) == ERR_OK && !bundles.empty();
+        std::vector<sptr<NotificationBundleOption>> priorityBundles;
+        std::vector<sptr<NotificationBundleOption>> normalBundles;
+        ClassifyExtensionBundles(bundles, priorityBundles, normalBundles);
+        bool btEnabled = NotificationBluetoothHelper::GetInstance().CheckBluetoothSwitchState();
+        if (!btEnabled) {
             ANS_LOGW("Bluetooth is not enabled, skip checking extension service condition");
             NotificationBluetoothHelper::GetInstance().RegisterBluetoothAccessObserver();
-            return;
         }
-        if (GetNotificationExtensionEnabledBundles(bundles) != ERR_OK || bundles.empty()) {
-            ANS_LOGW("No bundle has extensionAbility, skip loading ExtensionService");
-            return;
+        if (!normalBundles.empty() && btEnabled) {
+            EnsureBundlesCanSubscribeOrUnsubscribe(normalBundles);
         }
-        EnsureBundlesCanSubscribeOrUnsubscribe(bundles);
+        if (!priorityBundles.empty()) {
+            RecoverPrioritySubscriptions(priorityBundles);
+        }
     }));
     return true;
 }
+
+bool AdvancedNotificationService::IsPriorityBundle(const sptr<NotificationBundleOption> &bundle)
+{
+    std::vector<sptr<NotificationExtensionSubscriptionInfo>> infos;
+    auto infoResult = NotificationPreferences::GetInstance()->GetExtensionSubscriptionInfos(bundle, infos);
+    if (infoResult == ERR_OK) {
+        for (const auto &info : infos) {
+            if (info != nullptr &&
+                info->GetType() == NotificationConstant::SubscribeType::SYSTEM) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+void AdvancedNotificationService::ClassifyExtensionBundles(
+    const std::vector<sptr<NotificationBundleOption>> &bundles,
+    std::vector<sptr<NotificationBundleOption>> &priorityBundles,
+    std::vector<sptr<NotificationBundleOption>> &normalBundles)
+{
+    for (const auto &bundle : bundles) {
+        if (bundle == nullptr) {
+            continue;
+        }
+        if (IsPriorityBundle(bundle)) {
+            priorityBundles.push_back(bundle);
+        } else {
+            normalBundles.push_back(bundle);
+        }
+    }
+}
+
+void AdvancedNotificationService::RecoverPrioritySubscriptions(
+    const std::vector<sptr<NotificationBundleOption>> &bundles)
+{
+    for (const auto &bundle : bundles) {
+        if (bundle == nullptr) {
+            continue;
+        }
+        int32_t priorityStrategy = 0;
+        auto result = NotificationPreferences::GetInstance()->GetExtensionSubscriptionNotificationStrategy(
+            bundle, priorityStrategy);
+        if (result != ERR_OK || priorityStrategy == 0) {
+            continue;
+        }
+        if (!isExtensionServiceExist() && LoadExtensionService() != 0) {
+            ANS_LOGW("Failed to load extension service for priority recovery.");
+            return;
+        }
+        SubscribeExtensionServiceNotification(bundle, priorityStrategy);
+    }
+}
 #endif
+
 ErrCode AdvancedNotificationService::GetNotificationExtensionEnabledBundles(
     std::vector<sptr<NotificationBundleOption>>& bundles)
 {
@@ -713,6 +812,41 @@ ErrCode AdvancedNotificationService::NotificationExtensionSubscribe(
             ":" + std::to_string(bundleOption->GetUid()) + " subscribe"));
     }));
     ANS_COND_DO_ERR(submitResult != ERR_OK, return submitResult, "Notification extension subscribe.");
+    return result;
+}
+
+ErrCode AdvancedNotificationService::NotificationExtensionSubscribeNotification(int32_t priorityStrategy)
+{
+    ANS_LOGD("AdvancedNotificationService::NotificationExtensionSubscribeNotification");
+    HaMetaMessage message = HaMetaMessage(EventSceneId::SCENE_27, EventBranchId::BRANCH_0);
+    if (!AccessTokenHelper::IsSystemApp()) {
+        NotificationAnalyticsUtil::ReportModifyEvent(
+            message.ErrorCode(ERR_ANS_INNER_NON_SYSTEM_APP).Message("Not systemApp").BranchId(BRANCH_1));
+        return ERR_ANS_INNER_NON_SYSTEM_APP;
+    }
+    ErrCode checkResult = CanOpenSubscribeSettings();
+    if (checkResult != ERR_OK) {
+        return checkResult;
+    }
+
+    sptr<NotificationBundleOption> bundleOption = GenerateBundleOption();
+
+    ErrCode result = ERR_OK;
+    auto submitResult = notificationSvrQueue_.SyncSubmit(std::bind([&]() {
+        result = NotificationPreferences::GetInstance()->SetExtensionSubscriptionNotification(
+            bundleOption, priorityStrategy);
+        if (result != ERR_OK) {
+            ANS_LOGE("Failed to set extension subscription notification, ret: %{public}d", result);
+            return;
+        }
+#ifdef NOTIFICATION_EXTENSION_SUBSCRIPTION_SUPPORTED
+        EnsureBundlesCanSubscribePriority(bundleOption);
+#endif
+        NotificationAnalyticsUtil::ReportModifyEvent(message.BranchId(BRANCH_12).Message(bundleOption->GetBundleName() +
+            ":" + std::to_string(bundleOption->GetUid()) + " subscribe notification"));
+    }));
+    ANS_COND_DO_ERR(submitResult != ERR_OK, return submitResult,
+        "Notification extension subscribe notification.");
     return result;
 }
 

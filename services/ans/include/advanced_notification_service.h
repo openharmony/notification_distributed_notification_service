@@ -2003,6 +2003,8 @@ public:
     ErrCode NotificationExtensionSubscribe(
         const std::vector<sptr<NotificationExtensionSubscriptionInfo>>& infos) override;
 
+    ErrCode NotificationExtensionSubscribeNotification(int32_t priorityStrategy) override;
+
     ErrCode NotificationExtensionUnsubscribe() override;
 
     ErrCode GetSubscribeInfo(std::vector<sptr<NotificationExtensionSubscriptionInfo>>& infos) override;
@@ -2079,6 +2081,12 @@ public:
 #endif
 #ifdef NOTIFICATION_EXTENSION_SUBSCRIPTION_SUPPORTED
     bool TryStartExtensionSubscribeService();
+    void RecoverPrioritySubscriptions(const std::vector<sptr<NotificationBundleOption>> &bundles);
+    void ClassifyExtensionBundles(
+        const std::vector<sptr<NotificationBundleOption>> &bundles,
+        std::vector<sptr<NotificationBundleOption>> &priorityBundles,
+        std::vector<sptr<NotificationBundleOption>> &normalBundles);
+    bool IsPriorityBundle(const sptr<NotificationBundleOption> &bundle);
     void HandleBundleInstall(const sptr<NotificationBundleOption> &bundleOption);
     void HandleBundleUpdate(const sptr<NotificationBundleOption> &bundleOption);
     void HandleBundleUninstall(const sptr<NotificationBundleOption> &bundleOption);
@@ -2579,6 +2587,8 @@ private:
     int32_t LoadExtensionService();
     int32_t SubscribeExtensionService(const sptr<NotificationBundleOption> &bundleOption,
         const std::vector<sptr<NotificationBundleOption>> &bundles);
+    int32_t SubscribeExtensionServiceNotification(const sptr<NotificationBundleOption> &bundleOption,
+        int32_t priorityStrategy);
     int32_t UnSubscribeExtensionService(const sptr<NotificationBundleOption> &bundleOption);
     int32_t ShutdownExtensionService();
     void HandleNewWhitelistBundle(const sptr<NotificationBundleOption> &bundleOption);
@@ -2593,6 +2603,7 @@ private:
     void CheckBleAndHfpStateChange(bool filterHfpOnly);
     std::vector<sptr<NotificationBundleOption>>::iterator FindBundleInCache(
         const sptr<NotificationBundleOption> &bundleOption);
+    bool EnsureBundlesCanSubscribePriority(const sptr<NotificationBundleOption> &bundle);
 #endif
     void ProcessSetUserGrantedState(const sptr<NotificationBundleOption>& bundle,
         bool enabled, ErrCode& result);

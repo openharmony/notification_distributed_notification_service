@@ -43,6 +43,12 @@ SYMBOL_EXPORT void Subscribe(
     NotificationExtensionService::GetInstance().SubscribeNotification(bundle, subscribedBundles);
 }
 
+SYMBOL_EXPORT void SubscribeWithStrategy(
+    const sptr<NotificationBundleOption> bundle, int32_t priorityStrategy)
+{
+    NotificationExtensionService::GetInstance().SubscribeNotification(bundle, priorityStrategy);
+}
+
 SYMBOL_EXPORT void Unsubscribe(const sptr<NotificationBundleOption> bundle)
 {
     NotificationExtensionService::GetInstance().UnsubscribeNotification(bundle);

@@ -30,6 +30,7 @@ struct AsyncCallbackInfoNotificationExtensionSubscription {
     napi_async_work asyncWork = nullptr;
     CallbackPromiseInfo info;
     std::vector<sptr<NotificationExtensionSubscriptionInfo>> subscriptionInfo;
+    int32_t priorityStrategy = 0;
 };
 
 struct NotificationExtensionUserGrantedParams {
@@ -64,6 +65,7 @@ void ProcessStatusChangedSub(int32_t code);
 void CreateExtensionSub(AsyncCallbackInfoOpenSettings* asynccallbackinfo);
 void ProcessExtensionSubCreation(napi_env env, void* data);
 napi_value NapiNotificationExtensionSubscribe(napi_env env, napi_callback_info info);
+napi_value NapiNotificationExtensionSubscribeNotification(napi_env env, napi_callback_info info);
 napi_value NapiNotificationExtensionUnsubscribe(napi_env env, napi_callback_info info);
 napi_value NapiGetSubscribeInfo(napi_env env, napi_callback_info info);
 napi_value NapiIsUserGranted(napi_env env, napi_callback_info info);

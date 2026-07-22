@@ -14,6 +14,7 @@
  */
 
 #include "extension_service_subscribe_service.h"
+#include "extension_service_subscriber.h"
 #include "notification_helper.h"
 #include "os_account_manager.h"
 
@@ -50,6 +51,10 @@ void ExtensionServiceSubscribeService::SubscribeNotification(
         return;
     }
     sptr<NotificationSubscribeInfo> subscribeInfo = new (std::nothrow) NotificationSubscribeInfo();
+    if (subscribeInfo == nullptr) {
+        ANS_LOGE("Failed to create subscribeInfo");
+        return;
+    }
     subscribeInfo->AddDeviceType(NotificationConstant::THIRD_PARTY_WEARABLE_DEVICE_TYPE);
     
     int32_t userId = -1;
@@ -74,6 +79,52 @@ void ExtensionServiceSubscribeService::SubscribeNotification(
     } else {
         ANS_LOGW("SubscribeNotification failed with %{public}d.", result);
     }
+}
+
+void ExtensionServiceSubscribeService::SubscribeNotification(
+    const sptr<NotificationBundleOption> bundle, int32_t priorityStrategy)
+{
+    ANS_LOGD("enter with priorityStrategy");
+    if (bundle == nullptr) {
+        ANS_LOGE("null bundle");
+        return;
+    }
+
+    std::lock_guard<ffrt::mutex> lock(mapLock_);
+    const std::string bundleKey = MakeBundleKey(*bundle);
+
+    auto iter = subscriberMap_.find(bundleKey);
+    std::shared_ptr<ExtensionServiceSubscriber> subscriber =
+        iter == subscriberMap_.end() ? std::make_shared<ExtensionServiceSubscriber>() : iter->second;
+    if (!subscriber->Init(bundle)) {
+        ANS_LOGE("Failed to init notification subscriber for %{public}s_%{public}d", bundle->GetBundleName().c_str(),
+            bundle->GetUid());
+        return;
+    }
+
+    sptr<NotificationSubscribeInfo> subscribeInfo = new (std::nothrow) NotificationSubscribeInfo();
+    if (subscribeInfo == nullptr) {
+        ANS_LOGE("Failed to create subscribeInfo for priorityStrategy");
+        return;
+    }
+    subscribeInfo->AddDeviceType(NotificationConstant::CURRENT_DEVICE_TYPE);
+
+    int32_t userId = -1;
+    int result = AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(bundle->GetUid(), userId);
+    if (result != ERR_OK) {
+        ANS_LOGW("Failed to GetOsAccountLocalIdFromUid for extension, uid: %{public}d, ret: %{public}d",
+            bundle->GetUid(), result);
+        return;
+    }
+    subscribeInfo->AddAppUserId(userId);
+    subscribeInfo->SetPriorityStrategy(priorityStrategy);
+    result = NotificationHelper::SubscribeNotification(subscriber, subscribeInfo);
+    ANS_LOGI("Subscribe notification %{public}s %{public}d %{public}d.", bundleKey.c_str(), priorityStrategy, result);
+    if (result == 0) {
+        subscriberMap_.insert_or_assign(bundleKey, subscriber);
+        return;
+    }
+    ANS_LOGW("SubscribeNotification failed with %{public}d.", result);
 }
 
 void ExtensionServiceSubscribeService::UnsubscribeNotification(const sptr<NotificationBundleOption> bundle)

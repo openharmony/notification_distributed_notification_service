@@ -87,6 +87,20 @@ public:
     void SetType(const NotificationConstant::SubscribeType type);
 
     /**
+     * @brief Get priority strategy.
+     *
+     * @return Returns priority strategy value.
+     */
+    int32_t GetPriorityStrategy() const;
+
+    /**
+     * @brief Sets priority strategy.
+     *
+     * @param type priority strategy value.
+     */
+    void SetPriorityStrategy(int32_t priorityStrategy);
+
+    /**
      * @brief Returns a string representation of the object.
      *
      * @return Returns a string representation of the object.
@@ -138,6 +152,7 @@ private:
     std::string addr_ {};
     bool isHfp_ = false;
     NotificationConstant::SubscribeType type_ = NotificationConstant::SubscribeType::BLUETOOTH;
+    int32_t priorityStrategy_ = 0;
 };
 }  // namespace Notification
 }  // namespace OHOS

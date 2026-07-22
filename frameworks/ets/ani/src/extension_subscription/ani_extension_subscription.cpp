@@ -41,6 +41,8 @@ void AniNotificationExtensionRegistryInit(ani_env *env)
             "nativeOpenSubscriptionSettingsWithResult", nullptr,
             reinterpret_cast<void*>(AniOpenSubscribeSettingsWithResult) },
         ani_native_function { "nativeSubscribe", nullptr, reinterpret_cast<void*>(AniSubscribe) },
+        ani_native_function {
+            "nativeSubscribeNotification", nullptr, reinterpret_cast<void*>(AniSubscribeNotification) },
         ani_native_function { "nativeUnsubscribe", nullptr, reinterpret_cast<void*>(AniUnsubscribe) },
         ani_native_function { "nativeGetSubscribeInfo", nullptr, reinterpret_cast<void*>(AniGetSubscribeInfo) },
         ani_native_function {

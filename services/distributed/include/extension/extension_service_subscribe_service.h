@@ -29,6 +29,7 @@ public:
     static ExtensionServiceSubscribeService& GetInstance();
     void SubscribeNotification(const sptr<NotificationBundleOption> bundle,
         const std::vector<sptr<NotificationBundleOption>>& subscribeBundles);
+    void SubscribeNotification(const sptr<NotificationBundleOption> bundle, int32_t priorityStrategy);
     void UnsubscribeNotification(const sptr<NotificationBundleOption> bundle);
     void UnsubscribeAllNotification();
 private:
