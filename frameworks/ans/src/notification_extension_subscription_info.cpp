@@ -27,7 +27,7 @@ NotificationExtensionSubscriptionInfo::NotificationExtensionSubscriptionInfo(
 
 NotificationExtensionSubscriptionInfo::NotificationExtensionSubscriptionInfo(
     const NotificationExtensionSubscriptionInfo& info)
-    : addr_(info.addr_), isHfp_(info.isHfp_), type_(info.type_)
+    : addr_(info.addr_), isHfp_(info.isHfp_), type_(info.type_), priorityStrategy_(info.priorityStrategy_)
 {}
 
 NotificationExtensionSubscriptionInfo::~NotificationExtensionSubscriptionInfo()
@@ -63,11 +63,22 @@ void NotificationExtensionSubscriptionInfo::SetType(const NotificationConstant::
     type_ = type;
 }
 
+int32_t NotificationExtensionSubscriptionInfo::GetPriorityStrategy() const
+{
+    return priorityStrategy_;
+}
+
+void NotificationExtensionSubscriptionInfo::SetPriorityStrategy(int32_t priorityStrategy)
+{
+    priorityStrategy_ = priorityStrategy;
+}
+
 std::string NotificationExtensionSubscriptionInfo::Dump()
 {
     return "NotificationExtensionSubscriptionInfo{ "
             "addr = " + addr_ +
             ", type = " + std::to_string(static_cast<int32_t>(type_)) +
+            ", priorityStrategy = " + std::to_string(priorityStrategy_) +
             " }";
 }
 
@@ -114,6 +125,7 @@ bool NotificationExtensionSubscriptionInfo::ToJson(nlohmann::json& jsonObject) c
     jsonObject["addr"] = addr_;
     jsonObject["isHfp"] = isHfp_;
     jsonObject["type"] = static_cast<int32_t>(type_);
+    jsonObject["priorityStrategy"] = priorityStrategy_;
 
     return true;
 }
@@ -144,6 +156,10 @@ NotificationExtensionSubscriptionInfo* NotificationExtensionSubscriptionInfo::Fr
     if (jsonObject.find("type") != jsonEnd && jsonObject.at("type").is_number_integer()) {
         auto typeValue  = jsonObject.at("type").get<int32_t>();
         pDistributedBundleOption->type_ = static_cast<NotificationConstant::SubscribeType>(typeValue);
+    }
+
+    if (jsonObject.find("priorityStrategy") != jsonEnd && jsonObject.at("priorityStrategy").is_number_integer()) {
+        pDistributedBundleOption->priorityStrategy_ = jsonObject.at("priorityStrategy").get<int32_t>();
     }
 
     return pDistributedBundleOption;

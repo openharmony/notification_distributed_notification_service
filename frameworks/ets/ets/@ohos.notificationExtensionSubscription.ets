@@ -43,6 +43,7 @@ export default namespace notificationExtensionSubscription {
     native function nativeOpenSubscriptionSettings(context: UIAbilityContext): Promise<int>;
     native function nativeOpenSubscriptionSettingsWithResult(context: UIAbilityContext): UserGrantSetting;
     native function nativeSubscribe(info: NotificationExtensionSubscriptionInfo[]): Promise<void>;
+    native function nativeSubscribeNotification(priorityStrategy?: int): Promise<void>;
     native function nativeUnsubscribe(): Promise<void>;
     native function nativeGetSubscribeInfo(): Promise<NotificationExtensionSubscriptionInfo[]>;
     native function nativeGetAllSubscriptionBundles(): Promise<BundleOption[]>;
@@ -112,6 +113,17 @@ export default namespace notificationExtensionSubscription {
         let result: Promise<void>;
         try {
             result = nativeSubscribe(info);
+        } catch (err) {
+            let error: BusinessError = err as BusinessError;
+            throw error;
+        }
+        return result;
+    }
+
+    function subscribeNotification(priorityStrategy?: int): Promise<void> {
+        let result: Promise<void>;
+        try {
+            result = nativeSubscribeNotification(priorityStrategy);
         } catch (err) {
             let error: BusinessError = err as BusinessError;
             throw error;

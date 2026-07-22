@@ -60,6 +60,7 @@ public:
         uint32_t subscribedFlags_ {0};
         bool enableClassification = false;
         bool needSilentReplayOnSubscribe = false;
+        int32_t priorityStrategy_ = 0;
     };
 
     /**
@@ -262,6 +263,12 @@ private:
         std::string& content);
     void NotifyConsumedInner(
         const sptr<Notification> &notification, const sptr<NotificationSortingMap> &notificationMap);
+    void NotifyPriorityRecordOnConsumed(const std::shared_ptr<SubscriberRecord> &record,
+        const sptr<Notification> &notification, const sptr<NotificationSortingMap> &notificationMap);
+    void NotifyRecordOnConsumed(const std::shared_ptr<SubscriberRecord> &record,
+        const sptr<Notification> &notification, const sptr<NotificationSortingMap> &notificationMap,
+        const std::string &content, const std::set<std::string> &voiceFlag,
+        const std::vector<sptr<NotificationClassification>> &notificationClassifications);
     void BatchNotifyConsumedInner(const std::vector<sptr<Notification>> &notifications,
         const sptr<NotificationSortingMap> &notificationMap,
         const std::shared_ptr<SubscriberRecord> &record);
@@ -286,6 +293,12 @@ private:
         const std::shared_ptr<SubscriberRecord> &record, const sptr<Notification> &notification);
     bool IsSubscribedByDeviceType(const std::shared_ptr<SubscriberRecord> &record,
         const sptr<Notification> &notification, bool checkConsumedDevice);
+    bool IsSubscribedByPriority(const std::shared_ptr<SubscriberRecord> &record,
+        const sptr<Notification> &notification);
+    bool CheckAllPriorityByBundle(const sptr<Notification> &notification,
+        const sptr<NotificationRequest> &request);
+    bool MatchPriorityStrategy(int32_t strategy, int32_t priorityType);
+    int32_t MatchPriorityTypeToBits(int32_t priorityType);
     sptr<Notification> GenerateSubscribedNotification(const std::shared_ptr<SubscriberRecord> &record,
         const sptr<Notification> &notification, const std::string& voiceContent = std::string());
     bool ConsumeRecordFilter(

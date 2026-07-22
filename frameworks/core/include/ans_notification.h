@@ -1786,6 +1786,14 @@ public:
         const std::vector<sptr<NotificationExtensionSubscriptionInfo>>& infos);
 
     /**
+     * @brief Subscribe the priority notification.
+     *
+     * @param priorityStrategy The priority strategy.
+     * @return Returns subscribe result.
+     */
+    InnerErrorCode NotificationExtensionSubscribeNotification(int32_t priorityStrategy);
+
+    /**
      * @brief Unsubscribe the notification.
      *
      * @return Returns unsubscribe result.
