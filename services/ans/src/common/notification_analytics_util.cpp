@@ -494,8 +494,16 @@ void NotificationAnalyticsUtil::ReportLiveViewNumber(const sptr<NotificationRequ
     NotificationNapi::AnsEnumUtil::ContentTypeCToJS(
         static_cast<NotificationContent::Type>(request->GetNotificationType()), contentType);
     if (contentType == NotificationNapi::ContentType::NOTIFICATION_CONTENT_LIVE_VIEW) {
+        if (request->GetContent() == nullptr || request->GetContent()->GetNotificationContent() == nullptr) {
+            ANS_LOGW("liveview content is null, skip report");
+            return;
+        }
         auto content = request->GetContent()->GetNotificationContent();
         auto liveViewContent = std::static_pointer_cast<NotificationLiveViewContent>(content);
+        if (liveViewContent == nullptr) {
+            ANS_LOGW("liveview content cast failed, skip report");
+            return;
+        }
         if (liveViewContent->GetExtraInfo() != nullptr) {
             std::string bundle = bundleName + MESSAGE_DELIMITER +
                 liveViewContent->GetExtraInfo()->GetStringParam("event");
@@ -1084,12 +1092,14 @@ std::string NotificationAnalyticsUtil::BuildExtraInfoWithReq(const HaMetaMessage
         static_cast<NotificationContent::Type>(request->GetNotificationType()), contentType);
     nlohmann::json reason;
     if (contentType == NotificationNapi::ContentType::NOTIFICATION_CONTENT_LIVE_VIEW) {
-        auto content = request->GetContent()->GetNotificationContent();
-        auto liveViewContent = std::static_pointer_cast<NotificationLiveViewContent>(content);
-        reason["status"] = static_cast<int32_t>(liveViewContent->GetLiveViewStatus());
-        if (liveViewContent->GetExtraInfo() != nullptr) {
-            reason["et"] = liveViewContent->GetExtraInfo()->GetStringParam("event");
-            reason["lt"] = liveViewContent->GetExtraInfo()->GetIntParam("LayoutData.layoutType", -1);
+        if (request->GetContent() != nullptr && request->GetContent()->GetNotificationContent() != nullptr) {
+            auto content = request->GetContent()->GetNotificationContent();
+            auto liveViewContent = std::static_pointer_cast<NotificationLiveViewContent>(content);
+            reason["status"] = static_cast<int32_t>(liveViewContent->GetLiveViewStatus());
+            if (liveViewContent->GetExtraInfo() != nullptr) {
+                reason["et"] = liveViewContent->GetExtraInfo()->GetStringParam("event");
+                reason["lt"] = liveViewContent->GetExtraInfo()->GetIntParam("LayoutData.layoutType", -1);
+            }
         }
     }
 
@@ -1121,11 +1131,9 @@ std::string NotificationAnalyticsUtil::BuildExtraInfoWithReq(const HaMetaMessage
     int32_t leftSpace = REASON_MAX_LENGTH - reasonFixedSize;
     if (leftSpace < 0) {
         std::string basicInfo = std::to_string(message.sceneId_) + MESSAGE_DELIMITER +
-            std::to_string(message.branchId_) + MESSAGE_DELIMITER +
-            std::to_string(message.errorCode_) + MESSAGE_DELIMITER +
-            std::to_string(now) + " Reason fixed size exceeds limit";
+            std::to_string(message.branchId_) + MESSAGE_DELIMITER + std::to_string(message.errorCode_) +
+            MESSAGE_DELIMITER + std::to_string(now) + " Reason fixed size exceeds limit";
         extraInfo->SetParam("reason", AAFwk::String::Box(basicInfo));
-        ANS_LOGD("%{public}s", basicInfo.c_str());
     } else {
         reason["detail"] = message.message_.substr(0, leftSpace);
         extraInfo->SetParam("reason",
