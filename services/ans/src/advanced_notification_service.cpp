@@ -77,6 +77,7 @@
 #endif
 
 #include "advanced_notification_inline.h"
+#include "parse_recent_notification_count.h"
 #include "advanced_datashare_helper_ext.h"
 #include "notification_analytics_util.h"
 #include "advanced_notification_flow_control_service.h"
@@ -2058,8 +2059,8 @@ std::shared_ptr<NotificationRecord> AdvancedNotificationService::GetRecordFromNo
 ErrCode AdvancedNotificationService::SetRecentNotificationCount(const std::string arg)
 {
     ANS_LOGD("%{public}s arg = %{public}s", __FUNCTION__, arg.c_str());
-    int32_t count = atoi(arg.c_str());
-    if ((count < NOTIFICATION_MIN_COUNT) || (count > NOTIFICATION_MAX_COUNT)) {
+    int32_t count = 0;
+    if (!ParseRecentNotificationCount(arg, count)) {
         return ERR_ANS_INNER_INVALID_PARAM;
     }
 
