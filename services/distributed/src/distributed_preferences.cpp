@@ -15,6 +15,7 @@
 
 #include "distributed_preferences.h"
 
+#include <charconv>
 #include <map>
 
 #include "ans_service_errors.h"
@@ -32,7 +33,9 @@ const std::string WITHOUT_APP = "without_app";
 
 inline bool GetBoolFromString(const std::string &str)
 {
-    return static_cast<bool>(atoi(str.data()));
+    int32_t value = 0;
+    auto parsed = std::from_chars(str.data(), str.data() + str.size(), value);
+    return parsed.ec == std::errc{} && parsed.ptr == str.data() + str.size() && value != 0;
 }
 
 DistributedPreferences::DistributedPreferences()
