@@ -15,6 +15,7 @@
  
 #include "notification_shell_command.h"
 
+#include <charconv>
 #include <getopt.h>
 #include <iostream>
 #include <cstring>
@@ -66,6 +67,18 @@ constexpr const char* PERM_CONTROLLER_AND_AGENT =
 std::string TruncateString(const std::string &str, size_t maxLen)
 {
     return str.size() > maxLen ? str.substr(0, maxLen) : str;
+}
+
+template<typename T>
+bool ParseNumber(const char *value, T &result)
+{
+    if (value == nullptr || *value == '\0') {
+        return false;
+    }
+    const char *first = value;
+    const char *last = first + strlen(first);
+    auto parsed = std::from_chars(first, last, result);
+    return parsed.ec == std::errc{} && parsed.ptr == last;
 }
 
 constexpr char SHORT_OPTIONS_PUBLISH[] = "h";
@@ -437,18 +450,43 @@ ErrCode NotificationShellCommand::ParsePublishOptions(PublishOptions &opts)
                 resultReceiver_.append(PUBLISH_HELP_MSG);
                 opts.helpRequested = true;
                 return ERR_OK;
-            case 1: opts.notificationId = atoi(optarg); break;
+            case 1: {
+                int64_t value = 0;
+                if (!ParseNumber(optarg, value) || value < INT32_MIN || value > INT32_MAX) {
+                    return ERR_INVALID_VALUE;
+                }
+                opts.notificationId = static_cast<int32_t>(value);
+                break;
+            }
             case 2: opts.contentJson = optarg; break;
-            case 3: opts.slotType = atoi(optarg); break;
+            case 3: {
+                int64_t value = 0;
+                if (!ParseNumber(optarg, value) || value < INT32_MIN || value > INT32_MAX) {
+                    return ERR_INVALID_VALUE;
+                }
+                opts.slotType = static_cast<int32_t>(value);
+                break;
+            }
             case 4: opts.label = optarg; break;
             case 5: opts.groupName = optarg; break;
-            case 6: opts.badgeNumber = static_cast<uint32_t>(atoi(optarg)); break;
+            case 6: {
+                uint64_t value = 0;
+                if (!ParseNumber(optarg, value) || value > UINT32_MAX) {
+                    return ERR_INVALID_VALUE;
+                }
+                opts.badgeNumber = static_cast<uint32_t>(value);
+                break;
+            }
             case 7: opts.isUpdateOnly = true; break;
             case 8: opts.appMessageId = optarg; break;
             case 9: opts.priorityNotificationType = optarg; break;
             case 10: opts.isAlertOneTime = true; break;
             case 11: opts.sound = optarg; break;
-            case 12: opts.autoDeletedTime = static_cast<int64_t>(atoll(optarg)); break;
+            case 12:
+                if (!ParseNumber(optarg, opts.autoDeletedTime)) {
+                    return ERR_INVALID_VALUE;
+                }
+                break;
             case 13: opts.flagsStr = optarg; break;
             default:
                 OutputError("ERR_UNKNOWN_OPTION", "未知选项: publish命令不支持该选项",
