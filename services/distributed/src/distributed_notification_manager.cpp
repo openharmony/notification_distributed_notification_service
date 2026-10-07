@@ -15,6 +15,7 @@
 
 #include "distributed_notification_manager.h"
 
+#include <charconv>
 #include <vector>
 
 #include "ans_inner_errors.h"
@@ -129,7 +130,14 @@ bool DistributedNotificationManager::ResolveDistributedKey(const std::string &ke
     resolveKey.deviceId = key.substr(deviceIdPosition, deviceIdEndPosition - deviceIdPosition);
     resolveKey.bundleName = key.substr(bundleNamePosition, bundleNameEndPosition - bundleNamePosition);
     resolveKey.label = key.substr(labelPosition, labelEndPosition - labelPosition);
-    resolveKey.id = atoi(&key[idPosition]);
+    const char *idBegin = key.data() + idPosition;
+    const char *idEnd = key.data() + key.size();
+    int32_t id = 0;
+    auto parsed = std::from_chars(idBegin, idEnd, id);
+    if (parsed.ec != std::errc{} || parsed.ptr != idEnd) {
+        return false;
+    }
+    resolveKey.id = id;
 
     return true;
 }
